@@ -1,0 +1,29 @@
+.scroll-bar-primary {
+	&::-webkit-scrollbar {
+		width: 5px;
+		height: 2px;
+	}
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: #bdbdbd;
+		border-radius: 20px;
+	}
+}
+.scroll-bar--autohidden {
+	&::-webkit-scrollbar {
+		display: none;
+	}
+	&:hover {
+		&::-webkit-scrollbar {
+			display: block;
+		}
+	}
+}
+.scroll-bar-hidden {
+	&::-webkit-scrollbar {
+		// visibility: hidden;
+		display: none;
+	}
+}

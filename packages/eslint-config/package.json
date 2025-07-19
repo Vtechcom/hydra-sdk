@@ -1,0 +1,33 @@
+{
+  "name": "@hydrawallet/eslint-config",
+  "version": "0.0.1",
+  "description": "Eslint config for Hydra Wallet",
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aniadev/hydra-wallet-sdk.git",
+    "directory": "packages/eslint-config"
+  },
+  "license": "MIT",
+  "author": "Aniadev",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^4.6.2"
+  },
+  "peerDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.5.2"
+  }
+}
