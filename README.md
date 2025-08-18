@@ -1,4 +1,4 @@
-# Hydra Wallet SDK
+# Hydra SDK
 
 A comprehensive software development kit for building Cardano wallet applications with Hydra Layer 2 integration. Built on a monorepo architecture using Turborepo, it provides essential libraries and tools to integrate Cardano wallet functionality and Hydra Head management into your applications.
 
