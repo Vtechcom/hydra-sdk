@@ -7,8 +7,16 @@ node_modules
 
 .idea
 
-# testing
+# Tests
 coverage
+/.nyc_output
+test-results.json
+test-report/
+allure-results/
+allure-report/
+test-results/
+test-results.json
+junit.xml
 
 # build outputs
 .nuxt/

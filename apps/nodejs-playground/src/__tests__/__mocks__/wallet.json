@@ -1,0 +1,12 @@
+{
+	"walletPrimary": {
+		"mnemonic": "member genius submit circle suggest square ivory stem evidence snow rack festival faculty recipe amazing cliff warrior mistake screen humor chat night glad weather",
+		"baseAddressBech32": "addr_test1qzya97j3gg2lkp360m7238lfe46y0jzhl6wgsz6xysz3d5peqew2j40a7ryqyku9re6znz26uan26shczed77p9n6uwq68d0h9",
+		"paymentKeyHex": "885edd05a70aabe1799e01f5a2fac7f6a529a7b8d0b87a43b34ae7797cf3a957ffda50ec3ee078f498fe4919589dca8bc198eb2dd691e3cba9c50b93792487ff",
+		"paymentCredentialHash": "89d2fa514215fb063a7efca89fe9cd7447c857fe9c880b46240516d0"
+	},
+	"walletTestHydra": {
+		"mnemonic": "path limb music blouse leave waste mango access vintage retire artefact aim turtle potato finger electric useless juice mystery claim legal flee cradle tilt",
+		"baseAddressBech32": "addr_test1qqwc9nkekwyjlv4pr302ycpeegq7l3wapg87znpnf7gxpjgf9f60cdrvzuswta8g3g42l7d4m002a8ler4zxgdmvvz4s8etts2"
+	}
+}

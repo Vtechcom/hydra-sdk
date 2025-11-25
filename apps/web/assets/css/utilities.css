@@ -1,5 +1,0 @@
-@layer utilities {
-	.text-title-1 {
-		@apply text-[33px] leading-[56px] font-semibold;
-	}
-}

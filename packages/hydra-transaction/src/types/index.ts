@@ -1,0 +1,154 @@
+import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
+import { Asset, IFetcher, ISubmitter, Protocol } from '@hydra-sdk/core'
+
+export interface TxBuilderOptions {
+	fetcher?: IFetcher
+	submitter?: ISubmitter
+	isHydra?: boolean
+	params?: Partial<Protocol>
+	verbose?: boolean
+	/**
+	 * Using for testing purpose only
+	 * When enabled, the tx building process will be more strict and throw error in case of any issue
+	 * This is useful for testing and debugging
+	 *
+	 * For example, if the coin selection fails, it will throw an error instead of trying to continue
+	 * and potentially creating an invalid transaction
+	 *
+	 * NOTE: This mode is not recommended for production use
+	 *
+	 * Default: false
+	 *
+	 */
+	errorLogger?: boolean
+}
+
+export const COIN_SELECTION_STRATEGY = {
+	LargestFirst: CardanoWASM.CoinSelectionStrategyCIP2.LargestFirst,
+	RandomImprove: CardanoWASM.CoinSelectionStrategyCIP2.RandomImprove,
+	LargestFirstMultiAsset: CardanoWASM.CoinSelectionStrategyCIP2.LargestFirstMultiAsset,
+	RandomImproveMultiAsset: CardanoWASM.CoinSelectionStrategyCIP2.RandomImproveMultiAsset
+} as const
+
+export type CoinSelectionStrategy = keyof typeof COIN_SELECTION_STRATEGY
+
+// Plutus script version
+export type PlutusVersion = 'V1' | 'V2' | 'V3'
+
+// Datum and redeemer types
+export type Datum = CardanoWASM.PlutusData
+export type Redeemer = CardanoWASM.Redeemer
+
+// Script reference types
+export interface ScriptRef {
+	scriptCbor: string
+	version: PlutusVersion
+}
+
+// Policy script types
+export type PolicyScript = {
+	type: 'PlutusV1' | 'PlutusV2' | 'PlutusV3' | 'Native'
+	scriptCborHex: string
+}
+
+// Mint asset interface
+export interface MintAsset {
+	assetName: string
+	quantity: string
+	policyId: string
+	policyScript?: PolicyScript
+	redeemer?: Redeemer
+}
+
+// Certificate types
+export type CertificateType =
+	| 'StakeRegistration'
+	| 'StakeDeregistration'
+	| 'StakeDelegation'
+	| 'PoolRegistration'
+	| 'PoolRetirement'
+
+export interface Certificate {
+	type: CertificateType
+	stakeKeyHash?: string
+	poolKeyHash?: string
+	rewardAddress?: string
+	poolParams?: any
+	epoch?: number
+}
+
+// Withdrawal interface
+export interface Withdrawal {
+	rewardAddress: string
+	amount: string
+}
+
+// Metadata interface
+// Transaction Metadata
+
+export type MetadatumMap = Map<Metadatum, Metadatum>
+export type Metadatum = bigint | number | string | Uint8Array | MetadatumMap | Metadatum[]
+export type TxMetadata = Map<bigint, Metadatum>
+
+// to be used for serialization
+export type Metadata = {
+	tag: string
+	metadata: string
+}
+
+// Validity range interface
+export interface ValidityRange {
+	invalidBefore?: number
+	invalidAfter?: number
+}
+
+// Transaction input with script support
+export interface TxIn {
+	txHash: string
+	outputIndex: number
+	amount?: Asset[]
+	address?: string
+	/**
+	 * Datum for the input (if any)
+	 *
+	 * Only one of datum or inlineDatum can be set
+	 *
+	 * NOTE: If the input contains inlineDatum, then datum is not required
+	 *
+	 * NOTE: Providing datum will help save costs compared to using inlineDatum
+	 *
+	 * See: https://docs.cardano.org/plutus/cost-model#inline-datums
+	 *
+	 * NOTE:
+	 */
+	datum?: Datum
+
+	inlineDatum?: Datum
+	redeemer?: Redeemer
+	scriptRef?: ScriptRef
+}
+
+export interface TxScriptIn {
+	txHash: string
+	outputIndex: number
+	amount?: Asset[]
+	address?: string
+
+	// Datum
+	datum?: Datum
+
+	// Inline datum
+	inlineDatum?: Datum
+	inlineDatumHash?: string
+	inineDatumRaw?: string
+	redeemer?: CardanoWASM.Redeemer
+	scriptRef?: ScriptRef
+}
+
+// Collateral input
+export interface CollateralInput {
+	txHash: string
+	outputIndex: number
+	amount: Asset[]
+	address: string
+}

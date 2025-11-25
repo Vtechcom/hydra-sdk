@@ -1,37 +1,19 @@
 {
-  "extends": "@hydrawallet/tsconfig/base",
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "**/*.test.ts",
-    "./dist/**"
-  ],
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "moduleResolution": "Bundler",
     "declaration": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "importHelpers": true,
-    // strict mode
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
-  }
+    "baseUrl": ".",
+    "types": [],
+    "outDir": "dist"
+  },
+  "include": [
+    "src"
+  ]
 }

@@ -1,11 +1,11 @@
 {
-  "name": "@hydrawallet/tsconfig",
-  "version": "0.0.1",
-  "publishConfig": {
-    "access": "public"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@vue/tsconfig": "0.7.0"
-  }
+	"name": "@hydra-sdk/tsconfig",
+	"version": "0.0.4",
+	"publishConfig": {
+		"access": "public"
+	},
+	"license": "Apache-2.0",
+	"devDependencies": {
+		"@vue/tsconfig": "0.7.0"
+	}
 }

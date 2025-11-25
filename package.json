@@ -1,34 +1,45 @@
 {
-  "name": "hydrawallet-sdk",
-  "publishConfig": {
-    "access": "public"
-  },
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
-  "scripts": {
-    "dev": "turbo run dev --filter=web... --concurrency=50",
-    "build": "turbo run build --filter=web...",
-    "build:packages": "turbo run build --filter=./packages/* ",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
-  },
-  "devDependencies": {
-    "@changesets/cli": "^2.28.1",
-    "@hydrawallet/eslint-config": "workspace:*",
-    "@hydrawallet/tsconfig": "workspace:*",
-    "@types/node": "^18.16.2",
-    "prettier": "^3.5.2",
-    "tsx": "^4.6.1",
-    "turbo": "^2.4.4",
-    "typescript": "5.7.3",
-    "vitest": "^2.1.9"
-  },
-  "dependencies": {},
-  "engines": {
-    "node": ">=18.20.0"
-  },
-  "packageManager": "pnpm@10.5.2"
+	"name": "hydra-sdk",
+	"publishConfig": {
+		"access": "public"
+	},
+	"workspaces": [
+		"packages/*",
+		"apps/*"
+	],
+	"scripts": {
+		"set:dev": "node set-exports.js dev",
+		"set:prod": "node set-exports.js prod",
+		"dev:web": "pnpm set:dev && turbo run dev --filter=...hydrawallet-client --concurrency=10",
+		"dev:playground": "pnpm set:dev && turbo run dev --filter=...@hydra-sdk/playground --concurrency=10",
+		"dev:docs": "pnpm set:dev && turbo run dev --filter=...@hydra-sdk/docs --concurrency=10",
+		"dev:nodejs": "pnpm set:dev && turbo run dev --filter=...nodejs-playground --concurrency=10",
+		"docs:generate": "pnpm set:prod && pnpm --filter ./apps/docs generate",
+		"playground:generate": "pnpm set:prod && pnpm --filter ./apps/playground generate",
+		"build:web": "pnpm set:prod && turbo run build --filter=hydrawallet-client...",
+		"build:packages": "pnpm set:prod && turbo run build --filter=./packages/* ",
+		"lint": "turbo run lint",
+		"clean": "turbo run clean && rm -rf node_modules",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
+		"test:ci": "pnpm set:dev && pnpm build:packages && pnpm --filter ./apps/nodejs-playground test:ci"
+	},
+	"devDependencies": {
+		"@changesets/cli": "^2.28.1",
+		"@hydra-sdk/eslint-config": "workspace:*",
+		"@hydra-sdk/tsconfig": "workspace:*",
+		"@types/node": "^18.16.2",
+		"glob": "^11.0.3",
+		"gray-matter": "^4.0.3",
+		"prettier": "^3.5.3",
+		"prettier-plugin-tailwindcss": "0.6.12",
+		"ts-morph": "^27.0.2",
+		"tsx": "^4.6.1",
+		"turbo": "^2.4.4",
+		"typescript": "5.7.3",
+		"vitest": "^2.1.9"
+	},
+	"engines": {
+		"node": ">=18.20.0"
+	},
+	"packageManager": "pnpm@10.5.2"
 }

@@ -1,0 +1,228 @@
+{
+	"nav": {
+		"gettingStarted": "Getting Started",
+		"apiReference": "API Reference",
+		"examples": "Examples",
+		"guides": "Guides",
+		"glossary": "Glossary",
+		"hydraBridge": "Hydra Bridge",
+		"hydraConcept": "Hydra Concept"
+	},
+	"home": {
+		"title": "Hydra SDK",
+		"subtitle": "A comprehensive software development kit for building Cardano DApps and wallet applications with",
+		"hydroLayer2": "Hydra Layer 2",
+		"integration": "integration",
+		"getStarted": "Get Started",
+		"apiReference": "API Reference",
+		"viewGithub": "View on GitHub",
+		"stats": {
+			"corePackages": "Core Packages",
+			"applications": "Applications",
+			"typescript": "TypeScript",
+			"superFast": "Super Fast",
+			"license": "License"
+		},
+		"features": {
+			"title": "Everything you need to build",
+			"subtitle": "A complete toolkit with modular packages, TypeScript support, and comprehensive documentation",
+			"cardanoWallet": {
+				"title": "Cardano Wallet Management",
+				"description": "Create, restore, and manage Cardano wallets with full HD wallet support and transaction signing."
+			},
+			"hydraIntegration": {
+				"title": "Hydra Layer 2 Integration",
+				"description": "Complete Hydra Head lifecycle management with real-time transaction processing."
+			},
+			"transactionBuilder": {
+				"title": "Transaction Builder",
+				"description": "Advanced transaction building utilities with UTxO selection and fee optimization."
+			},
+			"wasmIntegration": {
+				"title": "WASM Integration",
+				"description": "High-performance Cardano serialization with browser-optimized WebAssembly."
+			},
+			"typescriptFirst": {
+				"title": "TypeScript First",
+				"description": "Full TypeScript support with comprehensive type definitions and IntelliSense."
+			},
+			"modularArchitecture": {
+				"title": "Modular Architecture",
+				"description": "Extensible package-based architecture for easy customization and integration."
+			}
+		},
+		"showcase": {
+			"title": "Apps Built with Hydra SDK",
+			"subtitle": "Discover powerful applications already using our SDK in production",
+			"apps": {
+				"hydraWallet": {
+					"name": "Hydra Wallet",
+					"category": "Cardano Wallet",
+					"description": "A modern, secure Cardano wallet with Hydra Layer 2 support for instant transactions and DeFi operations.",
+					"visitButton": "Visit Hydra Wallet"
+				},
+				"hydraPlayground": {
+					"name": "Hydra SDK Playground",
+					"category": "Development",
+					"description": "An interactive playground for experimenting with Hydra SDK features and building DApps.",
+					"visitButton": "Visit Hydra Playground"
+				},
+				"hydraFlappy": {
+					"name": "Hydra Flappy Bird",
+					"category": "GameFi",
+					"description": "Classic Flappy Bird game reimagined with blockchain integration, NFT rewards, and Hydra-powered microtransactions.",
+					"visitButton": "Visit Hydra Flappy Bird"
+				},
+				"hydraFastpay": {
+					"name": "Hydra Fastpay",
+					"category": "Payment Solution",
+					"description": "Lightning-fast payment processing using Hydra Layer 2 for instant, low-cost transactions on Cardano.",
+					"visitButton": "Visit Hydra Fastpay"
+				},
+				"hydraRockPaperScissors": {
+					"name": "Hydra Rock Paper Scissors",
+					"category": "GameFi",
+					"description": "Decentralized game of Rock Paper Scissors with NFT rewards and Hydra Layer 2 scalability.",
+					"visitButton": "Visit Hydra Rock Paper Scissors"
+				}
+			}
+		},
+		"sponsor": {
+			"badge": "Proudly Sponsored By",
+			"title": "VTechcom",
+			"description": "A creative software development technology company, accompanying the future of decentralized applications on Cardano.",
+			"visitButton": "Visit VTechcom",
+			"partnershipButton": "Partnership Inquiries"
+		},
+		"quickStart": {
+			"title": "Quick Start",
+			"subtitle": "Get up and running in minutes",
+			"installation": "1. Installation",
+			"basicUsage": "2. Basic Usage",
+			"nextSteps": "Next Steps",
+			"steps": {
+				"installationGuide": {
+					"title": "Installation Guide",
+					"description": "Learn how to install and set up the SDK in your project"
+				},
+				"apiReference": {
+					"title": "API Reference",
+					"description": "Explore detailed documentation for all SDK packages and methods"
+				},
+				"codeExamples": {
+					"title": "Code Examples",
+					"description": "See practical examples and use cases for common scenarios"
+				},
+				"guidesTutorials": {
+					"title": "Guides & Tutorials",
+					"description": "Follow step-by-step guides for building wallet applications"
+				}
+			}
+		},
+		"community": {
+			"title": "Join Our Community",
+			"subtitle": "Connect with developers, get support, and stay updated with the latest SDK developments",
+			"links": {
+				"github": {
+					"name": "GitHub",
+					"description": "Contribute to the SDK, report issues, and explore the source code",
+					"button": "View Repository"
+				},
+				"discord": {
+					"name": "Discord",
+					"description": "Join our community Discord for support and discussions",
+					"button": "Join Discord"
+				},
+				"telegram": {
+					"name": "Telegram",
+					"description": "Get quick updates and connect with other developers",
+					"button": "Join Telegram"
+				}
+			}
+		},
+		"supportBanner": {
+			"text": "Support Hydra SDK development -",
+			"linkText": "Support us on Catalyst"
+		}
+	},
+	"footer": {
+		"quickLinks": "Quick Links",
+		"resources": "Resources",
+		"installation": "Installation",
+		"copyright": "All rights reserved."
+	},
+	"search": {
+		"placeholder": "Search documentation..."
+	},
+	"common": {
+		"overview": "Overview",
+		"installation": "Installation",
+		"quickStart": "Quick Start",
+		"configuration": "Configuration",
+		"performance": "Performance",
+		"new": "New",
+		"soon": "Soon",
+		"changeLogs": "Change Logs",
+		"migration": "Migration Guide",
+		"utilities": "Utilities",
+		"utilityExamples": "Utility Examples",
+		"workingWithUtilities": "Working with Utilities",
+		"packages": "Packages",
+		"corePackage": "Core Package",
+		"hydraBridge": "Hydra Bridge",
+		"transactionBuilder": "Transaction Builder",
+		"cardanoWasm": "Cardano WASM",
+		"walletCreation": "Wallet Creation",
+		"hydraIntegration": "Hydra Integration",
+		"transactionBuilding": "Transaction Building",
+		"transactionSigning": "Transaction Signing",
+		"fullReactApp": "Full React App",
+		"fullVueApp": "Full Vue.js App",
+		"buildingWalletApps": "Building Wallet Apps",
+		"hydraHeadManagement": "Hydra Head Management",
+		"testingStrategies": "Testing Strategies",
+		"deployment": "Deployment",
+		"home": "Home",
+		"previous": "Previous",
+		"next": "Next",
+		"onThisPage": "On This Page",
+		"search": "Search",
+		"updated": "Updated",
+		"guides": {
+			"mintBurnTokens": "Mint & Burn Tokens"
+		},
+		"hydraConcept": {
+			"whyHydra": "Why Hydra?",
+			"commitToHydra": "Commit to Hydra",
+			"decommitFromHydra": "Decommit from Hydra",
+			"transactionInHydra": "Transactions in Hydra",
+			"smartContractsInHydra": "Smart Contracts in Hydra"
+		}
+	},
+	"glossary": {
+		"title": "Glossary",
+		"intro": "Common terms used across Cardano, Hydra, and this SDK.",
+		"terms": {
+			"hydraHead": {
+				"term": "Hydra Head",
+				"desc": "A protocol for off-chain scalability on Cardano enabling fast, low-latency transactions among a group of participants."
+			},
+			"utxo": {
+				"term": "UTxO",
+				"desc": "Unspent Transaction Output – the accounting model used by Cardano to track spendable outputs."
+			},
+			"plutus": {
+				"term": "Plutus",
+				"desc": "Cardano's smart contract platform based on Haskell."
+			},
+			"cbor": {
+				"term": "CBOR",
+				"desc": "Concise Binary Object Representation, a compact binary data format used for Cardano transactions."
+			},
+			"wasm": {
+				"term": "WASM",
+				"desc": "WebAssembly – a binary instruction format used for high-performance execution in browsers and Node.js."
+			}
+		}
+	}
+}

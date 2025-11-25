@@ -1,0 +1,206 @@
+name: Run Nodejs Playground Tests
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  nodejs-playground-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.16.0]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Create .env file
+        working-directory: ./apps/nodejs-playground
+        run: |
+          cat << EOF > .env
+          # Blockfrost API Key for Preprod
+          BLOCKFROST_PROVIDER_API_KEY='${{ secrets.BLOCKFROST_PROVIDER_API_KEY }}'
+          
+          # Ogmios WebSocket URL for Preprod
+          OGMIOS_PROVIDER_WS_URL='${{ secrets.OGMIOS_PROVIDER_WS_URL }}'
+          OGMIOS_PROVIDER_HTTP_URL='${{ secrets.OGMIOS_PROVIDER_HTTP_URL }}'
+          EOF
+
+      - name: Run tests
+        run: pnpm run test:ci
+        continue-on-error: true
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Nodejs Playground Tests
+          path: ./apps/nodejs-playground/junit.xml
+          reporter: jest-junit
+          fail-on-error: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload test results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodejs-playground-test-results
+          path: |
+            ./apps/nodejs-playground/junit.xml
+            ./apps/nodejs-playground/coverage/
+          retention-days: 30
+
+      - name: Generate Test & Coverage Report
+        if: always()
+        id: test-report
+        run: |
+          # Parse test results
+          TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
+          TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
+          TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
+          
+          # Parse coverage (với fallback nếu file không tồn tại)
+          if [ -f "./apps/nodejs-playground/coverage/coverage-summary.json" ]; then
+            COVERAGE_LINES=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
+            COVERAGE_STATEMENTS=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "0")
+            COVERAGE_FUNCTIONS=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "0")
+            COVERAGE_BRANCHES=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "0")
+            
+            # Tính tổng coverage
+            COVERAGE_TOTAL=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '
+              (.total.lines.pct + .total.statements.pct + .total.functions.pct + .total.branches.pct) / 4 | floor
+            ' 2>/dev/null || echo "0")
+          else
+            COVERAGE_LINES="N/A"
+            COVERAGE_STATEMENTS="N/A"
+            COVERAGE_FUNCTIONS="N/A"
+            COVERAGE_BRANCHES="N/A"
+            COVERAGE_TOTAL="0"
+          fi
+          
+          # Emoji cho status
+          if [ "$TESTS_FAILED" -eq "0" ]; then
+            TEST_ICON="✅"
+            TEST_STATUS="All tests passed"
+          else
+            TEST_ICON="❌"
+            TEST_STATUS="$TESTS_FAILED test(s) failed"
+          fi
+          
+          # Emoji cho coverage (chỉ khi có coverage data)
+          if [ "$COVERAGE_TOTAL" != "0" ] && [ "$COVERAGE_TOTAL" != "N/A" ]; then
+            if [ "$COVERAGE_TOTAL" -ge 80 ]; then
+              COV_ICON="🟢"
+            elif [ "$COVERAGE_TOTAL" -ge 60 ]; then
+              COV_ICON="🟡"
+            else
+              COV_ICON="🔴"
+            fi
+            COV_TEXT="${COV_ICON} Coverage: ${COVERAGE_TOTAL}%"
+          else
+            COV_TEXT="⚠️ Coverage: Not available"
+          fi
+          
+          # Tạo comment ngắn gọn
+          cat << EOF > test-report.md
+          ## ${TEST_ICON} Nodejs Playground Tests • ${COV_TEXT}
+          
+          **Tests:** ${TESTS_PASSED}/${TESTS_TOTAL} passed | **Status:** ${TEST_STATUS}
+          
+          | Coverage | % |
+          |----------|---|
+          | Lines | ${COVERAGE_LINES}% |
+          | Statements | ${COVERAGE_STATEMENTS}% |
+          | Functions | ${COVERAGE_FUNCTIONS}% |
+          | Branches | ${COVERAGE_BRANCHES}% |
+          
+          <details>
+          <summary>📊 View Details</summary>
+          
+          ### Test Breakdown
+          - ✅ Passed: ${TESTS_PASSED}
+          - ❌ Failed: ${TESTS_FAILED}
+          - 📊 Total: ${TESTS_TOTAL}
+          
+          [View full report in Actions →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          </details>
+          
+          ---
+          *🤖 Auto-generated by GitHub Actions*
+          EOF
+          
+          # Save output
+          {
+            echo "report<<EOF"
+            cat test-report.md
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Comment Test Report on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: ${{ steps.test-report.outputs.report }}
+          comment_tag: nodejs-playground-test-report
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write to Step Summary
+        if: always()
+        run: |
+          if [ -f "test-report.md" ]; then
+            cat test-report.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ -f "./apps/nodejs-playground/junit.xml" ]; then
+              TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
+              TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
+              TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
+              
+              echo "- ✅ **Passed:** $TESTS_PASSED" >> $GITHUB_STEP_SUMMARY
+              echo "- ❌ **Failed:** $TESTS_FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "- 📊 **Total:** $TESTS_TOTAL" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "Test results not available" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi

@@ -1,15 +1,19 @@
-# eslint-config-pancake
+# @hydra-sdk/eslint-config
 
-Pancake Eslint config with:
-
-- Airbnb config
-- Typescript
-- Prettier
+Shared ESLint config for Hydra SDK: Airbnb + TS + Prettier. **See [docs/master-index.md](../docs/master-index.md)**.
 
 ## Usage
 
-```
-npx install-peerdeps --dev @pancakeswap/eslint-config-pancake
+```bash
+pnpm add -D @hydra-sdk/eslint-config
 ```
 
-Add `"extends": "@pancakeswap/eslint-config-pancake"` to your eslint config file.
+```json
+{
+  "extends": ["@hydra-sdk/eslint-config"]
+}
+```
+
+**Docs:** [hydrasdk.com/docs](https://hydrasdk.com/docs)
+
+Apache 2.0. [Repo](https://github.com/Vtechcom/hydra-sdk)

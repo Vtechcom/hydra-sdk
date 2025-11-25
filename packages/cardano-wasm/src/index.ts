@@ -1,1 +1,3 @@
-export * as CardanoWASM from '@emurgo/cardano-serialization-lib-browser';
+import * as CardanoWASM from '@emurgo/cardano-serialization-lib-browser'
+
+export { CardanoWASM }

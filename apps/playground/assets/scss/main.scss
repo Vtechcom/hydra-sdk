@@ -1,0 +1,16 @@
+@use 'sass:meta';
+@include meta.load-css('base/scrollbar');
+
+body {
+	&::-webkit-scrollbar {
+		width: 5px;
+		height: 2px;
+	}
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	&::-webkit-scrollbar-thumb {
+		background: #bdbdbd;
+		border-radius: 20px;
+	}
+}

@@ -1,0 +1,257 @@
+@layer base {
+	@font-face {
+		font-family: jetbrains;
+		src: url('/assets/fonts/jetbrains/jetbrains.woff2') format('woff2');
+		font-display: swap;
+		font-weight: 400;
+		font-style: normal;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-BlackItalic-BF66457a510424a.otf') format('opentype');
+		font-weight: 900;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-Bold-BF66457a510211b.otf') format('opentype');
+		font-weight: 700;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-BoldItalic-BF66457a50b8568.otf') format('opentype');
+		font-weight: 700;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-Light-BF66457a5102792.otf') format('opentype');
+		font-weight: 300;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-LightItalic-BF66457a50eb132.otf') format('opentype');
+		font-weight: 300;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-Medium-BF66457a50e62cd.otf') format('opentype');
+		font-weight: 500;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-MediumItalic-BF66457a511be83.otf') format('opentype');
+		font-weight: 500;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-Regular-BF66457a50e8bc9.otf') format('opentype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-RegularItalic-BF66457a50e36f9.otf') format('opentype');
+		font-weight: 400;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-Semibold-BF66457a50f016a.otf') format('opentype');
+		font-weight: 600;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposFine';
+		src: url('/assets/fonts/TestTiempos/TestTiemposFine-SemiboldItalic-BF66457a50b0e18.otf') format('opentype');
+		font-weight: 600;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-Black-BF66457a50e385b.otf') format('opentype');
+		font-weight: 900;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-BlackItalic-BF66457a505495d.otf') format('opentype');
+		font-weight: 900;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-Bold-BF66457a5113d17.otf') format('opentype');
+		font-weight: 700;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-BoldItalic-BF66457a5072af7.otf') format('opentype');
+		font-weight: 700;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-Light-BF66457a50df5a0.otf') format('opentype');
+		font-weight: 300;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-LightItalic-BF66457a5088153.otf') format('opentype');
+		font-weight: 300;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-Medium-BF66457a509b4ec.otf') format('opentype');
+		font-weight: 500;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-MediumItalic-BF66457a50b4260.otf') format('opentype');
+		font-weight: 500;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-Regular-BF66457a508e31a.otf') format('opentype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-RegularItalic-BF66457a5091d70.otf') format('opentype');
+		font-weight: 400;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-Semibold-BF66457a509040b.otf') format('opentype');
+		font-weight: 600;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposHeadline';
+		src: url('/assets/fonts/TestTiempos/TestTiemposHeadline-SemiboldItalic-BF66457a510c462.otf') format('opentype');
+		font-weight: 600;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-Bold-BF66457a4f03c40.otf') format('opentype');
+		font-weight: 700;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-BoldItalic-BF66457a50155b4.otf') format('opentype');
+		font-weight: 700;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-Medium-BF66457a508489a.otf') format('opentype');
+		font-weight: 500;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-MediumItalic-BF66457a508d6d9.otf') format('opentype');
+		font-weight: 500;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-Regular-BF66457a50cd521.otf') format('opentype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-RegularItalic-BF66457a50421c2.otf') format('opentype');
+		font-weight: 400;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-Semibold-BF66457a4fed201.otf') format('opentype');
+		font-weight: 600;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'TestTiemposText';
+		src: url('/assets/fonts/TestTiempos/TestTiemposText-SemiboldItalic-BF66457a505477c.otf') format('opentype');
+		font-weight: 600;
+		font-style: italic;
+		font-display: swap;
+	}
+}

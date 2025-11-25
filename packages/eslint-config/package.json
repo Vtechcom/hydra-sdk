@@ -1,6 +1,6 @@
 {
-  "name": "@hydrawallet/eslint-config",
-  "version": "0.0.1",
+  "name": "@hydra-sdk/eslint-config",
+  "version": "0.0.4",
   "description": "Eslint config for Hydra Wallet",
   "main": "lib/index.js",
   "files": [
@@ -8,10 +8,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/aniadev/hydra-wallet-sdk.git",
+    "url": "https://github.com/Vtechcom/hydra-sdk.git",
     "directory": "packages/eslint-config"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "Aniadev",
   "publishConfig": {
     "access": "public"

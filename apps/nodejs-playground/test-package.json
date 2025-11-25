@@ -1,0 +1,6 @@
+{
+    "type": "module",
+    "dependencies": {
+        "@hydra-sdk/cardano-wasm": "workspace:*"
+    }
+}

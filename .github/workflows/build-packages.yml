@@ -1,0 +1,89 @@
+name: Build Packages
+# Tên của workflow - "Build Packages" có nghĩa là "Xây dựng các gói"
+
+on:
+  push:
+    branches: [ main, master ]
+    # Chạy workflow khi push code lên nhánh main hoặc master
+  pull_request:
+    branches: [ main, master ]
+    # Chạy workflow khi tạo pull request đến nhánh main hoặc master
+  workflow_dispatch:
+    # Cho phép chạy workflow thủ công từ GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Chạy trên máy chủ Ubuntu mới nhất
+    
+    steps:
+      - name: Checkout code
+        # Bước 1: Tải code từ repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        # Bước 2: Cài đặt Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          # Sử dụng Node.js phiên bản 22
+          
+      - name: Setup pnpm
+        # Bước 3: Cài đặt pnpm (package manager)
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          # Sử dụng phiên bản pnpm mới nhất
+          
+      - name: Install dependencies
+        # Bước 4: Cài đặt các dependencies (thư viện phụ thuộc)
+        run: pnpm install --frozen-lockfile
+        # --frozen-lockfile đảm bảo sử dụng đúng version từ lockfile
+        
+      - name: Build packages
+        # Bước 5: Build các packages
+        id: build-step
+        run: |
+          echo "Starting package build..."
+          pnpm build:packages 2>&1 | tee build-output.log
+          echo "Build completed"
+        # 2>&1 | tee build-output.log sẽ lưu output vào file và hiển thị trên console
+        
+      - name: Check build success
+        # Bước 6: Kiểm tra kết quả build
+        run: |
+          echo "Checking build results..."
+          
+          # Kiểm tra xem có dòng "Tasks: X successful, X total" không
+          if grep -q "Tasks:.*successful.*total" build-output.log; then
+            echo "✅ Build completed successfully!"
+            
+            # Lấy thông tin chi tiết về tasks
+            TASK_LINE=$(grep "Tasks:" build-output.log | tail -1)
+            echo "Task summary: $TASK_LINE"
+            
+            # Kiểm tra xem có task nào failed không
+            if echo "$TASK_LINE" | grep -q "successful.*total" && ! echo "$TASK_LINE" | grep -q "failed"; then
+              echo "✅ All tasks completed successfully"
+              exit 0
+            else
+              echo "❌ Some tasks may have failed"
+              exit 1
+            fi
+          else
+            echo "❌ Build output doesn't contain expected success pattern"
+            echo "Build output:"
+            cat build-output.log
+            exit 1
+          fi
+          
+      - name: Upload build logs
+        # Bước 7: Tải lên build logs để debug nếu cần
+        if: always()
+        # always() có nghĩa là luôn chạy bước này, dù build thành công hay thất bại
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: build-output.log
+          retention-days: 7
+          # Giữ logs trong 7 ngày

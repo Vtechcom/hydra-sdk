@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Disallow: /_nuxt/
+Disallow: /private/
+Sitemap: https://hydrasdk.com/sitemap.xml

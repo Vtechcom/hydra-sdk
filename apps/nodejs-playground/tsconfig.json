@@ -1,0 +1,22 @@
+{
+    "extends": "@hydra-sdk/tsconfig/base",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src",
+        "composite": true,
+        "target": "esnext",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "declaration": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.json"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

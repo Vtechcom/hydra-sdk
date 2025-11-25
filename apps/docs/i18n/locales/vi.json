@@ -1,0 +1,228 @@
+{
+	"nav": {
+		"gettingStarted": "Bắt đầu",
+		"apiReference": "Tài liệu API",
+		"examples": "Ví dụ",
+		"guides": "Hướng dẫn",
+		"glossary": "Thuật ngữ",
+		"hydraBridge": "Hydra Bridge",
+		"hydraConcept": "Hydra Concept"
+	},
+	"home": {
+		"title": "Hydra SDK",
+		"subtitle": "Bộ công cụ phát triển toàn diện để xây dựng DApp và ví Cardano tích hợp",
+		"hydroLayer2": "Hydra Layer 2",
+		"integration": "",
+		"getStarted": "Bắt đầu ngay",
+		"apiReference": "Tài liệu API",
+		"viewGithub": "Xem trên GitHub",
+		"stats": {
+			"corePackages": "Gói cốt lõi",
+			"applications": "Ứng dụng",
+			"typescript": "TypeScript",
+			"superFast": "Siêu nhanh",
+			"license": "Giấy phép"
+		},
+		"features": {
+			"title": "Mọi thứ bạn cần để phát triển ứng dụng",
+			"subtitle": "Bộ công cụ hoàn chỉnh với các gói mô-đun, hỗ trợ TypeScript và tài liệu chi tiết",
+			"cardanoWallet": {
+				"title": "Quản lý ví Cardano",
+				"description": "Tạo, khôi phục và quản lý ví Cardano với hỗ trợ ví HD đầy đủ và ký giao dịch."
+			},
+			"hydraIntegration": {
+				"title": "Tích hợp Hydra Layer 2",
+				"description": "Quản lý toàn bộ vòng đời Hydra Head với khả năng xử lý giao dịch realtime."
+			},
+			"transactionBuilder": {
+				"title": "Transaction Builder",
+				"description": "Công cụ xây dựng giao dịch nâng cao với khả năng lựa chọn UTxO và tối ưu hóa phí giao dịch."
+			},
+			"wasmIntegration": {
+				"title": "Tích hợp WASM",
+				"description": "Serialization dữ liệu Cardano hiệu năng cao với WebAssembly được tối ưu cho trình duyệt."
+			},
+			"typescriptFirst": {
+				"title": "Ưu tiên TypeScript",
+				"description": "Hỗ trợ TypeScript đầy đủ với định nghĩa kiểu phong phú và IntelliSense."
+			},
+			"modularArchitecture": {
+				"title": "Kiến trúc Modular",
+				"description": "Kiến trúc theo dạng package, dễ dàng mở rộng và tùy chỉnh tích hợp."
+			}
+		},
+		"showcase": {
+			"title": "Ứng dụng được xây dựng bằng Hydra SDK",
+			"subtitle": "Khám phá những ứng dụng mạnh mẽ đang sử dụng SDK của chúng tôi trong thực tế",
+			"apps": {
+				"hydraWallet": {
+					"name": "Hydra Wallet",
+					"category": "Ví Cardano",
+					"description": "Ví Cardano hiện đại, an toàn với hỗ trợ Hydra Layer 2 cho giao dịch tức thì và hoạt động DeFi.",
+					"visitButton": "Truy cập Hydra Wallet"
+				},
+				"hydraPlayground": {
+					"name": "Hydra SDK Playground",
+					"category": "Development",
+					"description": "An interactive playground for experimenting with Hydra SDK features and building DApps.",
+					"visitButton": "Visit Hydra Playground"
+				},
+				"hydraFlappy": {
+					"name": "Hydra Flappy Bird",
+					"category": "GameFi",
+					"description": "Game Flappy Bird cổ điển được làm mới với tích hợp blockchain, phần thưởng NFT và microtransaction qua Hydra.",
+					"visitButton": "Truy cập Hydra Flappy Bird"
+				},
+				"hydraFastpay": {
+					"name": "Hydra Fastpay",
+					"category": "Giải pháp thanh toán",
+					"description": "Xử lý thanh toán siêu nhanh với Hydra Layer 2 cho giao dịch tức thì và chi phí thấp trên Cardano.",
+					"visitButton": "Truy cập Hydra Fastpay"
+				},
+				"hydraRockPaperScissors": {
+					"name": "Hydra Rock Paper Scissors",
+					"category": "GameFi",
+					"description": "Trò chơi Kéo Búa Bao phi tập trung với phần thưởng NFT và khả năng mở rộng Hydra Layer 2.",
+					"visitButton": "Truy cập Hydra Rock Paper Scissors"
+				}
+			}
+		},
+		"sponsor": {
+			"badge": "Tự hào được tài trợ bởi",
+			"title": "VTechcom",
+			"description": "Công ty công nghệ phát triển phần mềm sáng tạo, đồng hành cùng tương lai các ứng dụng phi tập trung trên Cardano.",
+			"visitButton": "Truy cập VTechcom",
+			"partnershipButton": "Liên hệ hợp tác"
+		},
+		"quickStart": {
+			"title": "Bắt đầu nhanh",
+			"subtitle": "Thiết lập và chạy chỉ trong vài phút",
+			"installation": "1. Cài đặt",
+			"basicUsage": "2. Sử dụng cơ bản",
+			"nextSteps": "Bước tiếp theo",
+			"steps": {
+				"installationGuide": {
+					"title": "Hướng dẫn cài đặt",
+					"description": "Học cách cài đặt và thiết lập SDK trong dự án của bạn"
+				},
+				"apiReference": {
+					"title": "Tài liệu API",
+					"description": "Khám phá tài liệu chi tiết cho tất cả package và method của SDK"
+				},
+				"codeExamples": {
+					"title": "Code Examples",
+					"description": "Xem các ví dụ thực tế và use case phổ biến"
+				},
+				"guidesTutorials": {
+					"title": "Guides & Tutorials",
+					"description": "Làm theo hướng dẫn step-by-step để xây dựng ứng dụng ví"
+				}
+			}
+		},
+		"community": {
+			"title": "Tham gia cộng đồng",
+			"subtitle": "Kết nối với các developer, nhận support và cập nhật tin tức mới nhất về SDK",
+			"links": {
+				"github": {
+					"name": "GitHub",
+					"description": "Contribute vào SDK, report bug và khám phá source code",
+					"button": "Xem Repository"
+				},
+				"discord": {
+					"name": "Discord",
+					"description": "Tham gia Discord community để được support và thảo luận",
+					"button": "Tham gia Discord"
+				},
+				"telegram": {
+					"name": "Telegram",
+					"description": "Nhận update nhanh và kết nối với các developer khác",
+					"button": "Tham gia Telegram"
+				}
+			}
+		},
+		"supportBanner": {
+			"text": "Ủng hộ phát triển Hydra SDK –",
+			"linkText": "Ủng hộ chúng tôi trên Catalyst"
+		}
+	},
+	"footer": {
+		"quickLinks": "Liên kết nhanh",
+		"resources": "Tài nguyên",
+		"installation": "Cài đặt",
+		"copyright": "Mọi quyền được bảo lưu."
+	},
+	"search": {
+		"placeholder": "Tìm kiếm tài liệu..."
+	},
+	"common": {
+		"overview": "Tổng quan",
+		"installation": "Cài đặt",
+		"quickStart": "Bắt đầu nhanh",
+		"configuration": "Cấu hình",
+		"performance": "Hiệu năng",
+		"new": "Mới",
+		"soon": "Sắp có",
+		"changeLogs": "Nhật ký thay đổi",
+		"migration": "Nâng cấp phiên bản",
+		"utilities": "Utilities",
+		"utilityExamples": "Ví dụ với Utilities",
+		"workingWithUtilities": "Làm việc với Utilities",
+		"packages": "Packages",
+		"corePackage": "Core Package",
+		"hydraBridge": "Hydra Bridge",
+		"transactionBuilder": "Transaction Builder",
+		"cardanoWasm": "Cardano WASM",
+		"walletCreation": "Tạo ví",
+		"hydraIntegration": "Tích hợp Hydra",
+		"transactionBuilding": "Xây dựng giao dịch",
+		"transactionSigning": "Ký giao dịch",
+		"fullReactApp": "Ứng dụng React hoàn chỉnh",
+		"fullVueApp": "Ứng dụng Vue.js hoàn chỉnh",
+		"buildingWalletApps": "Xây dựng ứng dụng ví",
+		"hydraHeadManagement": "Quản lý Hydra Head",
+		"testingStrategies": "Chiến lược kiểm thử",
+		"deployment": "Triển khai",
+		"home": "Trang chủ",
+		"previous": "Trước",
+		"next": "Tiếp",
+		"onThisPage": "Trong trang này",
+		"search": "Tìm kiếm",
+		"updated": "Đã cập nhật",
+		"guides": {
+			"mintBurnTokens": "Mint & Burn Token"
+		},
+		"hydraConcept": {
+			"whyHydra": "Why Hydra?",
+			"commitToHydra": "Chuyển tiền vào Hydra",
+			"decommitFromHydra": "Rút tiền từ Hydra",
+			"transactionInHydra": "Giao dịch trong Hydra",
+			"smartContractsInHydra": "Smart Contract trong Hydra"
+		}
+	},
+	"glossary": {
+		"title": "Glossary",
+		"intro": "Các thuật ngữ thường gặp trong Cardano, Hydra và SDK này.",
+		"terms": {
+			"hydraHead": {
+				"term": "Hydra Head",
+				"desc": "Protocol mở rộng quy mô off-chain trên Cardano, cho phép giao dịch nhanh với độ trễ thấp giữa một nhóm participant."
+			},
+			"utxo": {
+				"term": "UTxO",
+				"desc": "Unspent Transaction Output – mô hình accounting của Cardano dùng để track các output có thể spend."
+			},
+			"plutus": {
+				"term": "Plutus",
+				"desc": "Platform smart contract của Cardano được xây dựng trên Haskell."
+			},
+			"cbor": {
+				"term": "CBOR",
+				"desc": "Concise Binary Object Representation – format dữ liệu binary compact được dùng cho transaction Cardano."
+			},
+			"wasm": {
+				"term": "WASM",
+				"desc": "WebAssembly – format instruction binary cho performance cao trên browser và Node.js."
+			}
+		}
+	}
+}

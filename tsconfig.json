@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "hydra-wallet": [
+                "packages/hydra-wallet/src/index.ts"
+            ],
+            "hydra-bridge": [
+                "packages/hydra-bridge/src/index.ts"
+            ],
+            "hydrawallet-transaction": [
+                "packages/hydrawallet-transaction/src/index.ts"
+            ],
+            "cardano-wasm": [
+                "packages/cardano-wasm/src/index.ts"
+            ]
+        }
+    }
+}
