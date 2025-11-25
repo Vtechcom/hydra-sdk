@@ -2,8 +2,6 @@
 
 A complete TypeScript toolkit for Cardano + Hydra Layer 2 wallet apps. Monorepo with 6 packages: core wallet, bridge, tx builder, WASM bindings + shared configs.
 
-**New:** Systematized docs at [docs/master-index.md](docs/master-index.md)
-
 ## 🚀 Key Features
 
 - **🏦 Cardano Wallets**: HD wallet create/restore/manage (`@hydra-sdk/core`)
@@ -13,7 +11,7 @@ A complete TypeScript toolkit for Cardano + Hydra Layer 2 wallet apps. Monorepo 
 - **🌐 TypeScript**: Full types + IntelliSense
 - **⚙️ Monorepo**: pnpm + Turborepo
 
-## 📦 Packages [docs/packages/](docs/packages/)
+## 📦 Packages
 
 | Package | NPM | Path |
 |---------|-----|------|
@@ -136,10 +134,7 @@ Apache 2.0 License - see [LICENSE](LICENSE) file for details.
 
 ## 📚 Documentation
 
-- **Master Index:** [docs/master-index.md](docs/master-index.md) (EN/VI, technical + internal)
 - **User Guides:** [hydrasdk.com](https://hydrasdk.com) (API, examples, guides)
-- **Technical:** [docs/technical/bmm-index.md](docs/technical/bmm-index.md)
-- **API Metadata:** [sdk-ai-agent/sdk-api-metadata.json](sdk-ai-agent/sdk-api-metadata.json)
 
 ---
 
