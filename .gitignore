@@ -25,6 +25,8 @@ out/
 build
 dist
 
+.bmad
+
 # misc
 .DS_Store
 *.pem

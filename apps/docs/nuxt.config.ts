@@ -76,7 +76,7 @@ export default defineNuxtConfig({
 		colorMode: false
 	},
 	icon: {
-		setserverBundle: {
+		serverBundle: {
 			collections: ['heroicons', 'lucide', 'mdi', 'ic', 'simple-icons', 'twemoji']
 		}
 	},

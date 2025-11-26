@@ -1,0 +1,181 @@
+# Workflow Status Template
+
+# This tracks progress through BMM methodology Analysis, Planning, and Solutioning phases.
+# Implementation phase is tracked separately in sprint-status.yaml
+
+# STATUS DEFINITIONS:
+# ==================
+# Initial Status (before completion):
+#   - required: Must be completed to progress
+#   - optional: Can be completed but not required
+#   - recommended: Strongly suggested but not required
+#   - conditional: Required only if certain conditions met (e.g., if_has_ui)
+#
+# Completion Status:
+#   - {file-path}: File created/found (e.g., "docs/product-brief.md")
+#   - skipped: Optional/conditional workflow that was skipped
+
+generated: "2025-11-18"
+project: "hydra-sdk"
+project_type: "SDK/Library - Cardano Blockchain & Hydra Layer 2"
+selected_track: "bmad-method"
+field_type: "brownfield"
+workflow_path: ".bmad/bmm/workflows/workflow-status/paths/method-brownfield.yaml"
+
+workflow_status:
+  # ============================================
+  # PREREQUISITES (Not a phase - must complete first)
+  # ============================================
+  prerequisite:
+    name: "Documentation"
+    note: "Required for brownfield projects without existing documentation"
+    workflows:
+      - id: "document-project"
+        name: "Document Existing Project"
+        agent: "analyst"
+        command: "*document-project"
+        status: "docs/technical/bmm-index.md"
+        output: "Comprehensive project documentation"
+        note: "✅ Systematized: master-index.md + full structure (packages/apps/ci-cd symlinks) - 2025-11-25"
+        purpose: "Analyze and document existing codebase structure, APIs, and architecture"
+        file_location: "docs/technical/"
+        completed_date: "2025-11-18"
+
+  # ============================================
+  # PHASE 0: DISCOVERY (Optional)
+  # ============================================
+  phase_0:
+    name: "Discovery"
+    optional: true
+    workflows:
+      - id: "brainstorm-project"
+        name: "Brainstorm Project"
+        agent: "analyst"
+        command: "*brainstorm-project"
+        status: "optional"
+        output: "Creative exploration and ideation"
+        file_location: "docs/brainstorm.md"
+
+      - id: "research"
+        name: "Research"
+        agent: "analyst"
+        command: "*research"
+        status: "skipped"
+        output: "Technical and competitive analysis"
+        file_location: "docs/research.md"
+
+      - id: "product-brief"
+        name: "Product Brief"
+        agent: "analyst"
+        command: "*product-brief"
+        status: "skipped"
+        output: "Strategic product planning"
+        file_location: "docs/product-brief.md"
+        note: "Less common for brownfield - skipped"
+
+  # ============================================
+  # PHASE 1: PLANNING
+  # ============================================
+  phase_1:
+    name: "Planning"
+    required: true
+    workflows:
+      - id: "prd"
+        name: "Product Requirements Document"
+        agent: "pm"
+        command: "*prd"
+        status: "required"
+        output: "PRD focused on features/changes considering existing system"
+        file_location: "docs/prd.md"
+
+      - id: "validate-prd"
+        name: "Validate PRD"
+        agent: "pm"
+        command: "*validate-prd"
+        status: "optional"
+
+      - id: "create-epics-and-stories-early"
+        name: "Create Epics & Stories (Early)"
+        agent: "pm"
+        command: "*create-epics-and-stories"
+        status: "optional"
+        note: "Optional: Basic epic structure before UX"
+
+      - id: "create-design"
+        name: "Create UX Design"
+        agent: "ux-designer"
+        command: "*create-design"
+        status: "conditional"
+        condition: "if_has_ui"
+        note: "Required only if project has UI components"
+
+  # ============================================
+  # PHASE 2: SOLUTIONING
+  # ============================================
+  phase_2:
+    name: "Solutioning"
+    required: true
+    workflows:
+      - id: "create-architecture"
+        name: "Create Architecture"
+        agent: "architect"
+        command: "*create-architecture"
+        status: "recommended"
+        output: "Integration architecture - focused solution design"
+        file_location: "docs/architecture.md"
+        note: "HIGHLY RECOMMENDED: Distills brownfield context into focused design, prevents AI agent confusion"
+
+      - id: "create-epics-and-stories-final"
+        name: "Create Epics & Stories (Final)"
+        agent: "pm"
+        command: "*create-epics-and-stories"
+        status: "required"
+        output: "Complete epic breakdown with full context"
+        file_location: "docs/sprint-artifacts/epics/"
+        note: "Required: Final epic breakdown with PRD + UX + Architecture context"
+
+      - id: "test-design"
+        name: "Test Design"
+        agent: "tea"
+        command: "*test-design"
+        status: "recommended"
+        output: "System-level testability review"
+        note: "Testability assessment before gate check"
+
+      - id: "validate-architecture"
+        name: "Validate Architecture"
+        agent: "architect"
+        command: "*validate-architecture"
+        status: "optional"
+
+      - id: "implementation-readiness"
+        name: "Implementation Readiness Check"
+        agent: "architect"
+        command: "*implementation-readiness"
+        status: "required"
+        note: "Gate check: Validates PRD + UX + Architecture + Epics cohesion"
+
+  # ============================================
+  # PHASE 3: IMPLEMENTATION
+  # ============================================
+  phase_3:
+    name: "Implementation"
+    required: true
+    note: "Detailed sprint tracking in sprint-status.yaml"
+    workflows:
+      - id: "sprint-planning"
+        name: "Sprint Planning"
+        agent: "sm"
+        command: "*sprint-planning"
+        status: "required"
+        output: "Sprint plan with stories"
+        file_location: "docs/sprint-artifacts/sprint-status.yaml"
+
+# ============================================
+# NOTES
+# ============================================
+notes:
+  - "This is a brownfield project - existing codebase requires documentation first"
+  - "Discovery phase includes Brainstorm for creative exploration"
+  - "Architecture doc is HIGHLY RECOMMENDED to focus AI agents on solution design"
+  - "For detailed implementation tracking, see: docs/sprint-artifacts/sprint-status.yaml"

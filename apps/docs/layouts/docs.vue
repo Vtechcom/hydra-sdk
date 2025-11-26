@@ -221,32 +221,32 @@
 				{
 					label: t('common.hydraConcept.whyHydra'),
 					to: localePath('/hydra-concept/why-hydra'),
-					icon: 'i-heroicons-question-mark-circle',
-					badge: { text: t('common.new'), color: 'green' as any }
+					icon: 'i-heroicons-question-mark-circle'
+					// badge: { text: t('common.new'), color: 'green' as any }
 				},
 				{
 					label: t('common.hydraConcept.commitToHydra'),
 					to: localePath('/hydra-concept/commit-to-hydra'),
-					icon: 'i-heroicons-arrow-down-tray',
-					badge: { text: t('common.new'), color: 'green' as any }
+					icon: 'i-heroicons-arrow-down-tray'
+					// badge: { text: t('common.new'), color: 'green' as any }
 				},
 				{
 					label: t('common.hydraConcept.decommitFromHydra'),
 					to: localePath('/hydra-concept/decommit-from-hydra'),
 					icon: 'i-heroicons-arrow-up-tray',
-					badge: { text: t('common.soon'), color: 'blue' as any }
+					badge: { text: t('common.new'), color: 'green' as any }
 				},
 				{
 					label: t('common.hydraConcept.transactionInHydra'),
 					to: localePath('/hydra-concept/transactions-in-hydra'),
 					icon: 'i-heroicons-arrows-right-left',
-					badge: { text: t('common.soon'), color: 'blue' as any }
+					badge: { text: t('common.new'), color: 'green' as any }
 				},
 				{
 					label: t('common.hydraConcept.smartContractsInHydra'),
 					to: localePath('/hydra-concept/smart-contracts-in-hydra'),
 					icon: 'i-heroicons-cube-transparent',
-					badge: { text: t('common.soon'), color: 'blue' as any }
+					badge: { text: t('common.new'), color: 'green' as any }
 				}
 			]
 		},

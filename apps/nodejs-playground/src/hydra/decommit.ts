@@ -1,7 +1,7 @@
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { HydraBridge } from '@hydra-sdk/bridge'
-import { HydraApi, hydraConfig, wallet, walletAddress } from './common'
-import { Deserializer, Resolver } from '@hydra-sdk/core'
+import { wallet, walletAddress } from './common'
+import { Resolver } from '@hydra-sdk/core'
 
 async function main() {
 	const bridge = new HydraBridge({
@@ -17,6 +17,7 @@ async function main() {
 	console.log('>>> Snapshot UTxO:', utxoObj)
 
 	const addrUtxos = await bridge.queryAddressUTxO(walletAddress)
+	console.log('>>> / decommit.ts:20 / addrUtxos:', addrUtxos)
 	const txBuilder = new TxBuilder({
 		isHydra: true,
 		params: {
@@ -25,9 +26,11 @@ async function main() {
 		}
 	})
 	const tx = await txBuilder
-		.setInputs(addrUtxos)
+		.setInputs([
+			addrUtxos[0] // utxo to decommit
+		])
 		.addOutput({
-			address: walletAddress, // some random address
+			address: walletAddress,
 			amount: [{ unit: 'lovelace', quantity: String(2_000_000) }]
 		})
 		.changeAddress(walletAddress)
@@ -36,11 +39,10 @@ async function main() {
 	const signedCbor = await wallet.signTx(tx.to_hex())
 	const txId = Resolver.resolveTxHash(signedCbor)
 
-	const rs = await bridge.submitTxSync({
+	const rs = await bridge.decommit({
 		cborHex: signedCbor,
-		type: 'Witnessed Tx ConwayEra',
-		description: 'Test Hydra tx from NodeJS Playground',
-		txId: txId
+		txId,
+		timeout: 30000
 	})
 	console.log('>>> Submit tx result:', rs)
 }

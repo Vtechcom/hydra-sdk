@@ -1,0 +1,76 @@
+{
+	"workflow_version": "1.2.0",
+	"timestamps": {
+		"started": "2025-11-18T10:30:00Z",
+		"last_updated": "2025-11-18T10:55:00Z",
+		"completed": "2025-11-18T10:55:00Z"
+	},
+	"mode": "initial_scan",
+	"scan_level": "deep",
+	"project_root": "/Users/macbookpro/hdev/workspaces/Vtechcom/hydrawallet-sdk",
+	"output_folder": "/Users/macbookpro/hdev/workspaces/Vtechcom/hydrawallet-sdk/docs/technical",
+	"completed_steps": [
+		{
+			"step": "step_1",
+			"status": "completed",
+			"timestamp": "2025-11-18T10:35:00Z",
+			"summary": "Classified as monorepo with 9 parts (6 libraries, 3 web apps)"
+		},
+		{
+			"step": "step_2",
+			"status": "completed",
+			"timestamp": "2025-11-18T10:37:00Z",
+			"summary": "Found 15+ existing docs including bilingual content, API metadata"
+		},
+		{
+			"step": "step_3",
+			"status": "completed",
+			"timestamp": "2025-11-18T10:40:00Z",
+			"summary": "Tech stack: TypeScript SDK libraries + Nuxt 3 docs site"
+		},
+		{
+			"step": "step_4",
+			"status": "completed",
+			"timestamp": "2025-11-18T10:45:00Z",
+			"summary": "Conditional analysis complete, 4 SDK packages scanned"
+		},
+		{
+			"step": "steps_5_to_10",
+			"status": "skipped",
+			"timestamp": "2025-11-18T10:50:00Z",
+			"summary": "Skipped detailed steps, generated docs from collected data"
+		},
+		{
+			"step": "documentation_generation",
+			"status": "completed",
+			"timestamp": "2025-11-18T10:55:00Z",
+			"summary": "Generated 5 comprehensive documentation files"
+		}
+	],
+	"current_step": "completed",
+	"findings": {
+		"project_classification": "Monorepo with 9 parts: core SDK libraries + web apps",
+		"existing_docs_count": 15,
+		"technology_stack": "TypeScript libraries (tsup + Vitest) + Nuxt 3 web apps + pnpm/Turbo monorepo",
+		"batches_completed": [
+			{ "path": "packages/core/src", "files_scanned": 10, "summary": "3 main classes + 12 utility namespaces" },
+			{ "path": "packages/hydra-bridge/src", "files_scanned": 6, "summary": "Hydra Head lifecycle + WebSocket events" },
+			{ "path": "packages/hydra-transaction/src", "files_scanned": 4, "summary": "TX builder + datum/redeemer utilities" },
+			{ "path": "packages/cardano-wasm", "files_scanned": 1, "summary": "WASM bindings wrapper" }
+		]
+	},
+	"user_context": "Focus on sdk-ai-agent/sdk-api-metadata.json - contains extracted API metadata for all SDK packages",
+	"project_types": [
+		{ "part_id": "core", "project_type_id": "library", "display_name": "@hydra-sdk/core" },
+		{ "part_id": "bridge", "project_type_id": "library", "display_name": "@hydra-sdk/bridge" },
+		{ "part_id": "transaction", "project_type_id": "library", "display_name": "@hydra-sdk/transaction" },
+		{ "part_id": "cardano-wasm", "project_type_id": "library", "display_name": "@hydra-sdk/cardano-wasm" },
+		{ "part_id": "eslint-config", "project_type_id": "library", "display_name": "eslint-config" },
+		{ "part_id": "tsconfig", "project_type_id": "library", "display_name": "tsconfig" },
+		{ "part_id": "docs", "project_type_id": "web", "display_name": "@hydra-sdk/docs" },
+		{ "part_id": "playground", "project_type_id": "web", "display_name": "@hydra-sdk/playground" },
+		{ "part_id": "web", "project_type_id": "web", "display_name": "web" }
+	],
+	"outputs_generated": ["project-scan-report.json", "bmm-index.md", "project-overview.md", "source-tree-analysis.md", "architecture-sdk.md", "development-guide.md"],
+	"resume_instructions": "Documentation complete. API reference can be generated later from sdk-api-metadata.json"
+}
