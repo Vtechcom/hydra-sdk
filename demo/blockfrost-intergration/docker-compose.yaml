@@ -15,14 +15,16 @@ services:
         "--monitoring-port", "6001",
         "--api-port", "4001",
         "--peer", "172.16.238.30:5003",
-        "--cardano-signing-key", "/devnet/credentials/alice/alice-funds.sk",
-        "--cardano-verification-key", "/devnet/credentials/alice/alice-funds.vk",
 
         "--hydra-signing-key", "/devnet/credentials/alice/alice-hydra.sk",
+        "--cardano-signing-key", "/devnet/credentials/alice/alice-funds.sk",
+
         "--hydra-verification-key", "/devnet/credentials/bob/bob-hydra.vk",
+        "--cardano-verification-key", "/devnet/credentials/bob/bob-funds.vk",
+
         "--persistence-dir", "/devnet/persistence/alice",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
-        "--blockfrost", "/devnet/blockfrost-project.txt",
+        "--blockfrost", "/devnet/.blockfrost",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
@@ -46,14 +48,16 @@ services:
         "--monitoring-port", "6003",
         "--api-port", "4003",
         "--peer", "172.16.238.10:5001",
-        "--cardano-signing-key", "/devnet/credentials/bob/bob-funds.sk",
-        "--cardano-verification-key", "/devnet/credentials/bob/bob-funds.vk",
 
         "--hydra-signing-key", "/devnet/credentials/bob/bob-hydra.sk",
+        "--cardano-signing-key", "/devnet/credentials/bob/bob-funds.sk",
+
         "--hydra-verification-key", "/devnet/credentials/alice/alice-hydra.vk",
+        "--cardano-verification-key", "/devnet/credentials/alice/alice-funds.vk",
+
         "--persistence-dir", "/devnet/persistence/bob",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
-        "--blockfrost", "/devnet/blockfrost-project.txt",
+        "--blockfrost", "/devnet/.blockfrost",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
