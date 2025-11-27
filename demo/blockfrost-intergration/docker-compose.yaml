@@ -1,0 +1,84 @@
+services:
+  hydra-node-alice:
+    image: ghcr.io/cardano-scaling/hydra-node:1.1.0
+    volumes:
+      - .:/devnet
+      - ./persistence/alice:/devnet/persistence/alice
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+    command:
+      [
+        "--node-id", "1",
+        "--api-host", "0.0.0.0",
+        "--listen", "172.16.238.10:5001",
+        "--monitoring-port", "6001",
+        "--api-port", "4001",
+        "--peer", "172.16.238.30:5003",
+        "--cardano-signing-key", "/devnet/credentials/alice/alice-funds.sk",
+        "--cardano-verification-key", "/devnet/credentials/alice/alice-funds.vk",
+
+        "--hydra-signing-key", "/devnet/credentials/alice/alice-hydra.sk",
+        "--hydra-verification-key", "/devnet/credentials/bob/bob-hydra.vk",
+        "--persistence-dir", "/devnet/persistence/alice",
+        "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
+        "--blockfrost", "/devnet/blockfrost-project.txt",
+        "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
+      ]
+    networks:
+      hydra_net:
+        ipv4_address: 172.16.238.10
+    restart: always
+
+  hydra-node-bob:
+    image: ghcr.io/cardano-scaling/hydra-node:1.1.0
+    volumes:
+      - .:/devnet
+      - ./persistence/bob:/devnet/persistence/bob
+    ports:
+      - "4003:4003"
+      - "5003:5003"
+    command:
+      [
+        "--node-id", "3",
+        "--api-host", "0.0.0.0",
+        "--listen", "172.16.238.30:5003",
+        "--monitoring-port", "6003",
+        "--api-port", "4003",
+        "--peer", "172.16.238.10:5001",
+        "--cardano-signing-key", "/devnet/credentials/bob/bob-funds.sk",
+        "--cardano-verification-key", "/devnet/credentials/bob/bob-funds.vk",
+
+        "--hydra-signing-key", "/devnet/credentials/bob/bob-hydra.sk",
+        "--hydra-verification-key", "/devnet/credentials/alice/alice-hydra.vk",
+        "--persistence-dir", "/devnet/persistence/bob",
+        "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
+        "--blockfrost", "/devnet/blockfrost-project.txt",
+        "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
+      ]
+    networks:
+      hydra_net:
+        ipv4_address: 172.16.238.30
+    restart: always
+
+
+  startup-time-logger:
+    image: alpine
+    depends_on:
+      - hydra-node-alice
+      - hydra-node-bob
+    command: sh -c "echo $$(( $$(date +%s) * 1000 )) > /shared/startup_time.txt && echo 'Timestamp written:' $$(cat /shared/startup_time.txt)"
+    volumes:
+      - .:/shared
+
+volumes:
+  alice_persistence:
+  bob_persistence:
+
+networks:
+  hydra_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.238.0/24
+          gateway: 172.16.238.1
