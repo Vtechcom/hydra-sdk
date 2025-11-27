@@ -25,6 +25,7 @@ import * as ProviderUtils from './utils/providers'
 import * as ParserUtils from './utils/parser'
 import * as ValidatorUtils from './utils/validator.util'
 import * as MetadataUtils from './utils/metadata'
+import * as KeysUtils from './utils/keys.util'
 
 export {
 	// CardanoWASM Utilities
@@ -41,5 +42,6 @@ export {
 	PolicyUtils,
 	ProviderUtils,
 	ValidatorUtils,
-	MetadataUtils
+	MetadataUtils,
+	KeysUtils
 }
