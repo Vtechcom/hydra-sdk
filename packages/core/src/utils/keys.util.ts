@@ -11,7 +11,10 @@ export type CardanoCLiVkey = {
 	description: 'Payment Verification Key'
 	cborHex: `5820${string}`
 }
-
+/**
+ * Generate a Cardano CLI compatible ed25519 key pair.
+ * @returns
+ */
 export const cardanoCliKeygen = () => {
 	const sk = CardanoWASM.PrivateKey.generate_ed25519()
 	const raw = sk.as_bytes()
@@ -33,7 +36,10 @@ export const cardanoCliKeygen = () => {
 		} as CardanoCLiVkey
 	}
 }
-
+/**
+ * Generate a Hydra compatible ed25519 key pair.
+ * @returns
+ */
 export const hydraCliKeygen = () => {
 	const sk = CardanoWASM.PrivateKey.generate_ed25519()
 	const raw = sk.as_bytes()
@@ -56,6 +62,11 @@ export const hydraCliKeygen = () => {
 	}
 }
 
+/**
+ * Generate verification key from signing key.
+ * @param skey
+ * @returns
+ */
 export const genVkey = (skey: CardanoCLiSkey | { cborHex: `5820${string}` }) => {
 	const sk = CardanoWASM.PrivateKey.from_normal_bytes(ParserUtils.hexToBytes(skey.cborHex.slice(4)))
 	const vkey: CardanoWASM.PublicKey = sk.to_public()

@@ -12,13 +12,34 @@ import {
   TimeUtils,
   SLOT_CONFIG_NETWORK,
   Serializer,
-  Deserializer
+  Deserializer,
+  KeysUtils,
+  MetadataUtils,
+  ProviderUtils
 } from '@hydra-sdk/core'
 ```
 
 ## Core Patterns
 
-### 1. Token Creation (From mint-burn-token.ts)
+### 1. Key Generation (From gen-fund-key.ts)
+
+```typescript
+import { KeysUtils } from '@hydra-sdk/core'
+
+// Generate Cardano CLI compatible ed25519 key pair
+const cardanoKeys = KeysUtils.cardanoCliKeygen()
+console.log('Cardano keys:', cardanoKeys)
+
+// Generate Hydra compatible ed25519 key pair
+const hydraKeys = KeysUtils.hydraCliKeygen()
+console.log('Hydra keys:', hydraKeys)
+
+// Generate verification key from signing key
+const vkey = KeysUtils.genVkey(cardanoKeys.sk)
+console.log('Derived vkey:', vkey)
+```
+
+### 2. Token Creation (From mint-burn-token.ts)
 
 ```typescript
 import { PolicyUtils, ParserUtils, Serializer } from '@hydra-sdk/core'
@@ -36,10 +57,10 @@ console.log('Policy ID:', policyId)
 console.log('Asset Unit:', assetUnit)
 ```
 
-### 2. Complex Datum Building (Real Implementation)
+### 3. Complex Datum Building (Real Implementation)
 
 ```typescript
-import { DatumUtils } from '@hydra-sdk/core'
+import { DatumUtils, ParserUtils } from '@hydra-sdk/core'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 
 // Production datum builder pattern
@@ -73,12 +94,28 @@ const datum = buildDatum(
 )
 ```
 
-### 3. Time Utilities (Real Patterns)
+### 4. Metadata Creation (From metadata.test.ts)
+
+```typescript
+import { MetadataUtils, ParserUtils } from '@hydra-sdk/core'
+
+const vkeyHash = '34f37700b10586c0662e42fcbdf3339c4c52d10e4b13fdef22ecd9b2'
+
+// Convert object to metadata
+const metadata = MetadataUtils.metadataObjToMetadatum({
+  toHeadId: ParserUtils.toBytes('4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'),
+  toAddress: ParserUtils.toBytes(vkeyHash)
+})
+
+console.log('Metadata CBOR:', metadata.to_hex())
+```
+
+### 5. Time Utilities (Real Patterns)
 
 ```typescript
 import { TimeUtils, SLOT_CONFIG_NETWORK } from '@hydra-sdk/core'
 
-// Current slot calculation
+// Convert Unix timestamp to slot
 const currentSlot = TimeUtils.unixTimeToEnclosingSlot(
   Date.now(), 
   SLOT_CONFIG_NETWORK.PREPROD
@@ -90,7 +127,7 @@ const deadline = TimeUtils.unixTimeToEnclosingSlot(
   SLOT_CONFIG_NETWORK.PREPROD
 )
 
-// Convert back to readable time
+// Convert slot back to Unix timestamp
 const readableTime = TimeUtils.slotToBeginUnixTime(
   currentSlot, 
   SLOT_CONFIG_NETWORK.PREPROD
@@ -101,33 +138,25 @@ console.log('Deadline slot:', deadline)
 console.log('Readable time:', new Date(readableTime))
 ```
 
-### 4. Provider Setup (Real Usage)
+### 6. Provider Setup (Real Usage)
 
 ```typescript
 import { ProviderUtils } from '@hydra-sdk/core'
 
-// Blockfrost provider (from playground examples)
+// Create Blockfrost provider
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
-  apiKey: process.env.BLOCKFROST_API_KEY || '',
+  projectId: process.env.BLOCKFROST_PROJECT_ID || '',
   network: 'preprod'
 })
 
-// Ogmios provider
+// Create Ogmios provider
 const ogmiosProvider = new ProviderUtils.OgmiosProvider({
-  apiEndpoint: 'https://preprod.cardano-rpc.hydrawallet.app',
-  network: 'preprod'
+  url: 'ws://localhost:1337'
 })
 
-// Usage in transaction flow
-const fetchUtxos = async (address: string) => {
-  try {
-    const utxos = await blockfrostProvider.fetcher.fetchAddressUTxOs(address)
-    return utxos
-  } catch (error) {
-    console.error('Failed to fetch UTxOs:', error)
-    throw error
-  }
-}
+// Use provider methods
+const utxos = await blockfrostProvider.getUtxos(address)
+const protocolParams = await blockfrostProvider.getProtocolParameters()
 ```
 
 ## Advanced Patterns
@@ -166,7 +195,7 @@ const processAssetUnit = (policyId: string, assetName: string) => {
     serialized: assetUnit,
     deserialized: { 
       policyId: deserializedPolicy, 
-      assetName: ParserUtils.hexToBytes(deserializedName).toString('utf8')
+      assetName: ParserUtils.hexToString(deserializedName)
     }
   }
 }
