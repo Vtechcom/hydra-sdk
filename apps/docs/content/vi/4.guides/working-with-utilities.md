@@ -1,26 +1,8 @@
-# Làm Việc với Utilities
-
-Hướng dẫn sử dụng utilities từ actual patterns trong `nodejs-playground`.
-
-## Bắt Đầu
-
-```typescript
-import { 
-  DatumUtils,
-  ParserUtils,
-  PolicyUtils,
-  TimeUtils,
-  SLOT_CONFIG_NETWORK,
-  Serializer,
-  Deserializer
-} from '@hydra-sdk/core'
-```
-
-## Patterns Cốt Lõiities
+# Làm việc với Utilities
 
 Các pattern utility thực tế dựa trên implementation từ `nodejs-playground/src`.
 
-## Bắt Đầu
+## Bắt đầu
 
 ```typescript
 import { 
@@ -30,37 +12,58 @@ import {
   TimeUtils,
   SLOT_CONFIG_NETWORK,
   Serializer,
-  Deserializer
+  Deserializer,
+  KeysUtils,
+  MetadataUtils,
+  ProviderUtils
 } from '@hydra-sdk/core'
 ```
 
-## Patterns Cốt Lõi
+## Các Pattern Cốt Lõi
 
-### 1. Tạo Token (Từ mint-burn-token.ts)
+### 1. Tạo Khóa (Từ gen-fund-key.ts)
 
 ```typescript
-import { PolicyUtils, ParserUtils } from '@hydra-sdk/core'
+import { KeysUtils } from '@hydra-sdk/core'
 
-// Tạo policy từ wallet address
+// Tạo cặp khóa ed25519 tương thích Cardano CLI
+const cardanoKeys = KeysUtils.cardanoCliKeygen()
+console.log('Cardano keys:', cardanoKeys)
+
+// Tạo cặp khóa ed25519 tương thích Hydra
+const hydraKeys = KeysUtils.hydraCliKeygen()
+console.log('Hydra keys:', hydraKeys)
+
+// Tạo verification key từ signing key
+const vkey = KeysUtils.genVkey(cardanoKeys.sk)
+console.log('Derived vkey:', vkey)
+```
+
+### 2. Tạo Token (Từ mint-burn-token.ts)
+
+```typescript
+import { PolicyUtils, ParserUtils, Serializer } from '@hydra-sdk/core'
+
+// Tạo policy từ địa chỉ ví
 const walletAddress = wallet.getAccount().baseAddressBech32
 const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
 const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
 
 // Chuyển đổi tên token
 const assetNameHex = ParserUtils.stringToHex('MyToken')
-const assetUnit = serializeAssetUnit(policyId, assetNameHex)
+const assetUnit = Serializer.serializeAssetUnit(policyId, assetNameHex)
 
 console.log('Policy ID:', policyId)
 console.log('Asset Unit:', assetUnit)
 ```
 
-### 2. Xây Dựng Datum Phức Tạp (Implementation Thực Tế)
+### 3. Xây Dựng Datum Phức Tạp (Implementation Thực Tế)
 
 ```typescript
-import { DatumUtils } from '@hydra-sdk/core'
+import { DatumUtils, ParserUtils } from '@hydra-sdk/core'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 
-// Pattern datum builder từ production
+// Production datum builder pattern
 const buildDatum = (key: string, l1Vkh: string, l2Vkh: string, amount: string) => {
   const bKey = DatumUtils.mkBytes(key)
   const cL1Vkh = DatumUtils.mkConstr(0, [DatumUtils.mkBytes(l1Vkh)])
@@ -91,12 +94,28 @@ const datum = buildDatum(
 )
 ```
 
-### 3. Time Utilities (Patterns Thực Tế)
+### 4. Tạo Metadata (Từ metadata.test.ts)
+
+```typescript
+import { MetadataUtils, ParserUtils } from '@hydra-sdk/core'
+
+const vkeyHash = '34f37700b10586c0662e42fcbdf3339c4c52d10e4b13fdef22ecd9b2'
+
+// Chuyển object sang metadata
+const metadata = MetadataUtils.metadataObjToMetadatum({
+  toHeadId: ParserUtils.toBytes('4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'),
+  toAddress: ParserUtils.toBytes(vkeyHash)
+})
+
+console.log('Metadata CBOR:', metadata.to_hex())
+```
+
+### 5. Tiện Ích Thời Gian (Patterns Thực Tế)
 
 ```typescript
 import { TimeUtils, SLOT_CONFIG_NETWORK } from '@hydra-sdk/core'
 
-// Tính toán slot hiện tại
+// Chuyển Unix timestamp sang slot
 const currentSlot = TimeUtils.unixTimeToEnclosingSlot(
   Date.now(), 
   SLOT_CONFIG_NETWORK.PREPROD
@@ -108,52 +127,44 @@ const deadline = TimeUtils.unixTimeToEnclosingSlot(
   SLOT_CONFIG_NETWORK.PREPROD
 )
 
-// Chuyển về thời gian đọc được
+// Chuyển slot về Unix timestamp
 const readableTime = TimeUtils.slotToBeginUnixTime(
   currentSlot, 
   SLOT_CONFIG_NETWORK.PREPROD
 )
 
-console.log('Slot hiện tại:', currentSlot)
+console.log('Current slot:', currentSlot)
 console.log('Deadline slot:', deadline)
-console.log('Thời gian đọc được:', new Date(readableTime))
+console.log('Readable time:', new Date(readableTime))
 ```
 
-### 4. Cấu Hình Provider (Sử Dụng Thực Tế)
+### 6. Cài Đặt Provider (Sử Dụng Thực Tế)
 
 ```typescript
 import { ProviderUtils } from '@hydra-sdk/core'
 
-// Blockfrost provider (từ playground examples)
+// Tạo Blockfrost provider
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
-  apiKey: process.env.BLOCKFROST_API_KEY || '',
+  projectId: process.env.BLOCKFROST_PROJECT_ID || '',
   network: 'preprod'
 })
 
-// Ogmios provider
+// Tạo Ogmios provider
 const ogmiosProvider = new ProviderUtils.OgmiosProvider({
-  apiEndpoint: 'https://preprod.cardano-rpc.hydrawallet.app',
-  network: 'preprod'
+  url: 'ws://localhost:1337'
 })
 
-// Sử dụng trong transaction flow
-const fetchUtxos = async (address: string) => {
-  try {
-    const utxos = await blockfrostProvider.fetcher.fetchAddressUTxOs(address)
-    return utxos
-  } catch (error) {
-    console.error('Lỗi fetch UTxOs:', error)
-    throw error
-  }
-}
+// Sử dụng phương thức provider
+const utxos = await blockfrostProvider.getUtxos(address)
+const protocolParams = await blockfrostProvider.getProtocolParameters()
 ```
 
-## Patterns Nâng Cao
+## Các Pattern Nâng Cao
 
 ### Pipeline Chuyển Đổi Dữ Liệu
 
 ```typescript
-import { ParserUtils } from '@hydra-sdk/core'
+import { ParserUtils, Serializer, Deserializer } from '@hydra-sdk/core'
 
 // Workflow chuyển đổi hoàn chỉnh
 const processTokenData = (tokenName: string, metadata: Record<string, any>) => {
@@ -169,12 +180,34 @@ const processTokenData = (tokenName: string, metadata: Record<string, any>) => {
   return { nameHex, metadataEntries }
 }
 
+// Serialize/deserialize asset unit
+const processAssetUnit = (policyId: string, assetName: string) => {
+  // Serialize asset unit
+  const assetNameHex = ParserUtils.stringToHex(assetName)
+  const assetUnit = Serializer.serializeAssetUnit(policyId, assetNameHex)
+  
+  // Deserialize lại
+  const { policyId: deserializedPolicy, assetName: deserializedName } = 
+    Deserializer.deserializeAssetUnit(assetUnit)
+  
+  return {
+    original: { policyId, assetName },
+    serialized: assetUnit,
+    deserialized: { 
+      policyId: deserializedPolicy, 
+      assetName: ParserUtils.hexToString(deserializedName)
+    }
+  }
+}
+
 // Sử dụng
 const tokenData = processTokenData('MyNFT', {
-  name: 'NFT Đặc Biệt',
+  name: 'Special NFT',
   creator: 'Hydra Team',
-  rarity: 'Huyền Thoại'
+  rarity: 'Legendary'
 })
+
+const assetData = processAssetUnit('abc123...', 'MyToken')
 ```
 
 ### Xử Lý Lỗi
@@ -190,10 +223,10 @@ const safeConversion = (input: string, type: 'hex' | 'datum') => {
       case 'datum':
         return DatumUtils.mkBytes(ParserUtils.stringToHex(input))
       default:
-        throw new Error('Loại chuyển đổi không được hỗ trợ')
+        throw new Error('Unsupported conversion type')
     }
   } catch (error) {
-    console.error(`Chuyển đổi ${type} thất bại:`, error)
+    console.error(`Chuyển đổi thất bại cho ${type}:`, error)
     return null
   }
 }
@@ -201,257 +234,3 @@ const safeConversion = (input: string, type: 'hex' | 'datum') => {
 // Sử dụng với fallback
 const result = safeConversion('test data', 'hex') || 'default_hex_value'
 ```
-
-```typescript
-import { DatumUtils } from '@hydra-sdk/core'
-
-// Tạo datum đơn giản với thông tin người dùng
-const createUserDatum = (userId: number, name: string, active: boolean) => {
-  return DatumUtils.mkConstr(0, [
-    DatumUtils.mkInt(userId),
-    DatumUtils.mkBytes(ParserUtils.stringToHex(name)),
-    DatumUtils.mkConstr(active ? 1 : 0, [])
-  ])
-}
-
-// Tạo marketplace listing datum
-const createListingDatum = (price: bigint, seller: string, nftTokenName: string) => {
-  return DatumUtils.mkMap([
-    [DatumUtils.mkBytes(ParserUtils.stringToHex("price")), DatumUtils.mkInt(price)],
-    [DatumUtils.mkBytes(ParserUtils.stringToHex("seller")), DatumUtils.mkBytes(seller)],
-    [DatumUtils.mkBytes(ParserUtils.stringToHex("token")), DatumUtils.mkBytes(nftTokenName)]
-  ])
-}
-
-// Sử dụng
-const userDatum = createUserDatum(123, "Alice", true)
-const listingDatum = createListingDatum(100_000_000n, "addr1...", "MyNFT001")
-```
-
-### 3. Quản Lý Time và Slot
-
-Làm việc với time slots của Cardano:
-
-```typescript
-import { TimeUtils, NETWORK_ID } from '@hydra-sdk/core'
-
-// Lấy slot hiện tại cho transactions
-const getCurrentSlot = (network: 'mainnet' | 'preprod' | 'preview') => {
-  return TimeUtils.resolveSlotNo(network)
-}
-
-// Tính deadline slots (ví dụ: 24 giờ từ bây giờ)
-const getDeadlineSlot = (network: 'mainnet' | 'preprod' | 'preview', hoursFromNow: number) => {
-  const futureTime = Date.now() + (hoursFromNow * 60 * 60 * 1000)
-  return TimeUtils.resolveSlotNo(network, futureTime)
-}
-
-// Chuyển đổi slot về human-readable time
-const slotToDateTime = (slot: number, network: 'mainnet' | 'preprod' | 'preview') => {
-  const slotConfig = SLOT_CONFIG_NETWORK[network]
-  const timestamp = TimeUtils.slotToBeginUnixTime(slot, slotConfig)
-  return new Date(timestamp)
-}
-
-// Sử dụng trong transaction building
-const currentSlot = parseInt(getCurrentSlot('preprod'))
-const deadline = parseInt(getDeadlineSlot('preprod', 24)) // 24 giờ từ bây giờ
-```
-
-### 4. Tạo Minting Policy
-
-Tạo minting policies cho native tokens:
-
-```typescript
-import { PolicyUtils, AppWallet } from '@hydra-sdk/core'
-
-// Tạo policy từ wallet address (cách đơn giản)
-const createSimplePolicy = (wallet: AppWallet, accountIndex = 0, addressIndex = 0) => {
-  const account = wallet.getAccount(accountIndex, addressIndex)
-  return PolicyUtils.buildMintingPolicyScriptFromAddress(account.baseAddressBech32)
-}
-
-// Tạo policy từ public key cụ thể
-const createPolicyFromPubkey = (keyHash: string) => {
-  return PolicyUtils.buildPolicyScriptFromPubkey({
-    type: 'sig',
-    keyHash
-  })
-}
-
-// Sử dụng cho NFT minting
-const wallet = new AppWallet({
-  networkId: NETWORK_ID.PREPROD,
-  key: { type: 'mnemonic', words: AppWallet.brew() }
-})
-
-const mintingPolicy = createSimplePolicy(wallet)
-console.log('Minting policy:', mintingPolicy)
-```
-
-## Patterns Nâng Cao
-
-### 1. Provider Abstraction
-
-Sử dụng các providers khác nhau một cách liền mạch:
-
-```typescript
-import { ProviderUtils } from '@hydra-sdk/core'
-
-// Tạo provider factory
-const createProvider = (type: 'blockfrost' | 'ogmios', config: any) => {
-  switch (type) {
-    case 'blockfrost':
-      return new ProviderUtils.BlockfrostProvider(config)
-    case 'ogmios':
-      return new ProviderUtils.OgmiosProvider(config)
-    default:
-      throw new Error('Loại provider không được hỗ trợ')
-  }
-}
-
-// Sử dụng với fallback
-const getUtxosWithFallback = async (address: string) => {
-  const providers = [
-    createProvider('blockfrost', { projectId: 'main-id', network: 'preprod' }),
-    createProvider('blockfrost', { projectId: 'backup-id', network: 'preprod' })
-  ]
-
-  for (const provider of providers) {
-    try {
-      return await provider.getUtxos(address)
-    } catch (error) {
-      console.warn('Provider thất bại, thử provider tiếp theo...', error)
-    }
-  }
-  throw new Error('Tất cả providers đều thất bại')
-}
-```
-
-### 2. Data Serialization Pipeline
-
-Tạo một serialization pipeline hoàn chỉnh:
-
-```typescript
-import { Serializer, Deserializer, ParserUtils } from '@hydra-sdk/core'
-
-// Tạo utility class serialization
-class DataSerializer {
-  static serialize(data: any): string {
-    // Chuyển sang Cardano format
-    const cardanoData = Serializer.toCardanoFormat(data)
-    // Chuyển sang hex để lưu trữ/truyền tải
-    return ParserUtils.bytesToHex(cardanoData)
-  }
-
-  static deserialize<T>(hex: string): T {
-    // Chuyển hex về bytes
-    const bytes = ParserUtils.hexToBytes(hex)
-    // Deserialize từ Cardano format
-    return Deserializer.fromCardanoFormat(bytes) as T
-  }
-}
-
-// Sử dụng
-const originalData = { userId: 123, balance: 1000000 }
-const serialized = DataSerializer.serialize(originalData)
-const deserialized = DataSerializer.deserialize(serialized)
-```
-
-### 3. Batch Operations
-
-Xử lý nhiều thao tác một cách hiệu quả:
-
-```typescript
-import { DatumUtils, ParserUtils } from '@hydra-sdk/core'
-
-// Batch tạo user datums
-const createUserBatch = (users: Array<{id: number, name: string, active: boolean}>) => {
-  return users.map(user => ({
-    userId: user.id,
-    datum: DatumUtils.mkConstr(0, [
-      DatumUtils.mkInt(user.id),
-      DatumUtils.mkBytes(ParserUtils.stringToHex(user.name)),
-      DatumUtils.mkConstr(user.active ? 1 : 0, [])
-    ])
-  }))
-}
-
-### 5. Data Conversion Pipeline
-
-```typescript
-import { Serializer, Deserializer } from '@hydra-sdk/core'
-
-// Round-trip serialization/deserialization workflow
-const processTokenData = async (tokenName: string, txCbor: string) => {
-  // Serialize asset name
-  const serializedName = Serializer.serializeAssetUnit(tokenName)
-  console.log('Serialized token name:', serializedName)
-  
-  // Deserialize transaction
-  const txData = Deserializer.deserializeTx(txCbor)
-  console.log('Transaction outputs:', txData.outputs.length)
-  
-  // Deserialize asset unit back to readable form
-  const deserializedName = Deserializer.deserializeAssetUnit(serializedName)
-  console.log('Deserialized token name:', deserializedName)
-  
-  return { serializedName, txData, deserializedName }
-}
-
-// Batch xử lý hex data
-const processHexBatch = (hexStrings: string[]) => {
-  return hexStrings
-    .map(hex => ParserUtils.hexToBytes(hex))
-    .map(bytes => ParserUtils.bytesToHex(bytes)) // Xử lý và chuyển về
-}
-```
-
-## Error Handling
-
-Best practices cho error handling với utilities:
-
-```typescript
-import { ParserUtils, DatumUtils } from '@hydra-sdk/core'
-
-const safeHexToBytes = (hex: string): Buffer | null => {
-  try {
-    // Validate hex format
-    if (!/^[0-9a-fA-F]*$/.test(hex) || hex.length % 2 !== 0) {
-      throw new Error('Định dạng hex không hợp lệ')
-    }
-    return ParserUtils.hexToBytes(hex)
-  } catch (error) {
-    console.error('Thất bại chuyển hex sang bytes:', error)
-    return null
-  }
-}
-
-const safeDatumCreation = (value: any) => {
-  try {
-    if (typeof value === 'number' || typeof value === 'bigint') {
-      return DatumUtils.mkInt(value)
-    } else if (typeof value === 'string') {
-      return DatumUtils.mkBytes(ParserUtils.stringToHex(value))
-    } else {
-      throw new Error('Loại datum không được hỗ trợ')
-    }
-  } catch (error) {
-    console.error('Thất bại tạo datum:', error)
-    return null
-  }
-}
-```
-
-## Tips Hiệu Năng
-
-1. **Cache Providers**: Tái sử dụng provider instances thay vì tạo mới
-2. **Batch Operations**: Nhóm nhiều thao tác khi có thể
-3. **Validate Input**: Kiểm tra định dạng dữ liệu trước khi chuyển đổi để tránh exceptions
-4. **Use TypeScript**: Tận dụng type checking để phát hiện lỗi sớm
-
-## Bước Tiếp Theo
-
-- Khám phá [Tài Liệu API Utilities](/api/utilities) hoàn chỉnh
-- Học về [Xây Dựng Ứng Dụng Ví](/guides/building-wallet-app)
-- Xem [Mint và Burn Tokens](/guides/mint-burn-tokens)

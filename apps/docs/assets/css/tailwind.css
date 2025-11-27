@@ -63,11 +63,11 @@
 		&::after {
 			content: none;
 		}
-		@apply text-nowrap rounded px-1.5 py-0.5 font-mono text-sm;
+		@apply text-nowrap rounded border border-gray-200 bg-gray-100 px-1.5 py-0.5 font-mono text-sm shadow dark:border-gray-700 dark:bg-gray-800;
 	}
 
 	.prose pre code {
-		@apply block p-0;
+		@apply block border-none bg-transparent p-0 shadow-none;
 	}
 
 	.prose strong code {
