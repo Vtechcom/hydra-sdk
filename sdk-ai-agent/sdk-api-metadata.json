@@ -1,0 +1,2625 @@
+{
+  "hydra-transaction/src/utils/redeemer-builder.ts": [
+    {
+      "type": "function",
+      "name": "buildRedeemer",
+      "description": "Builds a redeemer for a Plutus script.",
+      "params": [
+        {
+          "name": "jsValue",
+          "type": "Record<string, string>"
+        },
+        {
+          "name": "options",
+          "type": "{ tag?: RedeemerTagType; index?: string | number; exUnits?: { mem: string; steps: string; }; }"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Redeemer"
+    },
+    {
+      "type": "function",
+      "name": "emptyRedeemer",
+      "description": "",
+      "params": [
+        {
+          "name": "options",
+          "type": "{ tag?: RedeemerTagType; index?: string | number; type?: \"int\" | \"bytes\" | \"list\" | \"map\" | \"constr\"; exUnits?: { mem: string; steps: string; }; }"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Redeemer"
+    }
+  ],
+  "hydra-transaction/src/utils/metadata.ts": [
+    {
+      "type": "function",
+      "name": "metadataObjToMetadatum",
+      "description": "",
+      "params": [
+        {
+          "name": "metadata",
+          "type": "string | number | bigint | Object | any[] | Uint8Array<ArrayBufferLike> | Map<any, any>"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionMetadatum"
+    }
+  ],
+  "hydra-transaction/src/utils/datum-builder.ts": [
+    {
+      "type": "function",
+      "name": "datumBuilder",
+      "description": "- Primitive: `int`, `bytes`.\n- Collections: `list`, `map`.\n- Structured: `constr`.",
+      "params": [],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+    }
+  ],
+  "hydra-transaction/src/utils/bigint.utils.ts": [
+    {
+      "type": "function",
+      "name": "bigIntReplacer",
+      "description": "Utility functions for handling BigInt serialization/deserialization in NestJS\nCustom JSON.stringify replacer function to handle BigInt values\nConverts BigInt to string with 'n' suffix to preserve type information",
+      "params": [
+        {
+          "name": "_key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "any"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "type": "function",
+      "name": "bigIntReviver",
+      "description": "Custom JSON.parse reviver function to handle BigInt values\nConverts string with 'n' suffix back to BigInt",
+      "params": [
+        {
+          "name": "_key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "any"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "type": "function",
+      "name": "convertBigIntToString",
+      "description": "Recursively converts BigInt values in an object to strings\nThis is useful for API responses where BigInt needs to be serialized",
+      "params": [
+        {
+          "name": "obj",
+          "type": "T"
+        }
+      ],
+      "returnType": "StringifyBigIntType<T>"
+    },
+    {
+      "type": "function",
+      "name": "convertStringToBigInt",
+      "description": "Recursively converts string values back to BigInt where appropriate\nThis is the reverse of convertBigIntToString",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any"
+        },
+        {
+          "name": "bigIntFields",
+          "type": "string[]"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "type": "function",
+      "name": "safeStringify",
+      "description": "Safe JSON stringify that handles BigInt values",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any"
+        },
+        {
+          "name": "space",
+          "type": "string | number"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "safeParse",
+      "description": "Safe JSON parse that handles BigInt values",
+      "params": [
+        {
+          "name": "json",
+          "type": "string"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "type": "function",
+      "name": "transformForApiResponse",
+      "description": "Transform object for API response - converts BigInt to strings\nand adds metadata about which fields were BigInt",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any"
+        }
+      ],
+      "returnType": "{ data: any; bigIntFields?: string[]; }"
+    },
+    {
+      "type": "function",
+      "name": "createBigIntConverter",
+      "description": "Type-safe helper function to create a BigInt-to-string converter\nThis ensures compile-time type safety for the conversion",
+      "params": [],
+      "returnType": "{ convert: (obj: T) => StringifyBigIntType<T>; type: StringifyBigIntType<T>; }"
+    },
+    {
+      "type": "function",
+      "name": "hasBigIntValues",
+      "description": "Utility to check if an object contains any BigInt values",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any"
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "type": "function",
+      "name": "needsBigIntConversion",
+      "description": "Type guard function to check if conversion is needed",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any"
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "type": "function",
+      "name": "exampleUsage",
+      "description": "Example usage demonstrating proper typing",
+      "params": [],
+      "returnType": "{ id: string; name: string; values: string[]; nested: { amount: string; description: string; }; }"
+    }
+  ],
+  "hydra-transaction/src/tx-builder/index.ts": [
+    {
+      "type": "class",
+      "name": "TxBuilder",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").TxBuilderOptions",
+              "description": "",
+              "isOptional": true,
+              "hasQuestionToken": false,
+              "hasInitializer": true,
+              "initializer": "{}"
+            }
+          ],
+          "signature": "constructor(options: TxBuilderOptions = {}) {\n\t\tconst { params, fetcher, submitter, isHydra = false, verbose = false, errorLogger = false } = options\n\n\t\tthis._fetcher = fetcher\n\t\tthis._submitter = submitter\n\t\tthis._isHydra = isHydra\n\t\tthis._verbose = verbose\n\t\tthis._errorLogger = errorLogger\n\n\t\tif (params) {\n\t\t\tthis.updateProtocolParams(params)\n\t\t}\n\t\tthis._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "updateProtocolParams",
+          "description": "",
+          "params": [
+            {
+              "name": "params",
+              "type": "Partial<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/protocol\").Protocol>"
+            }
+          ],
+          "returnType": "this"
+        },
+        {
+          "name": "txIn",
+          "description": "Add transaction input (similar to Mesh txIn)",
+          "params": [
+            {
+              "name": "txHash",
+              "type": "string"
+            },
+            {
+              "name": "outputIndex",
+              "type": "number"
+            },
+            {
+              "name": "amount",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/asset\").Asset[]"
+            },
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txInInlineDatum",
+          "description": "Add script input",
+          "params": [
+            {
+              "name": "inlineDatum",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "setInputUtxo",
+          "description": "TODO: Implement in the next version (v2.x)",
+          "params": [
+            {
+              "name": "utxoobject",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxOObject"
+            }
+          ],
+          "returnType": "this"
+        },
+        {
+          "name": "addInputUtxo",
+          "description": "TODO: Implement in the next version (v2.x)",
+          "params": [
+            {
+              "name": "utxoobject",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxOObject"
+            }
+          ],
+          "returnType": "this"
+        },
+        {
+          "name": "txInDatumHash",
+          "description": "Add datum hash to the script input",
+          "params": [
+            {
+              "name": "datum",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txInRedeemerValue",
+          "description": "Add redeemer to the script input",
+          "params": [
+            {
+              "name": "redeemer",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Redeemer"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txInEmptyRedeemer",
+          "description": "Add redeemer to the script input",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txInScript",
+          "description": "Add script to the last input",
+          "params": [
+            {
+              "name": "scriptCbor",
+              "type": "string"
+            },
+            {
+              "name": "version",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").PlutusVersion"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "spendingPlutusScript",
+          "description": "Set spending Plutus script version",
+          "params": [
+            {
+              "name": "version",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").PlutusVersion"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txOut",
+          "description": "Add transaction output (similar to Mesh txOut)",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            },
+            {
+              "name": "amount",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/asset\").Asset[]"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txOutInlineDatumValue",
+          "description": "Add transaction output with inline datum",
+          "params": [
+            {
+              "name": "inlineDatum",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txOutDatumHashValue",
+          "description": "Add transaction output with datum hash",
+          "params": [
+            {
+              "name": "datum",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "txOutReferenceScript",
+          "description": "Add script reference to output",
+          "params": [
+            {
+              "name": "scriptCbor",
+              "type": "string"
+            },
+            {
+              "name": "version",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").PlutusVersion"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "selectUtxosFrom",
+          "description": "Select UTxOs from provided list using coin selection strategy",
+          "params": [
+            {
+              "name": "simpleUTxOs",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxO[]"
+            },
+            {
+              "name": "strategy",
+              "type": "\"LargestFirst\" | \"RandomImprove\" | \"LargestFirstMultiAsset\" | \"RandomImproveMultiAsset\""
+            },
+            {
+              "name": "options",
+              "type": "{ recalculateScriptDataHash?: boolean; }"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "buildSimpleUtxo",
+          "description": "",
+          "params": [
+            {
+              "name": "utxo",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxO"
+            },
+            {
+              "name": "options",
+              "type": "{ withDatum: boolean; }"
+            }
+          ],
+          "returnType": "{ txInput: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionInput; txOutput: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionOutput; }"
+        },
+        {
+          "name": "setInputs",
+          "description": "Legacy method for backward compatibility",
+          "params": [
+            {
+              "name": "utxos",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxO[]"
+            },
+            {
+              "name": "options",
+              "type": "{ strategy: \"LargestFirst\" | \"RandomImprove\" | \"LargestFirstMultiAsset\" | \"RandomImproveMultiAsset\"; }"
+            }
+          ],
+          "returnType": "this"
+        },
+        {
+          "name": "txInCollateral",
+          "description": "Add collateral input",
+          "params": [
+            {
+              "name": "txHash",
+              "type": "string"
+            },
+            {
+              "name": "outputIndex",
+              "type": "number"
+            },
+            {
+              "name": "amount",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/asset\").Asset[]"
+            },
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "totalCollateral",
+          "description": "Set total collateral amount",
+          "params": [
+            {
+              "name": "amount",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "collateralReturn",
+          "description": "Set collateral return output",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            },
+            {
+              "name": "amount",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/asset\").Asset[]"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "mintPlutusScript",
+          "description": "Mint assets with native script",
+          "params": [
+            {
+              "name": "version",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").PlutusVersion"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "mint",
+          "description": "Add mint asset",
+          "params": [
+            {
+              "name": "quantity",
+              "type": "string"
+            },
+            {
+              "name": "policyId",
+              "type": "string"
+            },
+            {
+              "name": "assetName",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "mintingScript",
+          "description": "Add minting script",
+          "params": [
+            {
+              "name": "mintingScript",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").PolicyScript"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "mintRedeemerValue",
+          "description": "Add mint redeemer",
+          "params": [
+            {
+              "name": "redeemer",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Redeemer"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "registerStake",
+          "description": "Register stake address",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "deregisterStake",
+          "description": "Deregister stake address",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "delegateStake",
+          "description": "Delegate stake to pool",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string"
+            },
+            {
+              "name": "poolKeyHash",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "withdrawal",
+          "description": "Withdraw rewards",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string"
+            },
+            {
+              "name": "amount",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "metadataValue",
+          "description": "Add metadata to transaction",
+          "params": [
+            {
+              "name": "label",
+              "type": "string | number | bigint | import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BigNum"
+            },
+            {
+              "name": "value",
+              "type": "string | number | object"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "auxiliaryData",
+          "description": "Add auxiliary data hash",
+          "params": [
+            {
+              "name": "hash",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "invalidBefore",
+          "description": "Set invalid before slot",
+          "params": [
+            {
+              "name": "slot",
+              "type": "number"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "invalidAfter",
+          "description": "Set invalid after slot",
+          "params": [
+            {
+              "name": "slot",
+              "type": "number"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "requiredSignerHash",
+          "description": "Add required signer by public key hash",
+          "params": [
+            {
+              "name": "pubKeyHash",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "changeAddress",
+          "description": "Set change address",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "calculateFee",
+          "description": "Calculate minimum fee",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BigNum"
+        },
+        {
+          "name": "setFee",
+          "description": "Set specific fee amount",
+          "params": [
+            {
+              "name": "fee",
+              "type": "string | import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BigNum"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "setMinFee",
+          "description": "Set specific fee amount",
+          "params": [
+            {
+              "name": "minFee",
+              "type": "string | import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BigNum"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "addOutput",
+          "description": "Legacy method: Add output",
+          "params": [
+            {
+              "name": "output",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/tx-output\").TxOutput"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "addOutputs",
+          "description": "Legacy method: Add multiple outputs",
+          "params": [
+            {
+              "name": "outputs",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/tx-output\").TxOutput[]"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "addLovelaceOutput",
+          "description": "Legacy method: Add lovelace-only output",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            },
+            {
+              "name": "lovelace",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "setChangeAddress",
+          "description": "Legacy method: Set change address",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "minAda",
+          "description": "Legacy method: Calculate min ada for assets",
+          "params": [
+            {
+              "name": "placeholderOutput",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionOutput"
+            },
+            {
+              "name": "protocolParams",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/protocol\").Protocol"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BigNum"
+        },
+        {
+          "name": "minAdaForAssets",
+          "description": "Legacy method: Calculate min ada for assets",
+          "params": [
+            {
+              "name": "assets",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/asset\").Asset[]"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BigNum"
+        },
+        {
+          "name": "complete",
+          "description": "Build and complete the transaction",
+          "params": [],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Transaction>"
+        },
+        {
+          "name": "reset",
+          "description": "Reset the transaction builder to initial state",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/tx-builder/index\").TxBuilder"
+        },
+        {
+          "name": "_addOutputToBuilder",
+          "description": "Add output to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "output",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/tx-output\").TxOutput"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_outputAmountToValue",
+          "description": "",
+          "params": [
+            {
+              "name": "amount",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/asset\").Asset[]"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Value"
+        },
+        {
+          "name": "_addInputToBuilder",
+          "description": "Add input to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "input",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").TxIn"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_addInputsToBuilder",
+          "description": "",
+          "params": [
+            {
+              "name": "inputs",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").TxIn[]"
+            },
+            {
+              "name": "strategy",
+              "type": "\"LargestFirst\" | \"RandomImprove\" | \"LargestFirstMultiAsset\" | \"RandomImproveMultiAsset\""
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_addCollateralToBuilder",
+          "description": "Add collateral to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "collateral",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").CollateralInput"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_addMintToBuilder",
+          "description": "Add mint to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "_mint",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").MintAsset"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_addCertificateToBuilder",
+          "description": "Add certificate to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "_cert",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").Certificate"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_addWithdrawalToBuilder",
+          "description": "Add withdrawal to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "withdrawal",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-transaction/src/types/index\").Withdrawal"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_setValidityRange",
+          "description": "Set validity range on the transaction builder",
+          "params": [],
+          "returnType": "void"
+        },
+        {
+          "name": "_addRequiredSigner",
+          "description": "Add required signer to the transaction builder",
+          "params": [
+            {
+              "name": "pubKeyHash",
+              "type": "string"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "_addMetadata",
+          "description": "Add metadata to the transaction builder",
+          "params": [],
+          "returnType": "void"
+        },
+        {
+          "name": "_buildCostModels",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Costmdls"
+        },
+        {
+          "name": "getTxBuilder",
+          "description": "",
+          "params": [
+            {
+              "name": "pp",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/protocol\").Protocol"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionBuilder"
+        }
+      ]
+    }
+  ],
+  "hydra-bridge/src/bridge.ts": [
+    {
+      "type": "class",
+      "name": "HydraBridge",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "InitHydraBridgeOptions",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(options: InitHydraBridgeOptions) {\n\t\tthis._verbose = options.verbose || false\n\t\tif ('connector' in options) {\n\t\t\tthis.connector = options.connector\n\t\t} else {\n\t\t\tthis.connector = new WebsocketConnector({\n\t\t\t\twebsocketUrl: options.url\n\t\t\t})\n\t\t}\n\t\tthis._eventEmitter = this.connector.eventEmitter\n\t\tthis._eventEmitter.on('onConnected', () => {\n\t\t\tthis.querySnapshotUtxo()\n\t\t})\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "snapshotUtxoArray",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxO[]"
+        },
+        {
+          "name": "connected",
+          "description": "",
+          "params": [],
+          "returnType": "boolean"
+        },
+        {
+          "name": "connect",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<boolean>"
+        },
+        {
+          "name": "disconnect",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<boolean>"
+        },
+        {
+          "name": "headInfo",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<{ headId: any; headStatus: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").HydraHeadStatus; vkey: any; }>"
+        },
+        {
+          "name": "sendCommand",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "{ command: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").HydraCommand; payload?: Record<string, any>; afterSendCb?: <T>() => T | Promise<T>; }"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "commit",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/commit.type\").CommitBody"
+            }
+          ],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/commit.type\").CommitResponse>"
+        },
+        {
+          "name": "submitCardanoTransaction",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/submit-tx.type\").SubmitTxBody"
+            }
+          ],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/submit-tx.type\").SubmitTxResponse>"
+        },
+        {
+          "name": "queryRawProtocolParameters",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/protocol-parameters.type\").RawProtocolParameters>"
+        },
+        {
+          "name": "getProtocolParameters",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/protocol\").Protocol>"
+        },
+        {
+          "name": "querySnapshotUtxo",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxOObject>"
+        },
+        {
+          "name": "addressesInHead",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<string[]>"
+        },
+        {
+          "name": "initHydraHead",
+          "description": "",
+          "params": [
+            {
+              "name": "retry",
+              "type": "number"
+            },
+            {
+              "name": "interval",
+              "type": "number"
+            }
+          ],
+          "returnType": "Promise<unknown>"
+        },
+        {
+          "name": "submitTxSync",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/transaction.type\").Transaction"
+            },
+            {
+              "name": "options",
+              "type": "{ timeout: number; }"
+            }
+          ],
+          "returnType": "Promise<{ txId: string; isValid: boolean; isConfirmed: boolean; result: Readonly<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").SnapshotConfirmed> | import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").HydraHeadTag.SnapshotConfirmed; }>"
+        },
+        {
+          "name": "decommit",
+          "description": "",
+          "params": [
+            {
+              "name": "{ cborHex, txId, timeout = 30000 }",
+              "type": "{ cborHex: string; timeout?: number; txId: string; }"
+            }
+          ],
+          "returnType": "Promise<Readonly<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").DecommitApproved>>"
+        },
+        {
+          "name": "queryAddressUTxO",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/cardano/utxo\").UTxO[]>"
+        }
+      ]
+    }
+  ],
+  "hydra-bridge/src/utils/url-parser.ts": [
+    {
+      "type": "function",
+      "name": "parseUrl",
+      "description": "",
+      "params": [
+        {
+          "name": "input",
+          "type": "string"
+        }
+      ],
+      "returnType": "{ valid: boolean; protocol: string; host: string; port: string; path: string; params: { [k: string]: string; }; ssl: boolean; } | { valid: boolean; protocol?: undefined; host?: undefined; port?: undefined; path?: undefined; params?: undefined; ssl?: undefined; }"
+    }
+  ],
+  "hydra-bridge/src/utils/url-builder.ts": [
+    {
+      "type": "function",
+      "name": "buildUrl",
+      "description": "",
+      "params": [
+        {
+          "name": "{\n\tprotocol = 'https',\n\thost,\n\tport,\n\tpath = '',\n\tqueryParams = {}\n}",
+          "type": "{ protocol: \"http\" | \"https\" | \"ws\" | \"wss\"; host: string; port?: string | number; path?: string; queryParams?: Record<string, string>; }"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "hydra-bridge/src/utils/haskell-deserialize.ts": [
+    {
+      "type": "function",
+      "name": "deserializeHaskellErrorToJson",
+      "description": "",
+      "params": [
+        {
+          "name": "errorStr",
+          "type": "string"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/utils/haskell-deserialize\").JsonResult"
+    }
+  ],
+  "hydra-bridge/src/types/protocol-parameters.type.ts": [
+    {
+      "type": "function",
+      "name": "toProtocol",
+      "description": "",
+      "params": [
+        {
+          "name": "pp",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/protocol-parameters.type\").RawProtocolParameters"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/dist/types/protocol\").Protocol"
+    }
+  ],
+  "hydra-bridge/src/constants/protocol-parameters.ts": [
+    {
+      "type": "function",
+      "name": "resolveTxFees",
+      "description": "",
+      "params": [
+        {
+          "name": "txSize",
+          "type": "number"
+        },
+        {
+          "name": "txFeePerByte",
+          "type": "number"
+        },
+        {
+          "name": "txFeeFixed",
+          "type": "number"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "hydra-bridge/src/connector/websocket.ts": [
+    {
+      "type": "function",
+      "name": "defaultWsFetcher",
+      "description": "",
+      "params": [
+        {
+          "name": "connector",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/connector/websocket\").WebsocketConnector"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/fetcher.type\").HydraBridgeFetcher"
+    },
+    {
+      "type": "class",
+      "name": "WebsocketConnector",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "string | import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/connector/websocket\").WebsocketConnectorOptions",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(options: WebsocketConnectorOptions | string) {\n\t\tif (typeof options === 'string') {\n\t\t\toptions = {\n\t\t\t\twebsocketUrl: options\n\t\t\t}\n\t\t}\n\t\tconst { valid, protocol, host, port, path, ssl } = parseUrl(options.websocketUrl)\n\n\t\tif (!valid || !host) {\n\t\t\tthrow new Error('Invalid websocket url')\n\t\t}\n\t\tthis.conn = {\n\t\t\tssl,\n\t\t\thost,\n\t\t\tport,\n\t\t\tpath\n\t\t}\n\t\tthis.apiFetch = axios.create({\n\t\t\tbaseURL: this.networkInfo.httpUrl,\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = options?.fetcher || defaultWsFetcher(this)\n\t\tthis.submitter = options?.submitter || defaultWsSubmitter(this)\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "connect",
+          "description": "",
+          "params": [],
+          "returnType": "void"
+        },
+        {
+          "name": "disconnect",
+          "description": "",
+          "params": [],
+          "returnType": "void"
+        },
+        {
+          "name": "connected",
+          "description": "",
+          "params": [],
+          "returnType": "boolean"
+        },
+        {
+          "name": "sendCommand",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "{ command: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").HydraCommand; payload?: Record<string, any>; afterSendCb?: <T>() => T | Promise<T>; }"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "rawMessageHandler",
+          "description": "",
+          "params": [
+            {
+              "name": "event",
+              "type": "MessageEvent<any>"
+            }
+          ],
+          "returnType": "void"
+        },
+        {
+          "name": "submitTxSync",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/transaction.type\").Transaction"
+            },
+            {
+              "name": "options",
+              "type": "{ timeout: number; }"
+            }
+          ],
+          "returnType": "Promise<{ txId: string; isValid: boolean; isConfirmed: boolean; result: Readonly<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").SnapshotConfirmed> | import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").HydraHeadTag.SnapshotConfirmed; }>"
+        }
+      ]
+    }
+  ],
+  "hydra-bridge/src/connector/hexcore.ts": [
+    {
+      "type": "function",
+      "name": "defaultHexcoreFetcher",
+      "description": "",
+      "params": [
+        {
+          "name": "connector",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/connector/hexcore\").HexcoreConnector"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/fetcher.type\").HydraBridgeFetcher"
+    },
+    {
+      "type": "function",
+      "name": "defaultHexcoreSubmitter",
+      "description": "",
+      "params": [
+        {
+          "name": "connector",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/connector/hexcore\").HexcoreConnector"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/submitter.type\").HydraBridgeSubmitter"
+    },
+    {
+      "type": "class",
+      "name": "HexcoreConnector",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "socketIoUrl",
+              "type": "string",
+              "description": "Socket io url, e.g. https://api.hexcore.dev/hydra",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            },
+            {
+              "name": "options",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/connector/hexcore\").HexcoreConnectorOptions",
+              "description": " ",
+              "isOptional": true,
+              "hasQuestionToken": true,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(socketIoUrl: string, options?: HexcoreConnectorOptions) {\n\t\tconst { valid, protocol, host, port, path, ssl } = parseUrl(socketIoUrl)\n\t\tif (!valid || !host) {\n\t\t\tthrow new Error('Invalid socket io url')\n\t\t}\n\t\tthis.conn = {\n\t\t\tssl: ssl,\n\t\t\thost,\n\t\t\tport,\n\t\t\tpath\n\t\t}\n\n\t\tconst httpUrl = buildUrl({\n\t\t\tprotocol: this.conn.ssl ? 'https' : 'http',\n\t\t\thost: this.conn.host,\n\t\t\tport: this.conn.port,\n\t\t\tpath: this.conn.path\n\t\t})\n\t\tthis.apiFetch = axios.create({\n\t\t\tbaseURL: httpUrl,\n\t\t\ttimeout: 10000\n\t\t})\n\t\tthis.namespace = options?.namespace || 'hydra'\n\n\t\tthis.fetcher = options?.fetcher || defaultHexcoreFetcher(this)\n\t\tthis.submitter = options?.submitter || defaultHexcoreSubmitter(this)\n\n\t\tthis.socketIoClient = io(httpUrl + this.namespace, {\n\t\t\t...options?.socketIoOptions,\n\t\t\tautoConnect: options?.socketIoOptions?.autoConnect || false,\n\t\t\ttransports: ['websocket', 'polling']\n\t\t})\n\n\t\tthis.socketIoClient.on('connect', () => {\n\t\t\tthis.eventEmitter.emit('onConnected')\n\t\t})\n\n\t\tthis.socketIoClient.on('disconnect', () => {\n\t\t\tthis.eventEmitter.emit('onDisconnected')\n\t\t})\n\n\t\tthis.socketIoClient.on('message', (message: any) => {\n\t\t\tconsole.log('[HexcoreConnector][message]:', message)\n\t\t})\n\n\t\tthis.socketIoClient.on('hydra', (message: { status: 'success' | 'fail'; data: HydraPayload }) => {\n\t\t\tthis.eventEmitter.emit('onMessage', message.data)\n\t\t})\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "connect",
+          "description": "",
+          "params": [],
+          "returnType": "void"
+        },
+        {
+          "name": "disconnect",
+          "description": "",
+          "params": [],
+          "returnType": "void"
+        },
+        {
+          "name": "connected",
+          "description": "",
+          "params": [],
+          "returnType": "boolean"
+        },
+        {
+          "name": "sendCommand",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "{ command: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/hydra-bridge/src/types/payload.type\").HydraCommand; payload?: Record<string, any>; afterSendCb?: <T>() => T | Promise<T>; }"
+            }
+          ],
+          "returnType": "void"
+        }
+      ]
+    }
+  ],
+  "core/src/wallet.ts": [
+    {
+      "type": "class",
+      "name": "AppWallet",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/index\").CreateAppWalletOptions",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(options: CreateAppWalletOptions) {\n\t\tthis._fetcher = options.fetcher\n\t\tthis._submitter = options.submitter\n\n\t\tswitch (options.key.type) {\n\t\t\tcase 'mnemonic':\n\t\t\t\tthis._wallet = new EmbeddedWallet({\n\t\t\t\t\tnetworkId: options.networkId,\n\t\t\t\t\tkey: {\n\t\t\t\t\t\ttype: 'mnemonic',\n\t\t\t\t\t\twords: options.key.words\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t\tbreak\n\t\t\tcase 'root':\n\t\t\t\tthis._wallet = new EmbeddedWallet({\n\t\t\t\t\tnetworkId: options.networkId,\n\t\t\t\t\tkey: {\n\t\t\t\t\t\ttype: 'root',\n\t\t\t\t\t\tbech32: options.key.bech32\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t\tbreak\n\t\t\tcase 'cli':\n\t\t\t\tthis._wallet = new EmbeddedWallet({\n\t\t\t\t\tnetworkId: options.networkId,\n\t\t\t\t\tkey: {\n\t\t\t\t\t\ttype: 'cli',\n\t\t\t\t\t\tpayment: options.key.payment,\n\t\t\t\t\t\tstake: options.key.stake\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t}\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getAccount",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/embedded\").Account"
+        },
+        {
+          "name": "getEnterpriseAddress",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "getPaymentAddress",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "getRewardAddress",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "getNetworkId",
+          "description": "",
+          "params": [],
+          "returnType": "number"
+        },
+        {
+          "name": "signTx",
+          "description": "",
+          "params": [
+            {
+              "name": "unsignedTx",
+              "type": "string"
+            },
+            {
+              "name": "partialSign",
+              "type": "boolean"
+            },
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "Promise<string>"
+        },
+        {
+          "name": "brew",
+          "description": "",
+          "params": [
+            {
+              "name": "strength",
+              "type": "number"
+            }
+          ],
+          "returnType": "string[]"
+        },
+        {
+          "name": "signData",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            },
+            {
+              "name": "payload",
+              "type": "string"
+            },
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/data-signature\").DataSignature>"
+        },
+        {
+          "name": "signTxs",
+          "description": "",
+          "params": [
+            {
+              "name": "unsignedTxs",
+              "type": "string[]"
+            },
+            {
+              "name": "partialSign",
+              "type": "boolean"
+            }
+          ],
+          "returnType": "Promise<string[]>"
+        },
+        {
+          "name": "submitTx",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "string"
+            }
+          ],
+          "returnType": "Promise<string>"
+        },
+        {
+          "name": "getFetcher",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/fetcher\").IFetcher"
+        },
+        {
+          "name": "getSubmitter",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/submitter\").ISubmitter"
+        },
+        {
+          "name": "queryUTxOs",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxO[]>"
+        }
+      ]
+    }
+  ],
+  "core/src/embedded.ts": [
+    {
+      "type": "class",
+      "name": "WalletStaticMethods",
+      "description": "",
+      "constructors": [],
+      "methods": [
+        {
+          "name": "privateKeyBech32ToPrivateKeyHex",
+          "description": "",
+          "params": [
+            {
+              "name": "_bech32",
+              "type": "string"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "mnemonicToPrivateKeyHex",
+          "description": "",
+          "params": [
+            {
+              "name": "words",
+              "type": "string[]"
+            },
+            {
+              "name": "password",
+              "type": "string"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "privateKeyHexToBech32",
+          "description": "",
+          "params": [
+            {
+              "name": "privateKeyHex",
+              "type": "string"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "signingKeyToHexes",
+          "description": "",
+          "params": [
+            {
+              "name": "paymentKey",
+              "type": "string"
+            },
+            {
+              "name": "stakeKey",
+              "type": "string"
+            }
+          ],
+          "returnType": "[string, string]"
+        },
+        {
+          "name": "bip32BytesToPrivateKeyHex",
+          "description": "",
+          "params": [
+            {
+              "name": "bip32Bytes",
+              "type": "Uint8Array<ArrayBufferLike>"
+            }
+          ],
+          "returnType": "string"
+        },
+        {
+          "name": "getAddresses",
+          "description": "",
+          "params": [
+            {
+              "name": "paymentKey",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Bip32PrivateKey"
+            },
+            {
+              "name": "stakingKey",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Bip32PrivateKey"
+            },
+            {
+              "name": "networkId",
+              "type": "number"
+            }
+          ],
+          "returnType": "{ baseAddress: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Address; enterpriseAddress: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Address; rewardAddress: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Address; }"
+        },
+        {
+          "name": "generateMnemonic",
+          "description": "",
+          "params": [
+            {
+              "name": "strength",
+              "type": "number"
+            }
+          ],
+          "returnType": "string[]"
+        }
+      ]
+    },
+    {
+      "type": "class",
+      "name": "EmbeddedWallet",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/embedded\").CreateEmbeddedWalletOptions",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(options: CreateEmbeddedWalletOptions) {\n\t\tsuper()\n\t\tthis._networkId = options.networkId\n\n\t\tswitch (options.key.type) {\n\t\t\tcase 'mnemonic':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.mnemonicToPrivateKeyHex(options.key.words)\n\t\t\t\tbreak\n\t\t\tcase 'root':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.privateKeyBech32ToPrivateKeyHex(options.key.bech32)\n\t\t\t\tbreak\n\t\t\tcase 'cli':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.signingKeyToHexes(\n\t\t\t\t\toptions.key.payment,\n\t\t\t\t\toptions.key.stake ?? 'f0'.repeat(32)\n\t\t\t\t)\n\t\t\t\tbreak\n\t\t\tcase 'bip32Bytes':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.bip32BytesToPrivateKeyHex(options.key.bip32Bytes)\n\t\t\t\tbreak\n\t\t}\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getPrivateKeyHex",
+          "description": "",
+          "params": [],
+          "returnType": "string | [string, string]"
+        },
+        {
+          "name": "getAccount",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/embedded\").Account"
+        },
+        {
+          "name": "getNetworkId",
+          "description": "Get wallet network ID.",
+          "params": [],
+          "returnType": "number"
+        },
+        {
+          "name": "signTx",
+          "description": "This endpoints sign the provided transaction (unsignedTx) with the private key of the owner.",
+          "params": [
+            {
+              "name": "unsignedTx",
+              "type": "string"
+            },
+            {
+              "name": "accountIndex",
+              "type": "number"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Vkeywitness"
+        }
+      ]
+    }
+  ],
+  "core/src/cardanocli-wallet.ts": [
+    {
+      "type": "class",
+      "name": "CardanoCliWallet",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "CardanoCliWalletConstr",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(options: CardanoCliWalletConstr) {\n\t\tsuper()\n\t\tthis._networkId = options.networkId ?? NETWORK_ID.MAINNET\n\t\tthis._skey = options.skey\n\t\tthis._vkey = options.vkey\n\t\tthis._submitter = options.submitter\n\t\tthis._fetcher = options.fetcher\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getAddressBech32",
+          "description": "",
+          "params": [],
+          "returnType": "string"
+        },
+        {
+          "name": "getNetworkId",
+          "description": "",
+          "params": [],
+          "returnType": "number"
+        },
+        {
+          "name": "signTx",
+          "description": "",
+          "params": [
+            {
+              "name": "unsignedTx",
+              "type": "string"
+            },
+            {
+              "name": "partialSign",
+              "type": "boolean"
+            }
+          ],
+          "returnType": "Promise<string>"
+        },
+        {
+          "name": "submitTx",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "string"
+            }
+          ],
+          "returnType": "Promise<string>"
+        },
+        {
+          "name": "queryUTxOs",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string"
+            }
+          ],
+          "returnType": "Promise<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxO[]>"
+        }
+      ]
+    }
+  ],
+  "core/src/utils/validator.util.ts": [
+    {
+      "type": "function",
+      "name": "isValidAddress",
+      "description": "",
+      "params": [
+        {
+          "name": "address",
+          "type": "string | Uint8Array<ArrayBufferLike>"
+        },
+        {
+          "name": "type",
+          "type": "\"bytes\" | \"bech32\" | \"hex\""
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "type": "function",
+      "name": "isValidTxOutput",
+      "description": "",
+      "params": [
+        {
+          "name": "output",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/tx-output\").TxOutput"
+        }
+      ],
+      "returnType": "boolean"
+    }
+  ],
+  "core/src/utils/time.ts": [
+    {
+      "type": "function",
+      "name": "slotToBeginUnixTime",
+      "description": "",
+      "params": [
+        {
+          "name": "slot",
+          "type": "number"
+        },
+        {
+          "name": "slotConfig",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/constants/time\").SlotConfig"
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "type": "function",
+      "name": "unixTimeToEnclosingSlot",
+      "description": "Eqivalent to `slotToBeginUnixTime` but option to provide optional config",
+      "params": [
+        {
+          "name": "unixTime",
+          "type": "number"
+        },
+        {
+          "name": "slotConfig",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/constants/time\").SlotConfig"
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "type": "function",
+      "name": "resolveSlotNo",
+      "description": "Resolve slot number based on timestamp in milliseconds.",
+      "params": [
+        {
+          "name": "network",
+          "type": "\"MAINNET\" | \"PREPROD\" | \"PREVIEW\""
+        },
+        {
+          "name": "milliseconds",
+          "type": "number"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "resolveEpochNo",
+      "description": "Resolve epoch number based on timestamp in  milliseconds.",
+      "params": [
+        {
+          "name": "network",
+          "type": "\"MAINNET\" | \"PREPROD\" | \"PREVIEW\""
+        },
+        {
+          "name": "milliseconds",
+          "type": "number"
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "type": "function",
+      "name": "buildHydraSlotConfig",
+      "description": "Build Hydra slot configuration for a specific timestamp.",
+      "params": [
+        {
+          "name": "startTimestamp",
+          "type": "number"
+        },
+        {
+          "name": "options",
+          "type": "Partial<Omit<import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/constants/time\").SlotConfig, \"zeroTime\">>"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/constants/time\").SlotConfig"
+    }
+  ],
+  "core/src/utils/policy.ts": [
+    {
+      "type": "function",
+      "name": "buildPolicyScriptFromPubkey",
+      "description": "Builds a minting policy script from a public key script.",
+      "params": [
+        {
+          "name": "pubkeyScript",
+          "type": "{ type: \"sig\"; keyHash: string; }"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "buildMintingPolicyScriptFromAddress",
+      "description": "Builds a minting policy script from a Bech32 encoded address.",
+      "params": [
+        {
+          "name": "addressBech32",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "buildMintingPolicyScriptFromKeyHash",
+      "description": "Builds a minting policy script from a key hash.",
+      "params": [
+        {
+          "name": "keyHashHex",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "policyIdFromNativeScript",
+      "description": "Extracts the policy ID from a native script.",
+      "params": [
+        {
+          "name": "script",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/parser.ts": [
+    {
+      "type": "function",
+      "name": "bytesToHex",
+      "description": "Converting bytes to hex string",
+      "params": [
+        {
+          "name": "bytes",
+          "type": "ArrayBuffer | Uint8Array<ArrayBufferLike> | Buffer<ArrayBufferLike>"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "hexToBytes",
+      "description": "Converting hex string to bytes",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string"
+        }
+      ],
+      "returnType": "Buffer<ArrayBuffer>"
+    },
+    {
+      "type": "function",
+      "name": "stringToHex",
+      "description": "Converting utf8 string to hex string",
+      "params": [
+        {
+          "name": "str",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "hexToString",
+      "description": "Converting hex string to utf8 string",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "toBytes",
+      "description": "Converting either hex string or utf8 string to bytes",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string"
+        }
+      ],
+      "returnType": "Uint8Array<ArrayBufferLike>"
+    },
+    {
+      "type": "function",
+      "name": "fromUTF8",
+      "description": "Converting utf8 string to hex string",
+      "params": [
+        {
+          "name": "utf8",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "toUTF8",
+      "description": "Converting hex string to utf8 string",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/metadata.ts": [
+    {
+      "type": "function",
+      "name": "metadataObjToMetadatum",
+      "description": "Converts various metadata types to a CardanoWASM.TransactionMetadatum.\n\nNote:\n- Maximum metadata `bytes` size is `64`\n- Maximum metadata `text` size is `64`",
+      "params": [
+        {
+          "name": "metadata",
+          "type": "string | number | bigint | Object | any[] | Uint8Array<ArrayBufferLike> | Map<any, any>"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionMetadatum"
+    }
+  ],
+  "core/src/utils/keys.util.ts": [
+    {
+      "type": "function",
+      "name": "cardanoCliKeygen",
+      "description": "Generate a Cardano CLI compatible ed25519 key pair.",
+      "params": [],
+      "returnType": "{ sk: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/keys.util\").CardanoCLiSkey; vk: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/keys.util\").CardanoCLiVkey; }"
+    },
+    {
+      "type": "function",
+      "name": "hydraCliKeygen",
+      "description": "Generate a Hydra compatible ed25519 key pair.",
+      "params": [],
+      "returnType": "{ sk: { type: string; description: string; cborHex: `5820${string}`; }; vk: { type: string; description: string; cborHex: `5820${string}`; }; }"
+    },
+    {
+      "type": "function",
+      "name": "genVkey",
+      "description": "Generate verification key from signing key.",
+      "params": [
+        {
+          "name": "skey",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/keys.util\").CardanoCLiSkey | { cborHex: `5820${string}`; }"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/keys.util\").CardanoCLiVkey"
+    }
+  ],
+  "core/src/utils/datum.ts": [
+    {
+      "type": "function",
+      "name": "mkInt",
+      "description": "",
+      "params": [
+        {
+          "name": "n",
+          "type": "string | number | bigint"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+    },
+    {
+      "type": "function",
+      "name": "mkBytes",
+      "description": "Create a PlutusData object from a hex string representing bytes",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+    },
+    {
+      "type": "function",
+      "name": "mkConstr",
+      "description": "",
+      "params": [
+        {
+          "name": "alt",
+          "type": "number"
+        },
+        {
+          "name": "fields",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData[]"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+    },
+    {
+      "type": "function",
+      "name": "mkMap",
+      "description": "",
+      "params": [
+        {
+          "name": "entries",
+          "type": "[import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData, import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusMapValues][]"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+    }
+  ],
+  "core/src/utils/cost-models.ts": [
+    {
+      "type": "function",
+      "name": "buildCostModels",
+      "description": "",
+      "params": [
+        {
+          "name": "{\n\tplutusV1,\n\tplutusV2,\n\tplutusV3\n}",
+          "type": "{ plutusV1?: number[]; plutusV2?: number[]; plutusV3?: number[]; }"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Costmdls"
+    }
+  ],
+  "core/src/utils/address.ts": [
+    {
+      "type": "function",
+      "name": "getPubkeyHashFromAddress",
+      "description": "Get the public key hash from a bech32 Cardano address",
+      "params": [
+        {
+          "name": "address",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/providers/ogmios.provider.ts": [
+    {
+      "type": "class",
+      "name": "OgmiosProvider",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "config",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/providers/ogmios.provider\").OgmiosProviderConfig",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(config: OgmiosProviderConfig) {\n\t\tsuper()\n\t\t// Implementation for OgmiosProvider\n\t\tthis.fetcher = this.buildFetcher()\n\t\tthis.submitter = this.buildSubmitter()\n\n\t\tthis._axiosInstance = axios.create({\n\t\t\tbaseURL: config.apiEndpoint || 'http://localhost:1337',\n\t\t\theaders: {\n\t\t\t\t'Content-Type': 'application/json'\n\t\t\t}\n\t\t})\n\t\t// Set up interceptors if needed\n\t\tthis._axiosInstance.interceptors.request.use(request => {\n\t\t\treturn request\n\t\t})\n\t\tthis._axiosInstance.interceptors.response.use(response => {\n\t\t\treturn response\n\t\t})\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "buildFetcher",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/fetcher\").IFetcher"
+        },
+        {
+          "name": "buildSubmitter",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/submitter\").ISubmitter"
+        },
+        {
+          "name": "rpcRequest",
+          "description": "",
+          "params": [
+            {
+              "name": "method",
+              "type": "string"
+            },
+            {
+              "name": "params",
+              "type": "Record<string, any>"
+            },
+            {
+              "name": "options",
+              "type": "{ id?: number; }"
+            }
+          ],
+          "returnType": "Promise<T>"
+        },
+        {
+          "name": "toUTxO",
+          "description": "",
+          "params": [
+            {
+              "name": "response",
+              "type": "AddressUtxoResponse"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxO[]"
+        }
+      ]
+    }
+  ],
+  "core/src/utils/providers/blockfrost.provider.ts": [
+    {
+      "type": "class",
+      "name": "BlockfrostProvider",
+      "description": "",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "config",
+              "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/providers/blockfrost.provider\").BlockfrostProviderConfig",
+              "description": "",
+              "isOptional": false,
+              "hasQuestionToken": false,
+              "hasInitializer": false
+            }
+          ],
+          "signature": "constructor(config: BlockfrostProviderConfig) {\n\t\tsuper()\n\n\t\tthis._network = config.network\n\t\tthis._projectId = config.apiKey\n\t\tif (config.apiKey === '') {\n\t\t\tthrow new Error('Blockfrost API key is required')\n\t\t}\n\n\t\tthis._cachingOptions = { ...this._cachingOptions, ...config.cachingOptions }\n\n\t\tthis._axiosInstance = axios.create({\n\t\t\tbaseURL: `https://cardano-${this._network}.blockfrost.io/api/v${config.apiVersion ?? 0}`,\n\t\t\theaders: {\n\t\t\t\tproject_id: this._projectId\n\t\t\t},\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = this.buildFetcher()\n\t\tthis.submitter = this.buildSubmitter()\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "buildFetcher",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/fetcher\").IFetcher"
+        },
+        {
+          "name": "buildSubmitter",
+          "description": "",
+          "params": [],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/wallet/submitter\").ISubmitter"
+        },
+        {
+          "name": "toUTxO",
+          "description": "",
+          "params": [
+            {
+              "name": "response",
+              "type": "UtxoResponse"
+            }
+          ],
+          "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxO[]"
+        }
+      ]
+    }
+  ],
+  "core/src/utils/providers/base.ts": [
+    {
+      "type": "class",
+      "name": "BaseWalletProvider",
+      "description": "",
+      "constructors": [],
+      "methods": []
+    }
+  ],
+  "core/src/utils/cardano-wasm/serializer.ts": [
+    {
+      "type": "function",
+      "name": "serializeAssetUnit",
+      "description": "",
+      "params": [
+        {
+          "name": "policyId",
+          "type": "string"
+        },
+        {
+          "name": "assetName",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/cardano-wasm/resolver.ts": [
+    {
+      "type": "function",
+      "name": "resolveTxHash",
+      "description": "",
+      "params": [
+        {
+          "name": "cborHex",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "resolveTxBodyHash",
+      "description": "",
+      "params": [
+        {
+          "name": "txBody",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionBody"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionHash"
+    }
+  ],
+  "core/src/utils/cardano-wasm/deserializer.ts": [
+    {
+      "type": "function",
+      "name": "deserializeTx",
+      "description": "",
+      "params": [
+        {
+          "name": "txCborHex",
+          "type": "string"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").FixedTransaction"
+    },
+    {
+      "type": "function",
+      "name": "deserializeAssetUnit",
+      "description": "",
+      "params": [
+        {
+          "name": "assetUnit",
+          "type": "string"
+        }
+      ],
+      "returnType": "{ policyId: string; assetName: string; }"
+    },
+    {
+      "type": "function",
+      "name": "deserializeAddress",
+      "description": "",
+      "params": [
+        {
+          "name": "bech32",
+          "type": "string"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/utils/cardano-wasm/deserializer\").DeserializerAddress"
+    },
+    {
+      "type": "function",
+      "name": "deserializePlutusScript",
+      "description": "",
+      "params": [
+        {
+          "name": "scriptCbor",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/plutus-script\").LanguageVersion"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusScript"
+    },
+    {
+      "type": "function",
+      "name": "deserializePlutusScriptHash",
+      "description": "",
+      "params": [
+        {
+          "name": "scriptCbor",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/plutus-script\").LanguageVersion"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "type": "function",
+      "name": "deserializePlutusData",
+      "description": "Deserialize PlutusData from cbor hex\nUsed to convert inlineDatum from string to PlutusData",
+      "params": [
+        {
+          "name": "dataCbor",
+          "type": "string"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").PlutusData"
+    }
+  ],
+  "core/src/utils/cardano-wasm/converter.ts": [
+    {
+      "type": "function",
+      "name": "convertUTxOToUTxOObject",
+      "description": "",
+      "params": [
+        {
+          "name": "utxos",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxO[]"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxOObject"
+    },
+    {
+      "type": "function",
+      "name": "convertUTxOObjectToUTxO",
+      "description": "Convert UTxO Object to UTxO[]",
+      "params": [
+        {
+          "name": "utxoObject",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxOObject"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/utxo\").UTxO[]"
+    },
+    {
+      "type": "function",
+      "name": "convertTxOutputToWasm",
+      "description": "",
+      "params": [
+        {
+          "name": "output",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/tx-output\").TxOutput"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").TransactionOutput"
+    }
+  ],
+  "core/src/utils/cardano-wasm/build-keys.ts": [
+    {
+      "type": "function",
+      "name": "harden",
+      "description": "",
+      "params": [
+        {
+          "name": "num",
+          "type": "number"
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "type": "function",
+      "name": "buildBaseAddress",
+      "description": "",
+      "params": [
+        {
+          "name": "networkId",
+          "type": "number"
+        },
+        {
+          "name": "paymentKeyHash",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Ed25519KeyHash"
+        },
+        {
+          "name": "stakeKeyHash",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Ed25519KeyHash"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").BaseAddress"
+    },
+    {
+      "type": "function",
+      "name": "buildEnterpriseAddress",
+      "description": "",
+      "params": [
+        {
+          "name": "networkId",
+          "type": "number"
+        },
+        {
+          "name": "paymentKeyHash",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Ed25519KeyHash"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").EnterpriseAddress"
+    },
+    {
+      "type": "function",
+      "name": "buildRewardAddress",
+      "description": "",
+      "params": [
+        {
+          "name": "networkId",
+          "type": "number"
+        },
+        {
+          "name": "stakeKeyHash",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Ed25519KeyHash"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").RewardAddress"
+    },
+    {
+      "type": "function",
+      "name": "buildDRepID",
+      "description": "",
+      "params": [
+        {
+          "name": "dRepKey",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Ed25519KeyHash"
+        },
+        {
+          "name": "networkId",
+          "type": "number"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "type": "function",
+      "name": "buildKeys",
+      "description": "",
+      "params": [
+        {
+          "name": "privateKeyHex",
+          "type": "string | [string, string]"
+        },
+        {
+          "name": "accountIndex",
+          "type": "number"
+        },
+        {
+          "name": "keyIndex",
+          "type": "number"
+        }
+      ],
+      "returnType": "{ accountKey: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Bip32PrivateKey; paymentKey: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Bip32PrivateKey; stakeKey: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Bip32PrivateKey; dRepKey?: import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/node_modules/.pnpm/@emurgo+cardano-serialization-lib-browser@14.1.2/node_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib\").Bip32PrivateKey; }"
+    },
+    {
+      "type": "function",
+      "name": "clampScalar",
+      "description": "",
+      "params": [
+        {
+          "name": "scalar",
+          "type": "Buffer<ArrayBufferLike>"
+        }
+      ],
+      "returnType": "Buffer<ArrayBufferLike>"
+    },
+    {
+      "type": "function",
+      "name": "stripExtendedKey",
+      "description": "",
+      "params": [
+        {
+          "name": "extendedKeyHex",
+          "type": "string"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/types/protocol.ts": [
+    {
+      "type": "function",
+      "name": "castProtocol",
+      "description": "",
+      "params": [
+        {
+          "name": "data",
+          "type": "Partial<Record<keyof import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/protocol\").Protocol, any>>"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/protocol\").Protocol"
+    }
+  ],
+  "core/src/types/cardano/asset.ts": [
+    {
+      "type": "function",
+      "name": "mergeAssets",
+      "description": "",
+      "params": [
+        {
+          "name": "assets",
+          "type": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/asset\").Asset[]"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/asset\").Asset[]"
+    }
+  ],
+  "core/src/types/cardano/asset-metadata.ts": [
+    {
+      "type": "function",
+      "name": "metadataToCip68",
+      "description": "Transform the metadata into the format needed in CIP68 inline datum (in Mesh Data type)",
+      "params": [
+        {
+          "name": "metadata",
+          "type": "any"
+        }
+      ],
+      "returnType": "import(\"/Users/macbookpro/hdev/workspaces/Vtechcom/opensource-hydra-sdk/packages/core/src/types/cardano/data\").Data"
+    }
+  ],
+  "core/src/constants/protocol-parameters.ts": [
+    {
+      "type": "function",
+      "name": "resolveTxFees",
+      "description": "",
+      "params": [
+        {
+          "name": "txSize",
+          "type": "number"
+        },
+        {
+          "name": "minFeeA",
+          "type": "number"
+        },
+        {
+          "name": "minFeeB",
+          "type": "number"
+        }
+      ],
+      "returnType": "string"
+    }
+  ]
+}
