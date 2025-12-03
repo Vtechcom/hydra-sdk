@@ -162,10 +162,7 @@ export default defineNuxtConfig({
 		prerender: {
 			routes: ['/sitemap.xml', '/robots.txt'],
 			crawlLinks: true,
-			failOnError: false, // Không fail nếu có lỗi prerender
-			ignore: [
-				'/api' // Bỏ qua các route API nếu có
-			]
+			failOnError: false // Không fail nếu có lỗi prerender
 		}
 	},
 
