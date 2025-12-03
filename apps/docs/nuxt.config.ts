@@ -125,7 +125,10 @@ export default defineNuxtConfig({
 				{ name: 'theme-color', content: '#3b82f6' },
 
 				{ property: 'og:title', content: 'Hydra SDK Documentation' },
-				{ property: 'og:description', content: 'Hydra SDK Documentation' },
+				{
+					property: 'og:description',
+					content: 'Complete documentation for Hydra SDK - Build Cardano wallet applications with Hydra Layer 2 integration'
+				},
 				{ property: 'og:image', content: '/images/og-image.webp' },
 				{ property: 'og:url', content: 'https://hydrasdk.com' },
 				{ property: 'og:type', content: 'website' },
@@ -136,7 +139,10 @@ export default defineNuxtConfig({
 				{ name: 'twitter:site', content: '@hydra-sdk' },
 				{ name: 'twitter:creator', content: '@hydra-sdk' },
 				{ name: 'twitter:title', content: 'Hydra SDK Documentation' },
-				{ name: 'twitter:description', content: 'Hydra SDK Documentation' },
+				{
+					name: 'twitter:description',
+					content: 'Complete documentation for Hydra SDK - Build Cardano wallet applications with Hydra Layer 2 integration'
+				},
 				{ name: 'twitter:image', content: '/images/og-image.webp' },
 				{ name: 'twitter:url', content: 'https://hydrasdk.com' }
 			],
