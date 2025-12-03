@@ -3,11 +3,11 @@
 		<!-- Header (same as default layout) -->
 		<UiHeader v-model:openDialogSearch="openDialogSearch" v-model:sidebarOpen="sidebarOpen" />
 
-		<div class="flex">
+		<div class="relative flex">
 			<!-- Sidebar -->
 			<aside
 				:class="[
-					'w-68 bg-white fixed top-16 z-40 h-[calc(100vh-4rem)] shrink-0 overflow-y-auto border-r border-gray-200 transition-transform duration-300 xl:sticky dark:border-gray-800 dark:bg-gray-900',
+					'w-68 fixed top-16 z-40 h-[calc(100vh-4rem)] shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50 transition-transform duration-300 xl:sticky dark:border-gray-800 dark:bg-gray-900',
 					sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
 				]"
 			>
@@ -41,12 +41,12 @@
 					</div>
 				</nav>
 			</aside>
+			<div v-if="sidebarOpen" class="absolute inset-0 z-30 bg-gray-600/50 xl:hidden" @click="sidebarOpen = false"></div>
 
 			<!-- Overlay for mobile -->
 			<div class="fixed right-4 top-[108px] z-30">
-				<UButton icon="ic:round-layers" variant="soft" square size="md" class="rounded-full shadow-lg md:hidden" color="green" @click="sidebarOpen = !sidebarOpen" />
+				<UButton icon="ic:round-layers" variant="soft" square size="md" class="rounded-full shadow-lg xl:hidden" color="green" @click="sidebarOpen = !sidebarOpen" />
 			</div>
-			<div v-if="sidebarOpen" class="fixed inset-0 z-30 bg-gray-600/50 xl:hidden" @click="sidebarOpen = false"></div>
 
 			<!-- Main Content -->
 			<main class="grow overflow-x-hidden lg:ml-0">
@@ -109,7 +109,7 @@
 			</main>
 
 			<!-- Table of Contents -->
-			<aside class="hidden w-72 flex-shrink-0 xl:block">
+			<aside class="hidden w-72 flex-shrink-0 bg-gray-25 xl:block dark:bg-gray-900">
 				<div class="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto font-sans">
 					<div class="p-6">
 						<h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-200">{{ t('common.onThisPage') }}</h3>
