@@ -1,5 +1,14 @@
 # hydrawallet-playground
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/core@1.1.5
+  - @hydra-sdk/bridge@1.1.5
+  - @hydra-sdk/transaction@1.1.5
+
 ## 0.0.4
 
 ### Patch Changes

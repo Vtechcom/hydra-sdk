@@ -3,6 +3,7 @@ services:
     image: ghcr.io/cardano-scaling/hydra-node:1.1.0
     volumes:
       - .:/devnet
+      - C:\workspaces\blockchain\1.cardano\cardano-node:/cardano-node
       - ./persistence/alice:/devnet/persistence/alice
     ports:
       - "4001:4001"
@@ -24,8 +25,9 @@ services:
 
         "--persistence-dir", "/devnet/persistence/alice",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
-        "--blockfrost", "/devnet/.blockfrost",
-        "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
+        "--node-socket", "/cardano-node/node.socket",
+        "--testnet-magic", "1",
+        # "--start-chain-from", "0",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
@@ -37,6 +39,7 @@ services:
     image: ghcr.io/cardano-scaling/hydra-node:1.1.0
     volumes:
       - .:/devnet
+      - C:\workspaces\blockchain\1.cardano\cardano-node:/cardano-node
       - ./persistence/bob:/devnet/persistence/bob
     ports:
       - "4003:4003"
@@ -58,24 +61,15 @@ services:
 
         "--persistence-dir", "/devnet/persistence/bob",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
-        "--blockfrost", "/devnet/.blockfrost",
-        "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
+        "--node-socket", "/cardano-node/node.socket",
+        "--testnet-magic", "1",
+        # "--start-chain-from", "0",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
       hydra_net:
         ipv4_address: 172.16.238.30
     restart: always
-
-
-  startup-time-logger:
-    image: alpine
-    depends_on:
-      - hydra-node-alice
-      - hydra-node-bob
-    command: sh -c "echo $$(( $$(date +%s) * 1000 )) > /shared/startup_time.txt && echo 'Timestamp written:' $$(cat /shared/startup_time.txt)"
-    volumes:
-      - .:/shared
 
 volumes:
   alice_persistence:

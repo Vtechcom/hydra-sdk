@@ -1,5 +1,11 @@
 # @hydra-sdk/core
 
+## 1.1.5
+
+### Patch Changes
+
+- Re-build v1.1.5
+
 ## 1.1.4
 
 ### Patch Changes
