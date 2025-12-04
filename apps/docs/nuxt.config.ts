@@ -181,7 +181,8 @@ export default defineNuxtConfig({
 	i18n: {
 		locales: [
 			{ code: 'en', name: 'English', file: 'en.json' },
-			{ code: 'vi', name: 'Tiếng Việt', file: 'vi.json' }
+			{ code: 'vi', name: 'Tiếng Việt', file: 'vi.json' },
+			{ code: 'ja', name: '日本語', file: 'ja.json' }
 		],
 		defaultLocale: 'en',
 		strategy: 'prefix_except_default', // /en/page hoặc /vi/page
