@@ -1,16 +1,29 @@
-import { HexcoreApi, OgmiosApi, wallet, walletAddress } from './common'
+import { wallet, walletAddress } from './common'
 import { buildRedeemer, emptyRedeemer, TxBuilder } from '@hydra-sdk/transaction'
-import contract from './plutus-v3.json'
-// import contract from './always-true.json'
-import { AppWallet, Deserializer, ParserUtils, NETWORK_ID, SLOT_CONFIG_NETWORK, TimeUtils } from '@hydra-sdk/core'
+// import contract from './plutus-v3.json'
+import contract from './always-true.json'
+import {
+	AppWallet,
+	Deserializer,
+	ParserUtils,
+	NETWORK_ID,
+	SLOT_CONFIG_NETWORK,
+	TimeUtils,
+	ProviderUtils
+} from '@hydra-sdk/core'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { writeFile } from 'node:fs'
+import { getEnvVar } from '../env'
 
 export const unlock = async (txHash: `${string}#${number}`) => {
 	console.log('>>> Create txUnlock: ', txHash)
 	try {
+		const provider = new ProviderUtils.BlockfrostProvider({
+			apiKey: getEnvVar('BLOCKFROST_PROVIDER_API_KEY'),
+			network: 'preprod'
+		})
 		console.log('>>> Query UTxO: ', walletAddress)
-		const addressUTxO = await HexcoreApi.queryAddressUTxO(walletAddress)
+		const addressUTxO = await provider.fetcher.fetchAddressUTxOs(walletAddress)
 		console.log('>>> Query UTxO: ', walletAddress, addressUTxO.length, 'UTxOs found')
 		// get collateral utxo of address
 		const collateralUTxOs = addressUTxO.filter(u =>
@@ -29,7 +42,7 @@ export const unlock = async (txHash: `${string}#${number}`) => {
 		)
 
 		console.log('>>> Query UTxO: ', contract.address)
-		const contractUTxO = await HexcoreApi.queryAddressUTxO(contract.address)
+		const contractUTxO = await provider.fetcher.fetchAddressUTxOs(contract.address)
 		const scriptUTxO = contractUTxO.find(u => `${u.input.txHash}#${u.input.outputIndex}` === txHash)
 		if (!scriptUTxO) {
 			throw new Error('No script UTxO found for txHash')
@@ -88,17 +101,16 @@ export const unlock = async (txHash: `${string}#${number}`) => {
 				collateralUTxO.output.address
 			)
 			.addOutput({
-				// address: 'addr_test1wps5tz7z72tllu7vthm2c7440nhasamrkzmm6u3pg6ssxhqs8uluy', // hydra contract address
 				address: walletAddress,
 				amount: scriptUTxO.output.amount // send all assets back to myself
 			})
 			.changeAddress(walletAddress)
-			// .requiredSignerHash('e06f2ae361f33815f775b224789025dccc4b6413599224e70841eebf')
 			.invalidBefore(TimeUtils.unixTimeToEnclosingSlot(Date.now(), SLOT_CONFIG_NETWORK.PREPROD)) // must be after current slot
 			.invalidAfter(TimeUtils.unixTimeToEnclosingSlot(Date.now() + 60 * 60 * 1000, SLOT_CONFIG_NETWORK.PREPROD)) // must be within 3 minutes
-			.setFee('1790000') // 0.1790000 ada
+			.setFee('1900000')
 
 		const tx = await txUnlock.complete()
+
 		// Need to sign with the payment key of the wallet
 		const distributorWallet = new AppWallet({
 			key: {
@@ -116,6 +128,10 @@ export const unlock = async (txHash: `${string}#${number}`) => {
 		// Sign with the wallet
 		const signedCbor1 = await wallet.signTx(unsignedCbor) // partial sign
 		console.log('>>> txUnlock:signed by wallet:', signedCbor1)
+		provider.submitter.submitTx(signedCbor1).then(rs => {
+			console.log('>>> txUnlock:submitted by wallet :', rs)
+		})
+		return
 
 		// Sign with the distributor wallet
 		const signedCbor2 = await distributorWallet.signTx(signedCbor1, true) // final sign

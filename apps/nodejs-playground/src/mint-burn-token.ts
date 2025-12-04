@@ -1,7 +1,17 @@
-import { AppWallet, DatumUtils, NETWORK_ID, PolicyUtils, Deserializer, Serializer, stringToHex } from '@hydra-sdk/core'
-import { HexcoreApi } from './contract/common'
+import {
+	AppWallet,
+	DatumUtils,
+	NETWORK_ID,
+	PolicyUtils,
+	Deserializer,
+	Serializer,
+	ProviderUtils,
+	ParserUtils
+} from '@hydra-sdk/core'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
+import { getEnvVar } from './env'
+import { createInterface, Readline } from 'node:readline/promises'
 
 const buildDatum = (key: string, l1Vkh: string, l2Vkh: string, amount: string): CardanoWASM.PlutusData => {
 	// innermost constructors
@@ -27,22 +37,26 @@ const buildDatum = (key: string, l1Vkh: string, l2Vkh: string, amount: string): 
 	// Top-level: constructor 0 with two fields: [wrap1, outerMap]
 	return DatumUtils.mkConstr(0, [wrap1, outerMap])
 }
-
+const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
+	apiKey: getEnvVar('BLOCKFROST_PROVIDER_API_KEY'),
+	network: 'preprod'
+})
 const wallet = new AppWallet({
 	key: {
 		type: 'mnemonic',
 		words: 'enable away depend exist mad february table onion census praise spawn pipe again angle grant'.split(' ')
 	},
-	networkId: NETWORK_ID.PREPROD
+	networkId: NETWORK_ID.PREPROD,
+	fetcher: blockfrostProvider.fetcher,
+	submitter: blockfrostProvider.submitter
 })
-console.log('Delta DeFi Build Script - No operations defined yet.')
 const walletAddress = wallet.getAccount().baseAddressBech32
 console.log('Wallet Address:', walletAddress)
 
 async function mintToken() {
 	// Query UTxO
 	console.log('>>> Querying UTxO... ', walletAddress)
-	const utxos = await HexcoreApi.queryAddressUTxO(walletAddress)
+	const utxos = await wallet.queryUTxOs(walletAddress)
 	console.log('>>> Query UTxO: ', walletAddress, utxos.length, 'UTxOs found')
 	// get collateral utxo of address
 	const collateralUTxOs = utxos.filter(u =>
@@ -53,19 +67,12 @@ async function mintToken() {
 		throw new Error('No collateral UTxOs found')
 	}
 	const collateralUTxO = collateralUTxOs[0]
-	console.log(
-		'>>> / collateralUTxOs:',
-		collateralUTxOs.length,
-		'collateralUTxOs found, using:',
-		JSON.stringify(collateralUTxO, null, 2)
-	)
-
 	// Build tx
 	const txBuilder = new TxBuilder()
 
 	const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
 	const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
-	const assetNameHex = stringToHex('AniaToken')
+	const assetNameHex = ParserUtils.stringToHex('AniaToken')
 	const assetMetadata = {
 		name: 'Ada Binary Option Token',
 		description: 'Utility token for Cardano Binary Option demo project',
@@ -106,11 +113,10 @@ async function mintToken() {
 		})
 		.changeAddress(walletAddress)
 		.complete()
-
-	console.log('>>> unsigned tx:', tx.to_hex())
 	const signedCbor = await wallet.signTx(tx.to_hex())
 	console.log('>>> signed tx:', signedCbor)
-	console.log('>>> signed tx id:', Deserializer.deserializeTx(signedCbor).transaction_hash().to_hex())
+	const rs = await wallet.submitTx(signedCbor)
+	console.log('>>> tx submit result:', rs)
 }
 
 async function burnToken() {
@@ -118,7 +124,7 @@ async function burnToken() {
 
 	// Query UTxO
 	console.log('>>> Querying UTxO... ', walletAddress)
-	const utxos = await HexcoreApi.queryAddressUTxO(walletAddress)
+	const utxos = await wallet.queryUTxOs(walletAddress)
 	console.log('>>> Query UTxO: ', walletAddress, utxos.length, 'UTxOs found')
 	// get collateral utxo of address
 	const collateralUTxOs = utxos.filter(u =>
@@ -129,27 +135,13 @@ async function burnToken() {
 		throw new Error('No collateral UTxOs found')
 	}
 	const collateralUTxO = collateralUTxOs[0]
-	console.log(
-		'>>> / collateralUTxOs:',
-		collateralUTxOs.length,
-		'collateralUTxOs found, using:',
-		JSON.stringify(collateralUTxO, null, 2)
-	)
 
 	// Build tx
 	const txBuilder = new TxBuilder()
 
-	const datum = buildDatum(
-		'ee91e90e791e4cd983d1b1f331d1e8eb',
-		'326cd6bff6114c4d14ebf2385883aac43c4e64476e6a47314f9b2003',
-		'f602ad4b16ec2e1a96989dc140eacf546359695cfece8510c8d1c0ac',
-		'4000000'
-	)
-	console.log('>>> Datum:', datum.to_json(CardanoWASM.PlutusDatumSchema.DetailedSchema))
-
 	const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
 	const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
-	const assetNameHex = stringToHex('AniaToken')
+	const assetNameHex = ParserUtils.stringToHex('AniaToken')
 	console.log('>>> / script:', scriptCborHex)
 	console.log('>>> / policy ID:', policyId)
 
@@ -168,12 +160,28 @@ async function burnToken() {
 		.changeAddress(walletAddress)
 		.complete()
 
-	console.log('>>> unsigned tx:', tx.to_hex())
 	const signedCbor = await wallet.signTx(tx.to_hex())
 	console.log('>>> signed tx:', signedCbor)
-	console.log('>>> signed tx id:', Deserializer.deserializeTx(signedCbor).transaction_hash().to_hex())
-	// const rs = await OgmiosApi.submitTransaction(signedCbor)
+	const rs = await wallet.submitTx(signedCbor)
+	console.log('>>> tx submit result:', rs)
 }
 
-mintToken()
-// burnToken()
+;(async () => {
+	console.log('Mint / Burn Token Demo')
+	const rl = createInterface({
+		input: process.stdin,
+		output: process.stdout
+	})
+	rl.question('1. Mint Token\n2. Burn Token\nChoose an action (1 or 2): ').then(async answer => {
+		if (answer === '1') {
+			await mintToken()
+			rl.close()
+		} else if (answer === '2') {
+			await burnToken()
+			rl.close()
+		} else {
+			console.log('Invalid input! Please enter 1 or 2.\n')
+			process.exit(0)
+		}
+	})
+})()

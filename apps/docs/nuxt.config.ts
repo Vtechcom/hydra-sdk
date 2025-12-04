@@ -125,7 +125,10 @@ export default defineNuxtConfig({
 				{ name: 'theme-color', content: '#3b82f6' },
 
 				{ property: 'og:title', content: 'Hydra SDK Documentation' },
-				{ property: 'og:description', content: 'Hydra SDK Documentation' },
+				{
+					property: 'og:description',
+					content: 'Complete documentation for Hydra SDK - Build Cardano wallet applications with Hydra Layer 2 integration'
+				},
 				{ property: 'og:image', content: '/images/og-image.webp' },
 				{ property: 'og:url', content: 'https://hydrasdk.com' },
 				{ property: 'og:type', content: 'website' },
@@ -136,7 +139,10 @@ export default defineNuxtConfig({
 				{ name: 'twitter:site', content: '@hydra-sdk' },
 				{ name: 'twitter:creator', content: '@hydra-sdk' },
 				{ name: 'twitter:title', content: 'Hydra SDK Documentation' },
-				{ name: 'twitter:description', content: 'Hydra SDK Documentation' },
+				{
+					name: 'twitter:description',
+					content: 'Complete documentation for Hydra SDK - Build Cardano wallet applications with Hydra Layer 2 integration'
+				},
 				{ name: 'twitter:image', content: '/images/og-image.webp' },
 				{ name: 'twitter:url', content: 'https://hydrasdk.com' }
 			],
@@ -162,10 +168,7 @@ export default defineNuxtConfig({
 		prerender: {
 			routes: ['/sitemap.xml', '/robots.txt'],
 			crawlLinks: true,
-			failOnError: false, // Không fail nếu có lỗi prerender
-			ignore: [
-				'/api' // Bỏ qua các route API nếu có
-			]
+			failOnError: false // Không fail nếu có lỗi prerender
 		}
 	},
 
@@ -178,7 +181,8 @@ export default defineNuxtConfig({
 	i18n: {
 		locales: [
 			{ code: 'en', name: 'English', file: 'en.json' },
-			{ code: 'vi', name: 'Tiếng Việt', file: 'vi.json' }
+			{ code: 'vi', name: 'Tiếng Việt', file: 'vi.json' },
+			{ code: 'ja', name: '日本語', file: 'ja.json' }
 		],
 		defaultLocale: 'en',
 		strategy: 'prefix_except_default', // /en/page hoặc /vi/page

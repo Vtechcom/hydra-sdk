@@ -1,0 +1,228 @@
+{
+	"nav": {
+		"gettingStarted": "はじめに",
+		"apiReference": "APIリファレンス",
+		"examples": "例",
+		"guides": "ガイド",
+		"glossary": "用語集",
+		"hydraBridge": "Hydra Bridge",
+		"hydraConcept": "Hydra Concepts"
+	},
+	"home": {
+		"title": "Hydra SDK",
+		"subtitle": "Cardano DAppsおよびウォレットアプリケーションを構築するための包括的なソフトウェア開発キット",
+		"hydroLayer2": "Hydra Layer 2",
+		"integration": "統合",
+		"getStarted": "はじめる",
+		"apiReference": "APIリファレンス",
+		"viewGithub": "GitHubで表示",
+		"stats": {
+			"corePackages": "コアパッケージ",
+			"applications": "Apps",
+			"typescript": "TypeScript",
+			"superFast": "非常に高速",
+			"license": "ライセンス"
+		},
+		"features": {
+			"title": "構築に必要なすべてを提供",
+			"subtitle": "モジュラーパッケージ、TypeScriptサポート、包括的なドキュメントを備えた完全なツールキット",
+			"cardanoWallet": {
+				"title": "Cardano Wallet Management",
+				"description": "完全なHDウォレットサポートとトランザクション署名を備えたCardanoウォレットの作成、復元、管理。"
+			},
+			"hydraIntegration": {
+				"title": "Hydra Layer 2 Integration",
+				"description": "リアルタイムトランザクション処理による完全なHydra Headライフサイクル管理。"
+			},
+			"transactionBuilder": {
+				"title": "Transaction Builder",
+				"description": "UTxO選択と手数料最適化を備えた高度なトランザクション構築ユーティリティ。"
+			},
+			"wasmIntegration": {
+				"title": "WASM Integration",
+				"description": "ブラウザ最適化WebAssemblyによる高性能Cardanoシリアル化。"
+			},
+			"typescriptFirst": {
+				"title": "TypeScript First",
+				"description": "包括的な型定義とIntelliSenseを備えた完全なTypeScriptサポート。"
+			},
+			"modularArchitecture": {
+				"title": "Modular Architecture",
+				"description": "カスタマイズと統合が容易なパッケージベースの拡張可能なアーキテクチャ。"
+			}
+		},
+		"showcase": {
+			"title": "Hydra SDKで構築されたアプリ",
+			"subtitle": "すでに本番環境でSDKを使用している強力なアプリケーションを発見",
+			"apps": {
+				"hydraWallet": {
+					"name": "Hydra Wallet",
+					"category": "Cardanoウォレット",
+					"description": "Hydra Layer 2対応で即座のトランザクションとDeFi操作が可能な、最新で安全なCardanoウォレット。",
+					"visitButton": "Hydra Walletを訪問"
+				},
+				"hydraPlayground": {
+					"name": "Hydra SDKプレイグラウンド",
+					"category": "開発",
+					"description": "Hydra SDK機能を実験してDAppsを構築するためのインタラクティブプレイグラウンド。",
+					"visitButton": "Hydraプレイグラウンドを訪問"
+				},
+				"hydraFlappy": {
+					"name": "Hydra Flappy Bird",
+					"category": "GameFi",
+					"description": "ブロックチェーン統合、NFT報酬、Hydra駆動のマイクロトランザクションで再想像された古典的Flappy Birdゲーム。",
+					"visitButton": "Hydra Flappy Birdを訪問"
+				},
+				"hydraFastpay": {
+					"name": "Hydra Fastpay",
+					"category": "支払いソリューション",
+					"description": "Hydra Layer 2を使用した高速支払い処理で、Cardanoでの即座で低コストのトランザクションを実現。",
+					"visitButton": "Hydra Fastpayを訪問"
+				},
+				"hydraRockPaperScissors": {
+					"name": "Hydra Rock Paper Scissors",
+					"category": "GameFi",
+					"description": "NFT報酬とHydra Layer 2スケーラビリティを備えた分散型Rock Paper Scissorsゲーム。",
+					"visitButton": "Hydra Rock Paper Scissorsを訪問"
+				}
+			}
+		},
+		"sponsor": {
+			"badge": "誇りを持ってスポンサーされています",
+			"title": "VTechcom",
+			"description": "Cardano上の分散型アプリケーションの未来を伴う、創造的なソフトウェア開発技術企業。",
+			"visitButton": "VTechcomを訪問",
+			"partnershipButton": "パートナーシップのお問い合わせ"
+		},
+		"quickStart": {
+			"title": "クイックスタート",
+			"subtitle": "数分で起動して実行できます",
+			"installation": "1. インストール",
+			"basicUsage": "2. 基本的な使用法",
+			"nextSteps": "次のステップ",
+			"steps": {
+				"installationGuide": {
+					"title": "インストールガイド",
+					"description": "プロジェクトにSDKをインストールして設定する方法を学びます"
+				},
+				"apiReference": {
+					"title": "APIリファレンス",
+					"description": "すべてのSDKパッケージとメソッドの詳細なドキュメントを確認"
+				},
+				"codeExamples": {
+					"title": "コード例",
+					"description": "一般的なシナリオの実践的な例とユースケースを確認"
+				},
+				"guidesTutorials": {
+					"title": "ガイドとチュートリアル",
+					"description": "ウォレットアプリケーション構築のステップバイステップガイドに従う"
+				}
+			}
+		},
+		"community": {
+			"title": "コミュニティに参加",
+			"subtitle": "開発者とつながり、サポートを受け、最新のSDK開発情報を入手",
+			"links": {
+				"github": {
+					"name": "GitHub",
+					"description": "SDKに貢献し、問題を報告し、ソースコードを調査",
+					"button": "リポジトリを表示"
+				},
+				"discord": {
+					"name": "Discord",
+					"description": "サポートとディスカッションのためにコミュニティDiscordに参加",
+					"button": "Discordに参加"
+				},
+				"telegram": {
+					"name": "Telegram",
+					"description": "迅速な更新を取得し、他の開発者とつながる",
+					"button": "Telegramに参加"
+				}
+			}
+		},
+		"supportBanner": {
+			"text": "Hydra SDK開発をサポート -",
+			"linkText": "Catalystでサポート"
+		}
+	},
+	"footer": {
+		"quickLinks": "クイックリンク",
+		"resources": "リソース",
+		"installation": "インストール",
+		"copyright": "著作権所有。"
+	},
+	"search": {
+		"placeholder": "ドキュメント検索..."
+	},
+	"common": {
+		"overview": "概要",
+		"installation": "インストール",
+		"quickStart": "クイックスタート",
+		"configuration": "設定",
+		"performance": "パフォーマンス",
+		"new": "新規",
+		"soon": "近日公開",
+		"changeLogs": "変更ログ",
+		"migration": "マイグレーションガイド",
+		"utilities": "Utilities",
+		"utilityExamples": "Utility Examples",
+		"workingWithUtilities": "Working with Utilities",
+		"packages": "Packages",
+		"corePackage": "Core Package",
+		"hydraBridge": "Hydra Bridge",
+		"transactionBuilder": "Transaction Builder",
+		"cardanoWasm": "Cardano WASM",
+		"walletCreation": "Wallet Creation",
+		"hydraIntegration": "Hydra Integration",
+		"transactionBuilding": "Transaction Building",
+		"transactionSigning": "Transaction Signing",
+		"fullReactApp": "React App (Full)",
+		"fullVueApp": "Vue.js App (Full)",
+		"buildingWalletApps": "Building Wallet Apps",
+		"hydraHeadManagement": "Hydra Head Management",
+		"testingStrategies": "Testing Strategies",
+		"deployment": "デプロイ",
+		"home": "ホーム",
+		"previous": "前へ",
+		"next": "次へ",
+		"onThisPage": "このページ内",
+		"search": "検索",
+		"updated": "更新",
+		"guides": {
+			"mintBurnTokens": "トークンのミント＆バーン"
+		},
+		"hydraConcept": {
+			"whyHydra": "なぜHydraなのか?",
+			"commitToHydra": "Hydraにコミット",
+			"decommitFromHydra": "Hydraからデコミット",
+			"transactionInHydra": "Hydra内のトランザクション",
+			"smartContractsInHydra": "Hydraのスマートコントラクト"
+		}
+	},
+	"glossary": {
+		"title": "用語集",
+		"intro": "Cardano、Hydra、およびこのSDK全体で使用される一般的な用語。",
+		"terms": {
+			"hydraHead": {
+				"term": "Hydra Head",
+				"desc": "参加者のグループ間での高速で低レイテンシのトランザクションを可能にするCardanoオフチェーンスケーラビリティのプロトコル。"
+			},
+			"utxo": {
+				"term": "UTxO",
+				"desc": "未使用トランザクション出力 – Cardanoが使用可能な出力を追跡するために使用するアカウンティングモデル。"
+			},
+			"plutus": {
+				"term": "Plutus",
+				"desc": "Haskellベースの、Cardanoのスマートコントラクトプラットフォーム。"
+			},
+			"cbor": {
+				"term": "CBOR",
+				"desc": "Concise Binary Object Representation – Cardanoトランザクションに使用されるコンパクトなバイナリデータ形式。"
+			},
+			"wasm": {
+				"term": "WASM",
+				"desc": "WebAssembly – ブラウザとNode.js内での高性能実行に使用されるバイナリ命令形式。"
+			}
+		}
+	}
+}

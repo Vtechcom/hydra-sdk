@@ -37,7 +37,7 @@
 				</div>
 
 				<!-- Navigation -->
-				<nav class="hidden items-center space-x-6 md:flex">
+				<nav class="hidden items-center space-x-6 lg:flex">
 					<NuxtLink
 						v-for="item in navigation"
 						:key="item.to"
@@ -65,13 +65,13 @@
 					<UiColorModeButton />
 
 					<!-- Mobile Menu -->
-					<UButton icon="i-heroicons-bars-3" variant="ghost" size="sm" class="md:hidden" color="secondary" @click="mobileMenuOpen = !mobileMenuOpen" />
+					<UButton icon="i-heroicons-bars-3" variant="ghost" size="sm" class="lg:hidden" color="secondary" @click="mobileMenuOpen = !mobileMenuOpen" />
 				</div>
 			</div>
 
 			<!-- Mobile Navigation -->
 			<transition name="slide-fade">
-				<div v-if="mobileMenuOpen" class="animate__animated animate__slideInDown border-t border-gray-200 py-4 md:hidden dark:border-gray-700">
+				<div v-if="mobileMenuOpen" class="border-t border-gray-200 py-4 lg:hidden dark:border-gray-700">
 					<nav class="flex flex-col space-y-2">
 						<NuxtLink
 							v-for="item in navigation"

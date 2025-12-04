@@ -1,6 +1,6 @@
 import { TxBuilder } from '@hydra-sdk/transaction'
-import contract from './plutus-v3.json'
-// import contract from './always-true.json'
+// import contract from './plutus-v3.json'
+import contract from './always-true.json'
 import { HexcoreApi, OgmiosApi, wallet, walletAddress } from './common'
 import { Deserializer, ParserUtils, SLOT_CONFIG_NETWORK, TimeUtils } from '@hydra-sdk/core'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'

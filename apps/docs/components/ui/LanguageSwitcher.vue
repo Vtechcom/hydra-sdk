@@ -45,6 +45,13 @@
 				shortLabel: 'VI',
 				icon: 'i-twemoji-flag-vietnam',
 				click: () => navigateTo(switchLocalePath('vi'))
+			},
+			{
+				value: 'ja',
+				label: '日本語',
+				shortLabel: 'JA',
+				icon: 'i-twemoji-flag-japan',
+				click: () => navigateTo(switchLocalePath('ja'))
 			}
 		]
 	])
