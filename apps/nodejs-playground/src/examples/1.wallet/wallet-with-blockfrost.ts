@@ -1,8 +1,8 @@
 import { AppWallet, NETWORK_ID, ProviderUtils } from '@hydra-sdk/core'
 
-import { walletPrimary as mockWallet } from '../__tests__/__mocks__/wallet.json'
+import { walletPrimary as mockWallet } from '../../__tests__/__mocks__/wallet.json'
 import { TxBuilder } from '@hydra-sdk/transaction'
-import { getEnvVar } from '../env'
+import { getEnvVar } from '../../env'
 
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
 	apiKey: getEnvVar('BLOCKFROST_PROVIDER_API_KEY', ''),
@@ -39,8 +39,8 @@ async function main() {
 	const signedTx = await wallet.signTx(tx.to_hex())
 	console.log('>>> / Signed Tx:', signedTx)
 
-	// const txHash = await blockfrostProvider.submitter.submitTx(signedTx)
-	// console.log('>>> / Submitted Tx Hash:', txHash)
+	const rs = await blockfrostProvider.submitter.submitTx(signedTx)
+	console.log('>>> / Tx submitted. Tx hash:', rs)
 }
 
 main()
