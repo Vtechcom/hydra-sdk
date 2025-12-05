@@ -84,9 +84,9 @@ jobs:
         id: test-report
         run: |
           # Parse test results
-          if [ -f "./packages/core/junit.xml" ]; then
-            TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
-            TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
+          if [ -f "./junit.xml" ]; then
+            TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./junit.xml | head -1 || echo "0")
+            TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./junit.xml | head -1 || echo "0")
             TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
           else
             TESTS_TOTAL="0"
@@ -95,14 +95,14 @@ jobs:
           fi
           
           # Parse coverage
-          if [ -f "./packages/core/coverage/coverage-summary.json" ]; then
-            COVERAGE_LINES=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
-            COVERAGE_STATEMENTS=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "0")
-            COVERAGE_FUNCTIONS=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "0")
-            COVERAGE_BRANCHES=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "0")
+          if [ -f "./coverage/coverage-summary.json" ]; then
+            COVERAGE_LINES=$(cat ./coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
+            COVERAGE_STATEMENTS=$(cat ./coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "0")
+            COVERAGE_FUNCTIONS=$(cat ./coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "0")
+            COVERAGE_BRANCHES=$(cat ./coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "0")
             
             # Calculate average coverage
-            COVERAGE_TOTAL=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '
+            COVERAGE_TOTAL=$(cat ./coverage/coverage-summary.json | jq -r '
               (.total.lines.pct + .total.statements.pct + .total.functions.pct + .total.branches.pct) / 4 | floor
             ' 2>/dev/null || echo "0")
           else
@@ -188,9 +188,9 @@ jobs:
             echo "## 🧪 Unit Test Results" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            if [ -f "./packages/core/junit.xml" ]; then
-              TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
-              TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
+            if [ -f "./junit.xml" ]; then
+              TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./junit.xml | head -1 || echo "0")
+              TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./junit.xml | head -1 || echo "0")
               TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
               
               echo "- ✅ **Passed:** $TESTS_PASSED" >> $GITHUB_STEP_SUMMARY
@@ -208,8 +208,8 @@ jobs:
           mkdir -p ./gh-pages/reports
           
           # Copy coverage HTML report
-          if [ -d "./packages/core/coverage" ]; then
-            cp -r ./packages/core/coverage/* ./gh-pages/coverage/
+          if [ -d "./coverage" ]; then
+            cp -r ./coverage/* ./gh-pages/coverage/
           fi
           
           # Copy test report
