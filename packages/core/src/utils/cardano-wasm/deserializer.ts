@@ -104,7 +104,7 @@ export const deserializeAddress = (bech32: string): DeserializerAddress => {
 			credentialKind: credKind
 		}
 	} catch (error) {
-		throw new Error('Invalid address format')
+		throw error
 	}
 }
 

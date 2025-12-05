@@ -1,6 +1,8 @@
 {
     "compilerOptions": {
         "baseUrl": ".",
+        "esModuleInterop": true,
+        "isolatedModules": true,
         "paths": {
             "hydra-wallet": [
                 "packages/hydra-wallet/src/index.ts"
