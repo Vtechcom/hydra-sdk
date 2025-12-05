@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - test/units
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 permissions:
   contents: write
