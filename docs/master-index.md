@@ -1,9 +1,9 @@
 # Hydra SDK - Master Documentation Index (EN/VI)
 
-&gt; **Generated:** 2025-11-25  
-&gt; **Project:** hydra-sdk  
-&gt; **Status:** Systematized Documentation Structure  
-&gt; **Bilingual:** English + Tiếng Việt (sync theo rules: guides translate, code/glossary English)
+> **Generated:** 2025-11-25  
+> **Project:** hydra-sdk  
+> **Status:** Systematized Documentation Structure  
+> **Bilingual:** English + Tiếng Việt (sync theo rules: guides translate, code/glossary English)
 
 ## 📖 English Documentation Map
 

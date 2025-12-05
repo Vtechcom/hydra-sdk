@@ -1,17 +1,23 @@
-name: Run Nodejs Playground Tests
+name: Run SDK Unit Tests
 
 on:
   push:
     branches:
-      - nodejs-playground/**
+      - test/units
+      - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
-  contents: read
+  contents: write
   checks: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 jobs:
-  nodejs-playground-tests:
+  unit-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -48,28 +54,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Create .env file
-        working-directory: ./apps/nodejs-playground
-        run: |
-          cat << EOF > .env
-          # Blockfrost API Key for Preprod
-          BLOCKFROST_PROVIDER_API_KEY='${{ secrets.BLOCKFROST_PROVIDER_API_KEY }}'
-          
-          # Ogmios WebSocket URL for Preprod
-          OGMIOS_PROVIDER_WS_URL='${{ secrets.OGMIOS_PROVIDER_WS_URL }}'
-          OGMIOS_PROVIDER_HTTP_URL='${{ secrets.OGMIOS_PROVIDER_HTTP_URL }}'
-          EOF
-
-      - name: Run tests
-        run: pnpm run test:ci
+      - name: Run unit tests
+        run: pnpm vitest run --coverage --reporter=junit --outputFile=junit.xml
+        working-directory: ./packages/core
         continue-on-error: true
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: Nodejs Playground Tests
-          path: ./apps/nodejs-playground/junit.xml
+          name: SDK Unit Tests
+          path: ./packages/core/junit.xml
           reporter: jest-junit
           fail-on-error: false
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -78,10 +73,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: nodejs-playground-test-results
+          name: unit-test-results
           path: |
-            ./apps/nodejs-playground/junit.xml
-            ./apps/nodejs-playground/coverage/
+            ./packages/core/junit.xml
+            ./packages/core/coverage/
           retention-days: 30
 
       - name: Generate Test & Coverage Report
@@ -89,19 +84,25 @@ jobs:
         id: test-report
         run: |
           # Parse test results
-          TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
-          TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
-          TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
+          if [ -f "./packages/core/junit.xml" ]; then
+            TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
+            TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
+            TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
+          else
+            TESTS_TOTAL="0"
+            TESTS_FAILED="0"
+            TESTS_PASSED="0"
+          fi
           
-          # Parse coverage (với fallback nếu file không tồn tại)
-          if [ -f "./apps/nodejs-playground/coverage/coverage-summary.json" ]; then
-            COVERAGE_LINES=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
-            COVERAGE_STATEMENTS=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "0")
-            COVERAGE_FUNCTIONS=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "0")
-            COVERAGE_BRANCHES=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "0")
+          # Parse coverage
+          if [ -f "./packages/core/coverage/coverage-summary.json" ]; then
+            COVERAGE_LINES=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
+            COVERAGE_STATEMENTS=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "0")
+            COVERAGE_FUNCTIONS=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "0")
+            COVERAGE_BRANCHES=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "0")
             
-            # Tính tổng coverage
-            COVERAGE_TOTAL=$(cat ./apps/nodejs-playground/coverage/coverage-summary.json | jq -r '
+            # Calculate average coverage
+            COVERAGE_TOTAL=$(cat ./packages/core/coverage/coverage-summary.json | jq -r '
               (.total.lines.pct + .total.statements.pct + .total.functions.pct + .total.branches.pct) / 4 | floor
             ' 2>/dev/null || echo "0")
           else
@@ -112,7 +113,7 @@ jobs:
             COVERAGE_TOTAL="0"
           fi
           
-          # Emoji cho status
+          # Status emoji
           if [ "$TESTS_FAILED" -eq "0" ]; then
             TEST_ICON="✅"
             TEST_STATUS="All tests passed"
@@ -121,7 +122,7 @@ jobs:
             TEST_STATUS="$TESTS_FAILED test(s) failed"
           fi
           
-          # Emoji cho coverage (chỉ khi có coverage data)
+          # Coverage emoji
           if [ "$COVERAGE_TOTAL" != "0" ] && [ "$COVERAGE_TOTAL" != "N/A" ]; then
             if [ "$COVERAGE_TOTAL" -ge 80 ]; then
               COV_ICON="🟢"
@@ -135,9 +136,9 @@ jobs:
             COV_TEXT="⚠️ Coverage: Not available"
           fi
           
-          # Tạo comment ngắn gọn
+          # Generate markdown report
           cat << EOF > test-report.md
-          ## ${TEST_ICON} Nodejs Playground Tests • ${COV_TEXT}
+          ## ${TEST_ICON} SDK Unit Tests • ${COV_TEXT}
           
           **Tests:** ${TESTS_PASSED}/${TESTS_TOTAL} passed | **Status:** ${TEST_STATUS}
           
@@ -175,7 +176,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: ${{ steps.test-report.outputs.report }}
-          comment_tag: nodejs-playground-test-report
+          comment_tag: sdk-unit-test-report
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Write to Step Summary
@@ -184,12 +185,12 @@ jobs:
           if [ -f "test-report.md" ]; then
             cat test-report.md >> $GITHUB_STEP_SUMMARY
           else
-            echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "## 🧪 Unit Test Results" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            if [ -f "./apps/nodejs-playground/junit.xml" ]; then
-              TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
-              TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./apps/nodejs-playground/junit.xml | head -1 || echo "0")
+            if [ -f "./packages/core/junit.xml" ]; then
+              TESTS_TOTAL=$(grep -oP 'tests="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
+              TESTS_FAILED=$(grep -oP 'failures="\K[0-9]+' ./packages/core/junit.xml | head -1 || echo "0")
               TESTS_PASSED=$((TESTS_TOTAL - TESTS_FAILED))
               
               echo "- ✅ **Passed:** $TESTS_PASSED" >> $GITHUB_STEP_SUMMARY
@@ -199,3 +200,61 @@ jobs:
               echo "Test results not available" >> $GITHUB_STEP_SUMMARY
             fi
           fi
+
+      - name: Prepare GitHub Pages content
+        if: github.ref == 'refs/heads/main' && always()
+        run: |
+          mkdir -p ./gh-pages/coverage
+          mkdir -p ./gh-pages/reports
+          
+          # Copy coverage HTML report
+          if [ -d "./packages/core/coverage" ]; then
+            cp -r ./packages/core/coverage/* ./gh-pages/coverage/
+          fi
+          
+          # Copy test report
+          if [ -f "test-report.md" ]; then
+            cp test-report.md ./gh-pages/reports/
+          fi
+          
+          # Create index.html
+          cat << 'EOF' > ./gh-pages/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Hydra SDK - Test Reports</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+              h1 { color: #333; }
+              .card { background: #f5f5f5; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+              a { color: #0066cc; text-decoration: none; }
+              a:hover { text-decoration: underline; }
+              .updated { color: #666; font-size: 0.9rem; }
+            </style>
+          </head>
+          <body>
+            <h1>🧪 Hydra SDK Test Reports</h1>
+            <div class="card">
+              <h2>📊 Coverage Report</h2>
+              <p><a href="./coverage/index.html">View Coverage Report →</a></p>
+            </div>
+            <div class="card">
+              <h2>📋 Test Summary</h2>
+              <p><a href="./reports/test-report.md">View Test Report →</a></p>
+            </div>
+            <p class="updated">Last updated: <span id="date"></span></p>
+            <script>document.getElementById('date').textContent = new Date().toLocaleString();</script>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages
+          destination_dir: test-reports
+          keep_files: true
