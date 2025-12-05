@@ -29,10 +29,10 @@ export default defineConfig({
 				'**/__tests__/**',
 				'**/mocks/**',
 				'**/constants/**',
-				'**/index.ts',
+				// '**/index.ts',
 				'**/*.d.ts'
 			],
-			reportsDirectory: 'coverage/core',
+			reportsDirectory: 'coverage',
 			reporter: ['text', 'lcov', 'html']
 		}
 	},
