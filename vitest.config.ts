@@ -24,8 +24,16 @@ export default defineConfig({
 				'**/node_modules/**',
 				'**/dist/**',
 				'packages/cardano-wasm/**', // exclude cardano-wasm due to wasm files
-				'apps/**' // exclude apps
-			]
+				'apps/**', // exclude apps
+				'**/types/**',
+				'**/__tests__/**',
+				'**/mocks/**',
+				'**/constants/**',
+				'**/index.ts',
+				'**/*.d.ts'
+			],
+			reportsDirectory: 'coverage/core',
+			reporter: ['text', 'lcov', 'html']
 		}
 	},
 
