@@ -110,7 +110,7 @@ describe('WebsocketConnector', () => {
 		it('should throw error for invalid URL', () => {
 			expect(() => {
 				new WebsocketConnector({
-					websocketUrl: 'invalid-url'
+					websocketUrl: 'http://invalid url with spaces'
 				})
 			}).toThrow('Invalid websocket url')
 		})

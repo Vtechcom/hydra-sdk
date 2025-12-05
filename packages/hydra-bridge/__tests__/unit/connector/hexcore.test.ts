@@ -76,7 +76,7 @@ describe('HexcoreConnector', () => {
 
 		it('should throw error for invalid URL', () => {
 			expect(() => {
-				new HexcoreConnector('invalid-url')
+				new HexcoreConnector('http://invalid url with spaces')
 			}).toThrow('Invalid socket io url')
 		})
 
