@@ -55,8 +55,8 @@ jobs:
         run: pnpm install
 
       - name: Run unit tests
-        run: pnpm vitest run --coverage --reporter=junit --outputFile=junit.xml
-        working-directory: ./packages/core
+        run: pnpm test:coverage --reporter=default --reporter=junit --outputFile.junit=junit.xml
+        working-directory: .
         continue-on-error: true
 
       - name: Test Report
@@ -64,8 +64,8 @@ jobs:
         if: always()
         with:
           name: SDK Unit Tests
-          path: ./packages/core/junit.xml
-          reporter: jest-junit
+          path: ./junit.xml
+          reporter: java-junit
           fail-on-error: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -75,8 +75,8 @@ jobs:
         with:
           name: unit-test-results
           path: |
-            ./packages/core/junit.xml
-            ./packages/core/coverage/
+            ./junit.xml
+            ./coverage/
           retention-days: 30
 
       - name: Generate Test & Coverage Report
