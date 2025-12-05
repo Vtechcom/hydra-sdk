@@ -8,7 +8,6 @@ node_modules
 .idea
 
 # Tests
-coverage
 /.nyc_output
 test-results.json
 test-report/

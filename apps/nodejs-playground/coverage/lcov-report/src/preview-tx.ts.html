@@ -1,0 +1,295 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/preview-tx.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">src</a> preview-tx.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/32</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/8</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/5</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/31</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { AppWallet, Asset, Deserializer, NETWORK_ID, ParserUtils, ProviderUtils } from '@hydra-sdk/core'</span>
+<span class="cstat-no" title="statement not covered" >import { TxBuilder } from '@hydra-sdk/transaction'</span>
+<span class="cstat-no" title="statement not covered" >import { BigNumber } from 'bignumber.js'</span>
+&nbsp;
+async function <span class="fstat-no" title="function not covered" >main(</span>) {
+	const blockfrostProvider = <span class="cstat-no" title="statement not covered" >new ProviderUtils.BlockfrostProvider({</span>
+		apiKey: 'previewfAD2g4RCsAWvKnvyn7pTm8Z7hhjwvfsC',
+		network: 'preview'
+	})
+	const address = <span class="cstat-no" title="statement not covered" >'addr_test1vztc80na8320zymhjekl40yjsnxkcvhu58x59mc2fuwvgkc332vxv'</span>
+<span class="cstat-no" title="statement not covered" >	console.log('&gt;&gt;&gt; NETWORK_ID:', NETWORK_ID.PREVIEW)</span>
+&nbsp;
+	const summitResult = <span class="cstat-no" title="statement not covered" >await blockfrostProvider.submitter.submitTx(</span>
+		'84a400d901028182582018d09e233f2b3b95a5d77fa12a1ed9e73468a985a177140792d141c3b8a7eee101018282581d706a09cb22defaf4a96a6be1ef6c07467ac9923d1750a79214a06c503a821a004c4b40ac581c13d1f7feab83ff4db444bf96b8677949c5bf9c709671f30ff8f33ab3a1581d487964726120446f6f6d202d2033726420506c6163652054726f70687901581c19c98d04cdb6e1e782a73e693697d4a46ca9820d5d490a3bf6470a07a1581d487964726120446f6f6d202d20326e6420506c6163652054726f70687901581c1a22028742629f3cf38b3d1036a088fea59eb30237a675420fb25c11a142233101581c6d92350897706b14832c62c5b5644e918f0b6b3b63ffc00a1a463828a1581d487964726120446f6f6d202d2031737420506c6163652054726f70687901581cad39d849181dc206488fd726240c00b55547153ffdca8c079e1e34d9a1581d487964726120446f6f6d202d2031737420506c6163652054726f70687901581cbfe4ab531fd625ef33ea355fd85953eb944bffa401af767666ff411ca1581d487964726120446f6f6d202d2031737420506c6163652054726f70687901581cc953682b6eb5891c0bda35718c5261587d57e5e408079cbeb8cf881aa142233101581ccd6076d9d0098da4c7670c08f230e4efe31d666263c9db5196805d6ea1581d487964726120446f6f6d202d2031737420506c6163652054726f70687901581cd0c91707d75011026193c0fce742443dde66fa790936981ece5d9f8ba142233101581cd8906ca5c7ba124a0407a32dab37b2c82b13b3dcd9111e42940dcea4a1480014df105553444d1b0000001047700380581cdd7e36888a487f8b27687f65abd93e6825b4eb3ce592ee5f504862dfa1581d487964726120446f6f6d202d2031737420506c6163652054726f70687901581cfa10c5203512eeeb92bf79547b09f5cdb2e008689864b0175cca6feea1581d487964726120446f6f6d202d2034746820506c6163652054726f7068790182581d609783be7d3c54f11377966dfabc9284cd6c32fca1cd42ef0a4f1cc45b1b00000013c7a7d3fd021a00030001075820d36a2619a672494604e11bb447cbcf5231e9f2ba25c2169177edc941bd50ad6ca100d9010281825820ce13cd433cdcb3dfb00c04e216956aeb622dcd7f282b03304d9fc9de804723b258408fdcbe33230a47d15896bb670e3171bac9bcb852d842dbccd05caa55fd9bd85d7912aff34505184946d5d7f59488d5fa46cbbe8644a08f6929240f604816fd06f5a0'
+	)
+<span class="cstat-no" title="statement not covered" >	console.log('&gt;&gt;&gt; / preview-tx.ts:66 / summitResult:', summitResult)</span>
+<span class="cstat-no" title="statement not covered" >	return</span>
+&nbsp;
+	const utxos = <span class="cstat-no" title="statement not covered" >await blockfrostProvider.fetcher.fetchAddressUTxOs(address)</span>
+<span class="cstat-no" title="statement not covered" >	console.log('&gt;&gt;&gt; UTxOs:', utxos)</span>
+	const totalLovelace = <span class="cstat-no" title="statement not covered" >utxos.reduce(</span>
+<span class="fstat-no" title="function not covered" >		(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >a + Number(b.output.amount.find(<span class="fstat-no" title="function not covered" >x </span>=&gt; <span class="cstat-no" title="statement not covered" >x.unit === 'lovelace')</span>?.quantity || 0),</span>
+		0
+	)
+	const totalAssets = <span class="cstat-no" title="statement not covered" >utxos.reduce(</span>
+<span class="fstat-no" title="function not covered" >		(a</span>cc, utxo) =&gt; {
+<span class="cstat-no" title="statement not covered" >			utxo.output.amount.forEach(<span class="fstat-no" title="function not covered" >a </span>=&gt; {</span>
+<span class="cstat-no" title="statement not covered" >				if (a.unit !== 'lovelace') {</span>
+<span class="cstat-no" title="statement not covered" >					if (!acc[a.unit]) {</span>
+<span class="cstat-no" title="statement not covered" >						acc[a.unit] = 0</span>
+					}
+<span class="cstat-no" title="statement not covered" >					acc[a.unit] += Number(a.quantity)</span>
+				}
+			})
+<span class="cstat-no" title="statement not covered" >			return acc</span>
+		},
+		{} as Record&lt;string, number&gt;
+	)
+<span class="cstat-no" title="statement not covered" >	console.log('&gt;&gt;&gt; Total assets:', Object.keys(totalAssets).length)</span>
+	const outputAssets: Asset[] = <span class="cstat-no" title="statement not covered" >[]</span>
+<span class="cstat-no" title="statement not covered" >	for (const [unit, quantity] of Object.entries(totalAssets)) {</span>
+		const { policyId, assetName } = <span class="cstat-no" title="statement not covered" >Deserializer.deserializeAssetUnit(unit)</span>
+<span class="cstat-no" title="statement not covered" >		outputAssets.push({ unit, quantity: String(quantity) })</span>
+<span class="cstat-no" title="statement not covered" >		console.log(</span>
+			`  - ${policyId}${assetName ? '.' + assetName : ''}: ${BigNumber(quantity).toFormat()} ${ParserUtils.hexToString(assetName)}`
+		)
+	}
+	//
+<span class="cstat-no" title="statement not covered" >	console.log(</span>
+		'&gt;&gt;&gt; Total lovelace:',
+		totalLovelace,
+		'lovelace',
+		' =&gt; ',
+		(Number(totalLovelace) / 1_000_000).toFixed(6),
+		'ADA'
+	)
+&nbsp;
+	const txBuilder = <span class="cstat-no" title="statement not covered" >new TxBuilder({})</span>
+	const tx = <span class="cstat-no" title="statement not covered" >await txBuilder</span>
+		.setInputs(utxos)
+		.addOutput({
+			address: 'addr_test1wp4qnjezmma0f2t2d0s77mq8geavny3azag20ys55pk9qwsxs8emy',
+			amount: [...outputAssets, { unit: 'lovelace', quantity: String(5000000) }]
+		})
+		.changeAddress(address)
+		.complete()
+<span class="cstat-no" title="statement not covered" >	console.log('&gt;&gt;&gt; tx:', tx.to_hex())</span>
+}
+&nbsp;
+<span class="cstat-no" title="statement not covered" >main()</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2025-12-02T04:21:56.569Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    
