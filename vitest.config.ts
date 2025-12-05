@@ -30,7 +30,7 @@ export default defineConfig({
 				'**/__tests__/**',
 				'**/mocks/**',
 				'**/constants/**',
-				// '**/index.ts',
+				'**/index.ts',
 				'**/*.d.ts'
 			],
 			reportsDirectory: 'coverage',
