@@ -157,7 +157,9 @@ jobs:
           - ❌ Failed: ${TESTS_FAILED}
           - 📊 Total: ${TESTS_TOTAL}
           
-          [View full report in Actions →](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          ### Reports
+          - 📈 [Coverage Report](https://vtechcom.github.io/hydra-sdk/test-reports/coverage/)
+          - 📋 [Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           </details>
           
           ---
