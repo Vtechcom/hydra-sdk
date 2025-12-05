@@ -15,7 +15,9 @@ export default defineConfig({
 
 		alias: {
 			'@hydra-sdk/cardano-wasm': path.resolve(__dirname, 'packages/cardano-wasm/src/index.node.ts'),
-			'@hydra-sdk': path.resolve(__dirname, 'packages')
+			'@hydra-sdk/core': path.resolve(__dirname, 'packages/core/src/index.ts'),
+			'@hydra-sdk/transaction': path.resolve(__dirname, 'packages/hydra-transaction/src/index.ts'),
+			'@hydra-sdk/bridge': path.resolve(__dirname, 'packages/hydra-bridge/src/index.ts')
 		},
 
 		coverage: {
@@ -30,7 +32,7 @@ export default defineConfig({
 				'**/__tests__/**',
 				'**/mocks/**',
 				'**/constants/**',
-				// '**/index.ts',
+				'**/index.ts',
 				'**/*.d.ts'
 			],
 			reportsDirectory: 'coverage',
