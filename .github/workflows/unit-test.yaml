@@ -209,9 +209,18 @@ jobs:
           mkdir -p ./gh-pages/coverage
           mkdir -p ./gh-pages/reports
           
+          # Debug: List coverage directory contents
+          echo "Coverage directory contents:"
+          ls -la ./coverage/ || echo "Coverage directory not found"
+          
           # Copy coverage HTML report
-          if [ -d "./coverage" ]; then
+          if [ -f "./coverage/index.html" ]; then
             cp -r ./coverage/* ./gh-pages/coverage/
+            echo "Coverage HTML report copied successfully"
+          else
+            echo "Warning: coverage/index.html not found"
+            # Create placeholder if no coverage
+            echo "<html><body><h1>Coverage report not available</h1></body></html>" > ./gh-pages/coverage/index.html
           fi
           
           # Copy test report
