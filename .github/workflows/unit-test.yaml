@@ -204,7 +204,7 @@ jobs:
           fi
 
       - name: Prepare GitHub Pages content
-        if: github.ref == 'refs/heads/main' && always()
+        if: github.ref == 'refs/heads/master' && always()
         run: |
           mkdir -p ./gh-pages/coverage
           mkdir -p ./gh-pages/reports
@@ -253,7 +253,7 @@ jobs:
           EOF
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main' && always()
+        if: github.ref == 'refs/heads/master' && always()
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
