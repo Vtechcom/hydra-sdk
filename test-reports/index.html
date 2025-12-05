@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hydra SDK - Test Reports</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+    h1 { color: #333; }
+    .card { background: #f5f5f5; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .updated { color: #666; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Hydra SDK Test Reports</h1>
+  <div class="card">
+    <h2>📊 Coverage Report</h2>
+    <p><a href="./coverage/index.html">View Coverage Report →</a></p>
+  </div>
+  <div class="card">
+    <h2>📋 Test Summary</h2>
+    <p><a href="./reports/test-report.md">View Test Report →</a></p>
+  </div>
+  <p class="updated">Last updated: <span id="date"></span></p>
+  <script>document.getElementById('date').textContent = new Date().toLocaleString();</script>
+</body>
+</html>
