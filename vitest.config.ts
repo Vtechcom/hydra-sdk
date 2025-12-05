@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import path from 'path'
 
 export default defineConfig({
 	plugins: [tsconfigPaths()],
@@ -13,8 +14,8 @@ export default defineConfig({
 		include: ['tests/**/*.test.ts', 'tests/**/*.spec.ts', 'packages/**/*.test.ts', 'packages/**/*.spec.ts'],
 
 		alias: {
-			'@hydra-sdk': '/packages',
-			'@hydra-sdk/cardano-wasm': '/packages/cardano-wasm/src/index.node.ts'
+			'@hydra-sdk/cardano-wasm': path.resolve(__dirname, 'packages/cardano-wasm/src/index.node.ts'),
+			'@hydra-sdk': path.resolve(__dirname, 'packages')
 		},
 
 		coverage: {
