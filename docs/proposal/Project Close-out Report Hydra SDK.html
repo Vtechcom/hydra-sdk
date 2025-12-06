@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Close-out Report: Hydra SDK</title>
+    <!-- Using Google Fonts for professional typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Brand Colors based on Hydra/Cardano themes */
+            --primary: #0033AD; /* Cardano Blue */
+            --accent: #00D2B2; /* Hydra Teal */
+            --dark: #1A1A2E;
+            --text: #333333;
+            --light-bg: #F8F9FA;
+            --white: #FFFFFF;
+            --border: #E1E4E8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #525659; /* PDF viewer background feel */
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* A4 Paper Simulation */
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 40px auto;
+            padding: 20mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Print Settings */
+        @media print {
+            body { background: none; }
+            .page { 
+                margin: 0; 
+                box-shadow: none; 
+                width: 100%;
+                height: auto;
+                page-break-after: always;
+            }
+        }
+
+        /* --- COVER PAGE STYLES --- */
+        .cover-page {
+            justify-content: center;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+            color: white;
+            padding: 0; /* Custom padding for cover */
+        }
+
+        .cover-design-element {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            border-radius: 0 0 0 100%;
+            opacity: 0.1;
+        }
+
+        .cover-content {
+            padding: 20mm;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .report-type {
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 14px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .project-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .project-subtitle {
+            font-size: 20px;
+            font-weight: 300;
+            opacity: 0.9;
+            border-left: 4px solid var(--accent);
+            padding-left: 20px;
+        }
+
+        .cover-footer {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .meta-item label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 5px;
+        }
+
+        .meta-item span {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* --- CONTENT PAGE STYLES --- */
+        .header-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8mm;
+            background: var(--primary);
+        }
+
+        h1.section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--primary);
+            font-size: 24px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            margin-top: 10px;
+        }
+
+        h2 {
+            font-size: 16px;
+            color: var(--dark);
+            margin-bottom: 12px;
+            margin-top: 20px;
+            font-weight: 700;
+        }
+
+        p {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #444;
+            text-align: justify;
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: var(--light-bg);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .kpi-title {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .kpi-list {
+            list-style: none;
+            font-size: 13px;
+        }
+        
+        .kpi-list li {
+            margin-bottom: 6px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .kpi-list li::before {
+            content: "✓";
+            color: var(--accent);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Milestone Timeline */
+        .milestone-container {
+            margin-top: 10px;
+        }
+
+        .milestone {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .milestone-marker {
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .circle {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .line {
+            flex: 1;
+            width: 2px;
+            background: var(--border);
+            margin-top: 5px;
+        }
+
+        .milestone:last-child .line {
+            display: none;
+        }
+
+        .milestone-content {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 15px;
+            flex: 1;
+        }
+
+        .milestone-header {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .badge {
+            background: #E6FFFA;
+            color: #00816D;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Links Table */
+        .links-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .links-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .links-table td:first-child {
+            font-weight: 600;
+            color: var(--primary);
+            width: 30%;
+        }
+
+        .links-table a {
+            color: var(--text);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--text);
+        }
+
+        /* Footer for pages */
+        .page-footer {
+            position: absolute;
+            bottom: 10mm;
+            left: 20mm;
+            right: 20mm;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #888;
+        }
+
+        .status-box {
+            background: var(--accent);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .status-box h3 { color: white; margin: 0; font-size: 18px; }
+        .status-box p { color: white; text-align: center; margin: 5px 0 0 0; opacity: 0.9; }
+
+        .tag-cloud {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .tag {
+            background: #f0f2f5;
+            color: #555;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <div class="page cover-page">
+        <div class="cover-design-element"></div>
+        <div class="cover-content">
+            <div class="top-section">
+                <div class="report-type">Project Catalyst // Fund 14</div>
+                <div class="report-type" style="margin-top: -15px; font-size: 12px; opacity: 0.7;">Project Close-out Report</div>
+                <br><br>
+                <h1 class="project-title">Hydra SDK</h1>
+                <div class="project-subtitle">Fast, Modular, WASM Cardano Toolkit</div>
+            </div>
+
+            <div class="cover-footer">
+                <div class="meta-item">
+                    <label>Applicant</label>
+                    <span>Vtechcom Labs</span>
+                </div>
+                <div class="meta-item">
+                    <label>Completion Status</label>
+                    <span style="color: var(--accent);">100% Completed</span>
+                </div>
+                <div class="meta-item">
+                    <label>Duration</label>
+                    <span>Oct 2025 – Dec 2025</span>
+                </div>
+                <div class="meta-item">
+                    <label>Challenge</label>
+                    <span>Developer Ecosystem</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: EXECUTIVE SUMMARY & KPIs -->
+    <div class="page">
+        <div class="header-strip"></div>
+        <h1 class="section-title">01. Executive Summary & KPIs</h1>
+        
+        <div class="status-box">
+            <h3>Project Status: 100% Complete</h3>
+            <p>All milestones approved. Product released to production.</p>
+        </div>
+
+        <p><strong>Hydra SDK</strong> was designed to bridge the gap between Cardano Layer 1 and the Hydra Head protocol. We have successfully delivered a comprehensive toolkit that allows developers to build high-speed, scalable dApps without dealing with the complexities of raw Hydra node interactions.</p>
+
+        <div class="grid-2" style="margin-top: 30px;">
+            <div>
+                <h2>Challenge KPIs</h2>
+                <div class="kpi-card">
+                    <span class="kpi-title">Developer Ecosystem Goals</span>
+                    <ul class="kpi-list">
+                        <li>More high-quality developer tools.</li>
+                        <li>Improved onboarding & documentation.</li>
+                        <li>Resources for real dApp adoption.</li>
+                        <li>Tools reducing complexity.</li>
+                    </ul>
+                </div>
+            </div>
+            <div>
+                <h2>Project KPIs (Achieved)</h2>
+                <div class="kpi-card">
+                    <span class="kpi-title">Deliverables</span>
+                    <ul class="kpi-list">
+                        <li>4 npm packages released (@hydra-sdk/*).</li>
+                        <li>End-to-end integration via hexcore-proxy.</li>
+                        <li>≥80% automated test coverage.</li>
+                        <li>Full Docs: hydrasdk.com</li>
+                        <li>Real Tx on Preprod & Hydra Head.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="section-title">02. Milestones Delivered</h1>
+        <div class="milestone-container">
+            <div class="milestone">
+                <div class="milestone-marker">
+                    <div class="circle">1</div>
+                    <div class="line"></div>
+                </div>
+                <div class="milestone-content">
+                    <div class="milestone-header">
+                        Platform Setup & Wallet <span class="badge">DONE</span>
+                    </div>
+                    <ul class="kpi-list">
+                        <li>Monorepo workspace (pnpm, turbo).</li>
+                        <li><code>@hydra-sdk/cardano-wasm</code> core built.</li>
+                        <li>Wallet module & Key management.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="milestone">
+                <div class="milestone-marker">
+                    <div class="circle">2</div>
+                    <div class="line"></div>
+                </div>
+                <div class="milestone-content">
+                    <div class="milestone-header">
+                        Transaction Module <span class="badge">DONE</span>
+                    </div>
+                    <ul class="kpi-list">
+                        <li><code>@hydra-sdk/transaction</code> implementation.</li>
+                        <li>Support for ADA, Tokens, Minting/Burning.</li>
+                        <li>Plutus contract interaction tests on Preprod.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="milestone">
+                <div class="milestone-marker">
+                    <div class="circle">3</div>
+                    <div class="line"></div>
+                </div>
+                <div class="milestone-content">
+                    <div class="milestone-header">
+                        Hydra Bridge Module <span class="badge">DONE</span>
+                    </div>
+                    <ul class="kpi-list">
+                        <li><code>@hydra-sdk/bridge</code> WebSocket client.</li>
+                        <li>Handling Head events (Open, Snapshot, Closed).</li>
+                        <li>End-to-end L1 to L2 execution flow.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <span>Hydra SDK Close-out Report</span>
+            <span>Page 1 / 3</span>
+        </div>
+    </div>
+
+    <!-- PAGE 3: ACHIEVEMENTS & ROADMAP -->
+    <div class="page">
+        <div class="header-strip"></div>
+        
+        <!-- Cont. Milestone 4 -->
+        <div class="milestone">
+            <div class="milestone-marker">
+                <div class="circle">4</div>
+            </div>
+            <div class="milestone-content">
+                <div class="milestone-header">
+                    Finalization & Release <span class="badge">DONE</span>
+                </div>
+                <ul class="kpi-list">
+                    <li>Optimized performance (>20% faster builds).</li>
+                    <li>v1.0.0 Public Release on NPM.</li>
+                    <li>Final tutorials and video proofs.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h1 class="section-title">03. Key Achievements & Learnings</h1>
+        <div class="grid-2">
+            <div>
+                <h2>Achievements</h2>
+                <ul class="kpi-list">
+                    <li><strong>First Open-Source SDK:</strong> Providing a complete L1 → Hydra Head experience.</li>
+                    <li><strong>Full Stack:</strong> Wallet → Transaction → Bridge.</li>
+                    <li><strong>Unified Docs:</strong> A single source of truth at hydrasdk.com.</li>
+                    <li><strong>Ease of Use:</strong> Enabled devs to build in minutes, not days.</li>
+                </ul>
+            </div>
+            <div>
+                <h2>Learnings</h2>
+                <ul class="kpi-list">
+                    <li><strong>Event Handling:</strong> Hydra requires robust state management for snapshots.</li>
+                    <li><strong>Performance:</strong> WASM optimization is critical for UX.</li>
+                    <li><strong>Dev Experience:</strong> Working examples are valued more than theoretical docs.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h1 class="section-title">04. Collaboration</h1>
+        <div class="kpi-card" style="background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary);">
+            <p style="margin:0;">We actively engaged with the <strong>Hydra Core Team (IOG)</strong> to align with the roadmap and verify event flows. Feedback from the <strong>Cardano Developer Community</strong> (via Discord/GitHub) was instrumental in refining the API surface and fixing edge-case bugs.</p>
+        </div>
+
+        <h1 class="section-title">05. Future Roadmap</h1>
+        <div class="grid-2">
+            <div>
+                <span class="kpi-title">Technical</span>
+                <ul class="kpi-list">
+                    <li>Multi-party Head support.</li>
+                    <li>Stateful dApp frameworks.</li>
+                    <li>Hydra "Local Dev Mode".</li>
+                </ul>
+            </div>
+            <div>
+                <span class="kpi-title">Ecosystem</span>
+                <ul class="kpi-list">
+                    <li>Hydra Game Academy.</li>
+                    <li>Integration with Hydra Hub.</li>
+                    <li>CLI Tools for scaffolding.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h1 class="section-title">06. Evidence & Links</h1>
+        <table class="links-table">
+            <tr>
+                <td>Documentation</td>
+                <td><a href="https://hydrasdk.com">https://hydrasdk.com</a></td>
+            </tr>
+            <tr>
+                <td>GitHub Repo</td>
+                <td><a href="https://github.com/Vtechcom/hydra-sdk">github.com/Vtechcom/hydra-sdk</a></td>
+            </tr>
+            <tr>
+                <td>NPM Org</td>
+                <td><a href="https://www.npmjs.com/org/hydra-sdk">npmjs.com/org/hydra-sdk</a></td>
+            </tr>
+            <tr>
+                <td>Catalyst Proposal</td>
+                <td><a href="https://projectcatalyst.io">View on Project Catalyst</a></td>
+            </tr>
+        </table>
+        
+        <div style="margin-top: 20px;">
+            <div class="tag-cloud">
+                <span class="tag">@hydra-sdk/core</span>
+                <span class="tag">@hydra-sdk/transaction</span>
+                <span class="tag">@hydra-sdk/bridge</span>
+                <span class="tag">@hydra-sdk/cardano-wasm</span>
+            </div>
+        </div>
+
+        <div class="page-footer">
+            <span>Hydra SDK Close-out Report</span>
+            <span>Page 2 / 2</span>
+        </div>
+    </div>
+
+</body>
+</html>
