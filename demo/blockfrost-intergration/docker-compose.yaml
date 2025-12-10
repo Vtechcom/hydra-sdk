@@ -1,6 +1,6 @@
 services:
   hydra-node-alice:
-    image: hydra-node:latest
+    image: ghcr.io/cardano-scaling/hydra-node:1.2.0
     volumes:
       - .:/devnet
       - ./persistence/alice:/devnet/persistence/alice
@@ -25,7 +25,7 @@ services:
         "--persistence-dir", "/devnet/persistence/alice",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
         "--blockfrost", "/devnet/.blockfrost",
-        # "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
+        "--start-chain-from", "4172971.c4d95d7701d9b3c255b6ed557ee36745d3ca7ee0995714f35af7eabda82f63a7",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
@@ -34,7 +34,7 @@ services:
     restart: always
 
   hydra-node-bob:
-    image: hydra-node:latest
+    image: ghcr.io/cardano-scaling/hydra-node:1.2.0
     volumes:
       - .:/devnet
       - ./persistence/bob:/devnet/persistence/bob
