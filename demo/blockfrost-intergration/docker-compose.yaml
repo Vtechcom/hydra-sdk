@@ -1,6 +1,6 @@
 services:
   hydra-node-alice:
-    image: ghcr.io/cardano-scaling/hydra-node:1.1.0
+    image: hydra-node:latest
     volumes:
       - .:/devnet
       - ./persistence/alice:/devnet/persistence/alice
@@ -11,10 +11,10 @@ services:
       [
         "--node-id", "1",
         "--api-host", "0.0.0.0",
-        "--listen", "172.16.238.10:5001",
+        "--listen", "128.1.1.10:5001",
         "--monitoring-port", "6001",
         "--api-port", "4001",
-        "--peer", "172.16.238.30:5003",
+        "--peer", "128.1.1.30:5003",
 
         "--hydra-signing-key", "/devnet/credentials/alice/alice-hydra.sk",
         "--cardano-signing-key", "/devnet/credentials/alice/alice-funds.sk",
@@ -25,16 +25,16 @@ services:
         "--persistence-dir", "/devnet/persistence/alice",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
         "--blockfrost", "/devnet/.blockfrost",
-        "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
+        # "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
-      hydra_net:
-        ipv4_address: 172.16.238.10
+      hydra_network:
+        ipv4_address: 128.1.1.10
     restart: always
 
   hydra-node-bob:
-    image: ghcr.io/cardano-scaling/hydra-node:1.1.0
+    image: hydra-node:latest
     volumes:
       - .:/devnet
       - ./persistence/bob:/devnet/persistence/bob
@@ -45,10 +45,10 @@ services:
       [
         "--node-id", "3",
         "--api-host", "0.0.0.0",
-        "--listen", "172.16.238.30:5003",
+        "--listen", "128.1.1.30:5003",
         "--monitoring-port", "6003",
         "--api-port", "4003",
-        "--peer", "172.16.238.10:5001",
+        "--peer", "128.1.1.10:5001",
 
         "--hydra-signing-key", "/devnet/credentials/bob/bob-hydra.sk",
         "--cardano-signing-key", "/devnet/credentials/bob/bob-funds.sk",
@@ -59,12 +59,12 @@ services:
         "--persistence-dir", "/devnet/persistence/bob",
         "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
         "--blockfrost", "/devnet/.blockfrost",
-        "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
+        # "--start-chain-from", "4172971.4b7f01c4c98f70017fdad07bb9972b4aaa8a2be3aca6ea230a2f4ff60610b143",
         "--hydra-scripts-tx-id", "407bf714186db790f2624701b2e065850dd7b7cf998c931222d99a56d8ad256b,4cae9ad9c1cc4f82ce2fd51f9e1155a37ac88957f81128ba1c51bc7c6734ce6c,a3a27a3049be1fe931a0d99bf132a88b848b12dc50f50856cb86e12bb135f5d2"
       ]
     networks:
-      hydra_net:
-        ipv4_address: 172.16.238.30
+      hydra_network:
+        ipv4_address: 128.1.1.30
     restart: always
 
 
@@ -82,9 +82,9 @@ volumes:
   bob_persistence:
 
 networks:
-  hydra_net:
+  hydra_network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.16.238.0/24
-          gateway: 172.16.238.1
+        - subnet: 128.1.1.0/24
+          gateway: 128.1.1.1
