@@ -10,7 +10,6 @@ import {
 	CoinTypes,
 	ChainDerivation
 } from '../../../src/utils/cardano-wasm/build-keys'
-import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { NETWORK_ID } from '../../../src/constants/chain'
 
 const mockWallet = {

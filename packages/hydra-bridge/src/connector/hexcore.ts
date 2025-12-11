@@ -138,15 +138,15 @@ export class HexcoreConnector implements HydraConnector {
 	 * @param options
 	 */
 	constructor(socketIoUrl: string, options?: HexcoreConnectorOptions) {
-		const { valid, protocol, host, port, path, ssl } = parseUrl(socketIoUrl)
-		if (!valid || !host) {
+		const option = parseUrl(socketIoUrl)
+		if (!option.valid || !option.host) {
 			throw new Error('Invalid socket io url')
 		}
 		this.conn = {
-			ssl: ssl,
-			host,
-			port,
-			path
+			ssl: option.ssl,
+			host: option.host,
+			port: option.port,
+			path: option.path
 		}
 
 		const httpUrl = buildUrl({

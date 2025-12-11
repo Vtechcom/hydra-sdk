@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cardanoCliKeygen, hydraCliKeygen, genVkey, CardanoCLiSkey, CardanoCLiVkey } from '../../../src/utils/keys.util'
+import { cardanoCliKeygen, hydraCliKeygen, genVkey, mnemonicToCliKey } from '../../../src/utils/keys.util'
 
 describe('keys.util', () => {
 	describe('cardanoCliKeygen', () => {
@@ -196,6 +196,119 @@ describe('keys.util', () => {
 
 			expect(keyPair.sk.cborHex).toMatch(/^[0-9a-f]+$/i)
 			expect(keyPair.vk.cborHex).toMatch(/^[0-9a-f]+$/i)
+		})
+	})
+
+	describe('mnemonicToCliKey', () => {
+		const mnemonic = [
+			'error',
+			'wrong',
+			'law',
+			'finger',
+			'into',
+			'pear',
+			'half',
+			'wish',
+			'assume',
+			'east',
+			'still',
+			'script',
+			'promote',
+			'tribe',
+			'remind',
+			'feel',
+			'faith',
+			'say',
+			'universe',
+			'garbage',
+			'roast',
+			'curtain',
+			'dance',
+			'rug'
+		]
+
+		const EXPECTED_SK = '582061c83a67fd860c5ec3c93544171597ad0fc239b929740aad0636d6f0c151f036'
+		const EXPECTED_VK = '5820101c31a58574070ca7c9c760c91dded56b53feedab7f85682a32599e5751bd33'
+
+		it('should generate a key pair', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair).toBeDefined()
+			expect(keyPair.sk).toBeDefined()
+			expect(keyPair.vk).toBeDefined()
+		})
+
+		it('should generate exact known keypair for this mnemonic', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair.sk.cborHex).toBe(EXPECTED_SK)
+			expect(keyPair.vk.cborHex).toBe(EXPECTED_VK)
+		})
+
+		it('should generate signing key with correct type', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair.sk.type).toBe('PaymentSigningKeyShelley_ed25519')
+			expect(keyPair.sk.description).toBe('Payment Signing Key')
+		})
+
+		it('should generate verification key with correct type', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair.vk.type).toBe('PaymentVerificationKeyShelley_ed25519')
+			expect(keyPair.vk.description).toBe('Payment Verification Key')
+		})
+
+		it('should generate signing key cborHex starting with 5820', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair.sk.cborHex).toMatch(/^5820[0-9a-f]{64}$/i)
+		})
+
+		it('should generate verification key cborHex starting with 5820', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair.vk.cborHex).toMatch(/^5820[0-9a-f]{64}$/i)
+		})
+
+		it('should generate deterministic key pairs for same mnemonic', () => {
+			const keyPair1 = mnemonicToCliKey(mnemonic)
+			const keyPair2 = mnemonicToCliKey(mnemonic)
+
+			expect(keyPair1.sk.cborHex).toBe(keyPair2.sk.cborHex)
+			expect(keyPair1.vk.cborHex).toBe(keyPair2.vk.cborHex)
+		})
+
+		it('should generate different keys for different account indexes', () => {
+			const keyPair1 = mnemonicToCliKey(mnemonic, 0)
+			const keyPair2 = mnemonicToCliKey(mnemonic, 1)
+
+			expect(keyPair1.sk.cborHex).not.toBe(keyPair2.sk.cborHex)
+			expect(keyPair1.vk.cborHex).not.toBe(keyPair2.vk.cborHex)
+		})
+
+		it('should generate different keys for different key indexes', () => {
+			const keyPair1 = mnemonicToCliKey(mnemonic, 0, 0)
+			const keyPair2 = mnemonicToCliKey(mnemonic, 0, 1)
+
+			expect(keyPair1.sk.cborHex).not.toBe(keyPair2.sk.cborHex)
+			expect(keyPair1.vk.cborHex).not.toBe(keyPair2.vk.cborHex)
+		})
+
+		it('should use default account index 0 when not provided', () => {
+			const keyPair1 = mnemonicToCliKey(mnemonic)
+			const keyPair2 = mnemonicToCliKey(mnemonic, 0)
+
+			expect(keyPair1.sk.cborHex).toBe(keyPair2.sk.cborHex)
+			expect(keyPair1.vk.cborHex).toBe(keyPair2.vk.cborHex)
+		})
+
+		it('should use default key index 0 when not provided', () => {
+			const keyPair1 = mnemonicToCliKey(mnemonic, 0)
+			const keyPair2 = mnemonicToCliKey(mnemonic, 0, 0)
+
+			expect(keyPair1.sk.cborHex).toBe(keyPair2.sk.cborHex)
+			expect(keyPair1.vk.cborHex).toBe(keyPair2.vk.cborHex)
 		})
 	})
 })
