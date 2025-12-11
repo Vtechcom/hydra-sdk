@@ -1,25 +1,25 @@
 ## ✅ SDK Unit Tests • 🟢 Coverage: 93%
 
-**Tests:** 891/891 passed | **Status:** All tests passed
+**Tests:** 902/902 passed | **Status:** All tests passed
 
 | Coverage | % |
 |----------|---|
-| Lines | 93.5% |
-| Statements | 93.5% |
-| Functions | 95.23% |
-| Branches | 91.12% |
+| Lines | 93.56% |
+| Statements | 93.56% |
+| Functions | 95.26% |
+| Branches | 91.13% |
 
 <details>
 <summary>📊 View Details</summary>
 
 ### Test Breakdown
-- ✅ Passed: 891
+- ✅ Passed: 902
 - ❌ Failed: 0
-- 📊 Total: 891
+- 📊 Total: 902
 
 ### Reports
 - 📈 [Coverage Report](https://vtechcom.github.io/hydra-sdk/test-reports/coverage/)
-- 📋 [Actions Run](https://github.com/Vtechcom/hydra-sdk/actions/runs/20087459853)
+- 📋 [Actions Run](https://github.com/Vtechcom/hydra-sdk/actions/runs/20129008870)
 </details>
 
 ---
