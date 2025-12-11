@@ -126,17 +126,19 @@ export class WebsocketConnector implements HydraConnector {
 				websocketUrl: options
 			}
 		}
-		const { valid, protocol, host, port, path, ssl } = parseUrl(options.websocketUrl)
 
-		if (!valid || !host) {
+		const option = parseUrl(options.websocketUrl)
+
+		if (!option.valid || !option.host) {
 			throw new Error('Invalid websocket url')
 		}
 		this.conn = {
-			ssl,
-			host,
-			port,
-			path
+			ssl: option.ssl,
+			host: option.host,
+			port: option.port,
+			path: option.path
 		}
+
 		this.apiFetch = axios.create({
 			baseURL: this.networkInfo.httpUrl,
 			timeout: 10000
