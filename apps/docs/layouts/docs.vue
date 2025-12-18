@@ -44,7 +44,7 @@
 			<div v-if="sidebarOpen && !visiblePanel" class="absolute inset-0 z-30 bg-gray-600/50 xl:hidden" @click="sidebarOpen = false"></div>
 
 			<!-- Overlay for mobile -->
-			<div class="fixed right-4 top-[108px] z-30">
+			<div class="fixed right-4 top-[108px] z-30" :class="visiblePanel ? 'right-[calc(450px+16px)]' : 'right-4'">
 				<UButton icon="ic:round-layers" variant="soft" square size="md" class="rounded-full shadow-lg xl:hidden" color="green" @click="sidebarOpen = !sidebarOpen" />
 			</div>
 
