@@ -41,7 +41,9 @@
 
 <template>
 	<Suspense suspensible>
-		<div :class="['max-w-[90%] rounded-md px-3 py-2', props.role === 'user' ? 'text-white bg-violet-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200']">
+		<div
+			:class="['max-w-[calc(100%-1rem)] rounded-md px-3 py-2', props.role === 'user' ? 'text-white bg-violet-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200']"
+		>
 			<div class="text-sm">
 				<div class="custom-msg prose text-gray-800 dark:text-gray-200" v-html="renderedHtml"></div>
 				<!-- <MDCRenderer :body="ast.body" :data="ast.data" v-if="ast && props.isDone" /> -->
@@ -54,7 +56,7 @@
 <style lang="scss">
 	.custom-msg {
 		overflow-x: auto;
-		line-height: 1.25;
+		line-height: 1.5;
 		font-size: 14px;
 		hr {
 			margin: 8px 0 !important;

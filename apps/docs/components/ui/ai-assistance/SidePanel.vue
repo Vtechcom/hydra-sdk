@@ -60,14 +60,25 @@
 			},
 			onSources: sources => {
 				console.log('Sources:', sources)
-				relatedDocs.value = (sources || []).map(doc => {
-					const parseUrl = doc.lang === 'en' ? doc.url.replace('/docs/en', '') : doc.url.replace('/docs', '')
-					return {
-						title: doc.title,
-						url: parseUrl,
-						lang: doc.lang
-					}
-				})
+				relatedDocs.value = (sources || [])
+					.map(doc => {
+						const parseUrl =
+							doc.lang === 'en'
+								? doc.url
+										.replace('/docs/en', '') //
+										.replace('index.md', '') //
+								: doc.url
+										.replace('/docs', '') //
+										.replace('index.md', '') //
+						return {
+							title: doc.title,
+							url: parseUrl,
+							lang: doc.lang
+						}
+					})
+					.filter(doc => {
+						return doc.title && doc.url && useRouter().resolve(doc.url)
+					})
 			}
 		})
 	}
@@ -103,7 +114,7 @@
 				</div>
 
 				<div class="flex grow flex-col overflow-hidden">
-					<div ref="container" class="flex grow flex-col gap-3 overflow-y-auto scroll-smooth p-3">
+					<div ref="container" class="flex grow flex-col gap-3 overflow-y-auto scroll-smooth px-0 py-3">
 						<div v-if="!messages || messages.length === 0" class="flex h-full flex-col items-center justify-center p-2 text-center text-sm text-gray-500 dark:text-gray-400">
 							<p class="">No messages yet. Ask me!</p>
 							<div class="">
@@ -127,7 +138,7 @@
 				</div>
 
 				<div class="flex shrink-0 flex-col items-center rounded border border-gray-300 bg-white-100 p-2 dark:border-gray-700 dark:bg-gray-800">
-					<div class="relative mb-4 border-b border-gray-300 pb-2 dark:border-gray-700" v-if="relatedDocs?.length">
+					<div class="relative mb-4 w-full border-b border-gray-300 pb-2 dark:border-gray-700" v-if="relatedDocs?.length">
 						<button @click="relatedDocs = []" class="absolute right-0 top-0 flex rounded-sm p-0.5 hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800">
 							<Icon name="mdi:close" size="16" class="hover:cursor-pointer" />
 						</button>
