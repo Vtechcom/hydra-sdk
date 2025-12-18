@@ -8,7 +8,7 @@
 			<aside
 				:class="[
 					'w-68 fixed top-16 z-40 h-[calc(100vh-4rem)] shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50 transition-transform duration-300 xl:sticky dark:border-gray-800 dark:bg-gray-900',
-					sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
+					sidebarOpen && !visiblePanel ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
 				]"
 			>
 				<nav class="space-y-8 p-6">
@@ -41,7 +41,7 @@
 					</div>
 				</nav>
 			</aside>
-			<div v-if="sidebarOpen" class="absolute inset-0 z-30 bg-gray-600/50 xl:hidden" @click="sidebarOpen = false"></div>
+			<div v-if="sidebarOpen && !visiblePanel" class="absolute inset-0 z-30 bg-gray-600/50 xl:hidden" @click="sidebarOpen = false"></div>
 
 			<!-- Overlay for mobile -->
 			<div class="fixed right-4 top-[108px] z-30">
@@ -143,11 +143,17 @@
 					</div>
 				</div>
 			</aside>
+
+			<client-only>
+				<UiAiAssistanceSidePanel />
+				<UiAiAssistanceToggleBtn class="z-1000 fixed bottom-3 right-3" />
+			</client-only>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
+	import type SidePanelVue from '~/components/ui/ai-assistance/SidePanel.vue'
 	import { version as coreVersion } from '../../../packages/core/package.json'
 	import { version as bridgeVersion } from '../../../packages/hydra-bridge/package.json'
 	import { version as transactionVersion } from '../../../packages/hydra-transaction/package.json'
@@ -155,6 +161,8 @@
 	const sidebarOpen = ref(false)
 	const searchQuery = ref('')
 	const openDialogSearch = ref(false)
+
+	const { visiblePanel } = useHydraAssistance()
 
 	const { t, locale } = useI18n()
 	const localePath = useLocalePath()
