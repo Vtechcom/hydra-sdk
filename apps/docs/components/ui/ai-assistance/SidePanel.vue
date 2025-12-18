@@ -5,7 +5,6 @@
 	const { visiblePanel, messages, inputText, loading, answer, relatedDocs, clearMessages, addMessage, askStream } = useHydraAssistance()
 
 	const container = ref<HTMLElement | null>(null)
-	const { locale } = useI18n()
 
 	// scroll to bottom when messages change
 	watch(
