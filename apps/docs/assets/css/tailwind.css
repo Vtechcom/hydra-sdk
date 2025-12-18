@@ -67,7 +67,7 @@
 	}
 
 	.prose pre code {
-		@apply block border-none bg-transparent p-0 shadow-none;
+		@apply block border-none bg-transparent p-0 shadow-none dark:bg-transparent;
 	}
 
 	.prose strong code {

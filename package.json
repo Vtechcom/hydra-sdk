@@ -12,7 +12,7 @@
 		"set:prod": "node set-exports.js prod",
 		"dev:web": "pnpm set:dev && turbo run dev --filter=...hydrawallet-client --concurrency=10",
 		"dev:playground": "pnpm set:dev && turbo run dev --filter=...@hydra-sdk/playground --concurrency=10",
-		"dev:docs": "pnpm set:dev && turbo run dev --filter=...@hydra-sdk/docs --concurrency=10",
+		"dev:docs": "turbo run dev --filter=...@hydra-sdk/docs --concurrency=10",
 		"dev:nodejs": "pnpm set:dev && turbo run dev --filter=...nodejs-playground --concurrency=10",
 		"docs:generate": "pnpm set:prod && pnpm --filter ./apps/docs generate",
 		"playground:generate": "pnpm set:prod && pnpm --filter ./apps/playground generate",
