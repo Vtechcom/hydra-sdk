@@ -130,7 +130,7 @@ export default defineNuxtConfig({
 					content: 'Complete documentation for Hydra SDK - Build Cardano wallet applications with Hydra Layer 2 integration'
 				},
 				{ property: 'og:image', content: '/images/og-image.webp' },
-				{ property: 'og:url', content: 'https://hydrasdk.com' },
+				{ property: 'og:url', content: process.env.NUXT_PUBLIC_DOCS_URL || 'https://hydrasdk.com' },
 				{ property: 'og:type', content: 'website' },
 				{ property: 'og:site_name', content: 'Hydra SDK Documentation' },
 				{ property: 'og:locale', content: 'vi_VN' },
@@ -144,7 +144,7 @@ export default defineNuxtConfig({
 					content: 'Complete documentation for Hydra SDK - Build Cardano wallet applications with Hydra Layer 2 integration'
 				},
 				{ name: 'twitter:image', content: '/images/og-image.webp' },
-				{ name: 'twitter:url', content: 'https://hydrasdk.com' }
+				{ name: 'twitter:url', content: process.env.NUXT_PUBLIC_DOCS_URL || 'https://hydrasdk.com' }
 			],
 			link: [
 				{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
@@ -158,12 +158,13 @@ export default defineNuxtConfig({
 	// @nuxtjs/sitemap configuration
 	// @ts-ignore
 	site: {
-		url: 'https://hydrasdk.com', // URL gốc của site
+		url: process.env.NUXT_PUBLIC_DOCS_URL || 'https://hydrasdk.com', // URL gốc của site
 		siteName: 'Hydra SDK Documentation'
 	},
 	runtimeConfig: {
 		public: {
-			askAiApiBaseUrl: process.env.NUXT_PUBLIC_ASK_AI_API_BASE_URL || ''
+			askAiApiBaseUrl: process.env.NUXT_PUBLIC_ASK_AI_API_BASE_URL || '',
+			docsUrl: process.env.NUXT_PUBLIC_DOCS_URL || 'https://hydrasdk.com'
 		}
 	},
 	// Nitro configuration for static generation
