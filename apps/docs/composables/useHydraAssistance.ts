@@ -60,21 +60,27 @@ export const useHydraAssistance = () => {
 				}[]
 			) => void
 			onDone?: () => void
+			onError?: (error: Error) => void
 		}
 	) {
-		const apiBaseUrl = useRuntimeConfig().public.askAiApiBaseUrl
-		if (!apiBaseUrl) {
-			throw new Error('ASK AI API URL is not configured')
-		}
-		const res = await fetch(`${apiBaseUrl}/api/ask/stream`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ question })
-		})
+		try {
+			const apiBaseUrl = useRuntimeConfig().public.askAiApiBaseUrl
+			// const apiBaseUrl = 'http://localhost:3000'
+			if (!apiBaseUrl) {
+				throw new Error('ASK AI API URL is not configured')
+			}
+			const res = await fetch(`${apiBaseUrl}/api/ask/stream`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ question })
+			})
 
-		await readAskAIStream(res, handlers)
+			await readAskAIStream(res, handlers)
+		} catch (error) {
+			handlers.onError?.(error as Error)
+		}
 	}
 
 	async function readAskAIStream(

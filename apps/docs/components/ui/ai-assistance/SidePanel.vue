@@ -17,6 +17,14 @@
 		}
 	)
 
+	watch(visiblePanel, isVisible => {
+		if (isVisible) {
+			nextTick().then(() => {
+				scrollToBottom()
+			})
+		}
+	})
+
 	function scrollToBottom() {
 		if (container.value) {
 			container.value.scrollTop = container.value.scrollHeight
@@ -71,6 +79,14 @@
 					.filter(doc => {
 						return doc.title && doc.url && useRouter().resolve(doc.url)
 					})
+			},
+			onError: (error: Error) => {
+				loading.value = false
+				answer.value = ''
+				addMessage('assistant', `⚠️ Some issues happened. Please try again later.`)
+				setTimeout(() => {
+					scrollToBottom()
+				}, 100)
 			}
 		})
 	}
@@ -102,19 +118,22 @@
 	>
 		<div class="h-full w-[450px] border-l border-l-gray-300 dark:border-l-gray-700">
 			<div class="flex h-full flex-col p-1">
-				<div class="header relative flex w-full shrink-0 items-end justify-between gap-2 border-b border-gray-200 px-3 py-2 dark:border-gray-700">
-					<div class="text-gray-700 dark:text-gray-300">
-						<p class="text-sm font-bold">
-							HydraGPT
-							<span class="text-xs font-semibold text-gray-400">(beta)</span>
-						</p>
-						<p class="text-xs">AI can be inaccurate, please verify the information.</p>
-					</div>
-					<button @click="closePanel" class="absolute right-0 top-0 flex rounded-sm p-0.5 hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800">
-						<Icon name="mdi:close" size="16" class="hover:cursor-pointer" />
-					</button>
-					<div class="flex items-center gap-2">
-						<button class="rounded-sm bg-gray-200 px-1.5 py-0 text-xs text-gray-500 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-300" @click="onClear">Clear Chat</button>
+				<div class="header w-full shrink-0 border-b border-gray-200 dark:border-gray-700">
+					<div class="relative flex w-full items-end justify-between gap-2 py-2 pl-3">
+						<div class="text-gray-700 dark:text-gray-300">
+							<p class="text-sm font-bold">
+								<Icon name="tabler:sparkles" size="14" />
+								HydraGPT
+								<span class="text-xs font-semibold text-gray-400">(beta)</span>
+							</p>
+							<p class="text-xs">AI can be inaccurate, please verify the information.</p>
+						</div>
+						<button @click="closePanel" class="absolute right-0 top-0 flex rounded-sm p-0.5 hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800">
+							<Icon name="mdi:close" size="16" class="hover:cursor-pointer" />
+						</button>
+						<div class="flex items-center gap-2">
+							<button class="rounded-sm bg-gray-200 px-1.5 py-0 text-xs text-gray-500 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-300" @click="onClear">Clear Chat</button>
+						</div>
 					</div>
 				</div>
 
@@ -147,7 +166,7 @@
 						<button @click="relatedDocs = []" class="absolute right-0 top-0 flex rounded-sm p-0.5 hover:cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800">
 							<Icon name="mdi:close" size="16" class="hover:cursor-pointer" />
 						</button>
-						<div class="mb-1 text-gray-600 dark:text-gray-300">Related Documents:</div>
+						<!-- <div class="mb-1 text-sm text-gray-600 dark:text-gray-300">Related Documents:</div> -->
 						<ul class="flex flex-wrap items-center gap-x-1 gap-y-1">
 							<li v-for="(doc, index) in relatedDocs" :key="index" class="flex items-center rounded-sm bg-gray-200 p-1 dark:bg-gray-700">
 								<NuxtLink v-html="md.render(doc.title || '')" :to="doc.url" class="text-[10px] leading-3 text-violet-600 hover:underline dark:text-violet-400"> </NuxtLink>

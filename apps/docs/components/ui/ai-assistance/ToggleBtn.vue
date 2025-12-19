@@ -53,8 +53,8 @@
 			position: absolute;
 			top: 50%;
 			left: 50%;
-			width: 200%;
-			height: 500%;
+			width: 250px;
+			height: 250px;
 			background: #ea69fe;
 			background: linear-gradient(90deg, #ea69fed5 0%, #ea69fed5 40%, #2cffe6d5 61%, #2cffe6d5 100%);
 
@@ -74,7 +74,7 @@
 			gap: 0.75rem;
 			background-image: linear-gradient(90deg, $primary-a 0%, $primary-b 100%);
 			border-radius: 999px;
-			padding: 0.5rem 1rem;
+			padding: 0.5rem;
 			position: relative;
 			z-index: 1;
 		}
