@@ -9,7 +9,7 @@
 				:class="
 					cn([
 						'w-68 fixed top-16 z-40 h-[calc(100vh-4rem)] shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50 transition-transform duration-300 xl:sticky dark:border-gray-800 dark:bg-gray-900',
-						sidebarOpen ? 'translate-x-0' : 'w-0 -translate-x-full'
+						sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
 					])
 				"
 			>
@@ -155,7 +155,6 @@
 </template>
 
 <script setup lang="ts">
-	import type SidePanelVue from '~/components/ui/ai-assistance/SidePanel.vue'
 	import { version as coreVersion } from '../../../packages/core/package.json'
 	import { version as bridgeVersion } from '../../../packages/hydra-bridge/package.json'
 	import { version as transactionVersion } from '../../../packages/hydra-transaction/package.json'
@@ -166,17 +165,6 @@
 	const openDialogSearch = ref(false)
 
 	const { visiblePanel } = useHydraAssistance()
-	const isLargeScreen = useMediaQuery('(min-width: 1280px)')
-
-	watch(visiblePanel, newVal => {
-		if (newVal) {
-			sidebarOpen.value = false
-		} else {
-			if (isLargeScreen.value) {
-				sidebarOpen.value = true
-			}
-		}
-	})
 
 	const { t, locale } = useI18n()
 	const localePath = useLocalePath()

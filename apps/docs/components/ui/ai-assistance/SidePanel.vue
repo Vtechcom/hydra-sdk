@@ -61,17 +61,10 @@
 				console.log('Sources:', sources)
 				relatedDocs.value = (sources || [])
 					.map(doc => {
-						const parseUrl =
-							doc.lang === 'en'
-								? doc.url
-										.replace('/docs/en', '') //
-										.replace('index.md', '') //
-								: doc.url
-										.replace('/docs', '') //
-										.replace('index.md', '') //
+						const parseUrl = normalizeContentPath(doc.url || '')
 						return {
 							title: doc.title,
-							url: parseUrl,
+							url: doc.lang === 'en' ? parseUrl.replace('/en', '') : parseUrl,
 							lang: doc.lang
 						}
 					})
@@ -90,6 +83,16 @@
 		clearMessages()
 		relatedDocs.value = []
 	}
+
+	// Utils
+	function normalizeContentPath(path: string): string {
+		return path
+			.split('/')
+			.filter(Boolean)
+			.map(segment => segment.replace(/^\d+\./, ''))
+			.join('/')
+			.replace(/^/, '/')
+	}
 </script>
 
 <template>
@@ -102,7 +105,7 @@
 				<div class="header relative flex w-full shrink-0 items-end justify-between gap-2 border-b border-gray-200 px-3 py-2 dark:border-gray-700">
 					<div class="text-gray-700 dark:text-gray-300">
 						<p class="text-sm font-bold">
-							Hydra AI
+							HydraGPT
 							<span class="text-xs font-semibold text-gray-400">(beta)</span>
 						</p>
 						<p class="text-xs">AI can be inaccurate, please verify the information.</p>
@@ -160,7 +163,7 @@
 							:rows="2"
 							:maxrows="4"
 							autoresize
-							placeholder="Ask Hydra AI..."
+							placeholder="Ask HydraGPT..."
 							variant="none"
 							class="row-start-1 shrink-0 grow p-1 pb-6 text-sm"
 							@keydown="onKeydown"
