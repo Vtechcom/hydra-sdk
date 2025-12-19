@@ -93,7 +93,10 @@
 </script>
 
 <template>
-	<div :style="{ width: visiblePanel ? '450px' : '0' }" class="sticky top-16 h-[calc(100vh-4rem)] shrink-0 overflow-x-hidden bg-gray-25 transition-all dark:bg-gray-900">
+	<div
+		:style="{ width: visiblePanel ? '450px' : '0' }"
+		class="sticky top-16 h-[calc(100vh-4rem)] shrink-0 overflow-x-hidden bg-gray-25 transition-all duration-500 dark:bg-gray-900"
+	>
 		<div class="h-full w-[450px] border-l border-l-gray-300 dark:border-l-gray-700">
 			<div class="flex h-full flex-col p-1">
 				<div class="header relative flex w-full shrink-0 items-end justify-between gap-2 border-b border-gray-200 px-3 py-2 dark:border-gray-700">

@@ -25,7 +25,7 @@ export type StreamMessage =
 
 export const useHydraAssistance = () => {
 	const visiblePanel = useState('visiblePanel', () => false)
-	const messages = useLocalStorage<ChatMessage[]>('hydra-assist-messages', [])
+	const messages = useSessionStorage<ChatMessage[]>('hydra-assist-messages', [])
 	const inputText = useState('hydra-assist-input', () => '')
 	const loading = useState('hydra-assist-loading', () => false)
 
