@@ -1,0 +1,3548 @@
+{
+  "hydra-transaction/src/utils/redeemer-builder.ts": [
+    {
+      "kind": "function",
+      "name": "buildRedeemer",
+      "description": "Builds a redeemer for a Plutus script.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "jsValue",
+          "type": "Record<string, string>",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "options",
+          "type": "{ tag?: RedeemerTagType; index?: string | number; exUnits?: { mem: string; steps: string; }; }",
+          "optional": true,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Redeemer"
+    },
+    {
+      "kind": "function",
+      "name": "emptyRedeemer",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "options",
+          "type": "{ tag?: RedeemerTagType; index?: string | number; type?: \"int\" | \"bytes\" | \"list\" | \"map\" | \"constr\"; exUnits?: { mem: string; steps: string; }; }",
+          "optional": true,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Redeemer"
+    }
+  ],
+  "hydra-transaction/src/utils/metadata.ts": [
+    {
+      "kind": "function",
+      "name": "metadataObjToMetadatum",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "metadata",
+          "type": "string | number | bigint | Object | any[] | Uint8Array<ArrayBufferLike> | Map<any, any>",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "TransactionMetadatum"
+    }
+  ],
+  "hydra-transaction/src/utils/datum-builder.ts": [
+    {
+      "kind": "function",
+      "name": "datumBuilder",
+      "description": "- Primitive: `int`, `bytes`.\n- Collections: `list`, `map`.\n- Structured: `constr`.",
+      "exported": true,
+      "visibility": "public",
+      "params": [],
+      "returnType": "PlutusData"
+    }
+  ],
+  "hydra-transaction/src/utils/bigint.utils.ts": [
+    {
+      "kind": "function",
+      "name": "bigIntReplacer",
+      "description": "Utility functions for handling BigInt serialization/deserialization in NestJS\nCustom JSON.stringify replacer function to handle BigInt values\nConverts BigInt to string with 'n' suffix to preserve type information",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "_key",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "kind": "function",
+      "name": "bigIntReviver",
+      "description": "Custom JSON.parse reviver function to handle BigInt values\nConverts string with 'n' suffix back to BigInt",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "_key",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "kind": "function",
+      "name": "convertBigIntToString",
+      "description": "Recursively converts BigInt values in an object to strings\nThis is useful for API responses where BigInt needs to be serialized",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "obj",
+          "type": "T",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "StringifyBigIntType<T>"
+    },
+    {
+      "kind": "function",
+      "name": "convertStringToBigInt",
+      "description": "Recursively converts string values back to BigInt where appropriate\nThis is the reverse of convertBigIntToString",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "bigIntFields",
+          "type": "string[]",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "[]"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "kind": "function",
+      "name": "safeStringify",
+      "description": "Safe JSON stringify that handles BigInt values",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "space",
+          "type": "string | number",
+          "optional": true,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "safeParse",
+      "description": "Safe JSON parse that handles BigInt values",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "json",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "kind": "function",
+      "name": "transformForApiResponse",
+      "description": "Transform object for API response - converts BigInt to strings\nand adds metadata about which fields were BigInt",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "{ data: any; bigIntFields?: string[]; }"
+    },
+    {
+      "kind": "function",
+      "name": "createBigIntConverter",
+      "description": "Type-safe helper function to create a BigInt-to-string converter\nThis ensures compile-time type safety for the conversion",
+      "exported": true,
+      "visibility": "public",
+      "params": [],
+      "returnType": "{ convert: (obj: T) => StringifyBigIntType<T>; type: StringifyBigIntType<T>; }"
+    },
+    {
+      "kind": "function",
+      "name": "hasBigIntValues",
+      "description": "Utility to check if an object contains any BigInt values",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "kind": "function",
+      "name": "needsBigIntConversion",
+      "description": "Type guard function to check if conversion is needed",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "obj",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "kind": "function",
+      "name": "exampleUsage",
+      "description": "Example usage demonstrating proper typing",
+      "exported": true,
+      "visibility": "public",
+      "params": [],
+      "returnType": "{ id: string; name: string; values: string[]; nested: { amount: string; description: string; }; }"
+    }
+  ],
+  "hydra-transaction/src/tx-builder/index.ts": [
+    {
+      "kind": "class",
+      "name": "TxBuilder",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "TxBuilderOptions",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "{}"
+            }
+          ],
+          "signature": "constructor(options: TxBuilderOptions = {}) {\n\t\tconst { params, fetcher, submitter, isHydra = false, verbose = false, errorLogger = false } = options\n\n\t\tthis._fetcher = fetcher\n\t\tthis._submitter = submitter\n\t\tthis._isHydra = isHydra\n\t\tthis._verbose = verbose\n\t\tthis._errorLogger = errorLogger\n\n\t\tif (params) {\n\t\t\tthis.updateProtocolParams(params)\n\t\t}\n\t\tthis._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "updateProtocolParams",
+          "description": "",
+          "params": [
+            {
+              "name": "params",
+              "type": "Protocol",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "this",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txIn",
+          "description": "Add transaction input (similar to Mesh txIn)",
+          "params": [
+            {
+              "name": "txHash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "outputIndex",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "amount",
+              "type": "Asset",
+              "optional": true,
+              "hasDefault": false
+            },
+            {
+              "name": "address",
+              "type": "string",
+              "optional": true,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInInlineDatum",
+          "description": "Add script input",
+          "params": [
+            {
+              "name": "inlineDatum",
+              "type": "PlutusData",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "setInputUtxo",
+          "description": "TODO: Implement in the next version (v2.x)",
+          "params": [
+            {
+              "name": "utxoobject",
+              "type": "UTxOObject",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "this",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "addInputUtxo",
+          "description": "TODO: Implement in the next version (v2.x)",
+          "params": [
+            {
+              "name": "utxoobject",
+              "type": "UTxOObject",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "this",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInDatumHash",
+          "description": "Add datum hash to the script input",
+          "params": [
+            {
+              "name": "datum",
+              "type": "PlutusData",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInRedeemerValue",
+          "description": "Add redeemer to the script input",
+          "params": [
+            {
+              "name": "redeemer",
+              "type": "Redeemer",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInEmptyRedeemer",
+          "description": "Add redeemer to the script input",
+          "params": [],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInScript",
+          "description": "Add script to the last input",
+          "params": [
+            {
+              "name": "scriptCbor",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "version",
+              "type": "PlutusVersion",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "'V3'"
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "spendingPlutusScript",
+          "description": "Set spending Plutus script version",
+          "params": [
+            {
+              "name": "version",
+              "type": "PlutusVersion",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txOut",
+          "description": "Add transaction output (similar to Mesh txOut)",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "amount",
+              "type": "Asset",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txOutInlineDatumValue",
+          "description": "Add transaction output with inline datum",
+          "params": [
+            {
+              "name": "inlineDatum",
+              "type": "PlutusData",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txOutDatumHashValue",
+          "description": "Add transaction output with datum hash",
+          "params": [
+            {
+              "name": "datum",
+              "type": "PlutusData",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txOutReferenceScript",
+          "description": "Add script reference to output",
+          "params": [
+            {
+              "name": "scriptCbor",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "version",
+              "type": "PlutusVersion",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "'V3'"
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "selectUtxosFrom",
+          "description": "Select UTxOs from provided list using coin selection strategy",
+          "params": [
+            {
+              "name": "simpleUTxOs",
+              "type": "UTxO",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "strategy",
+              "type": "\"LargestFirst\" | \"RandomImprove\" | \"LargestFirstMultiAsset\" | \"RandomImproveMultiAsset\"",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "'LargestFirstMultiAsset'"
+            },
+            {
+              "name": "options",
+              "type": "{ recalculateScriptDataHash?: boolean; }",
+              "optional": true,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "buildSimpleUtxo",
+          "description": "",
+          "params": [
+            {
+              "name": "utxo",
+              "type": "UTxO",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "{ withDatum: boolean; }",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "{ withDatum: true }"
+            }
+          ],
+          "returnType": "TransactionOutput",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "setInputs",
+          "description": "Legacy method for backward compatibility",
+          "params": [
+            {
+              "name": "utxos",
+              "type": "UTxO",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "{ strategy: \"LargestFirst\" | \"RandomImprove\" | \"LargestFirstMultiAsset\" | \"RandomImproveMultiAsset\"; }",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "{ strategy: 'LargestFirstMultiAsset' }"
+            }
+          ],
+          "returnType": "this",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInCollateral",
+          "description": "Add collateral input",
+          "params": [
+            {
+              "name": "txHash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "outputIndex",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "amount",
+              "type": "Asset",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "totalCollateral",
+          "description": "Set total collateral amount",
+          "params": [
+            {
+              "name": "amount",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "collateralReturn",
+          "description": "Set collateral return output",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "amount",
+              "type": "Asset",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "mintPlutusScript",
+          "description": "Mint assets with native script",
+          "params": [
+            {
+              "name": "version",
+              "type": "PlutusVersion",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "mint",
+          "description": "Add mint asset",
+          "params": [
+            {
+              "name": "quantity",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "policyId",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "assetName",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "mintingScript",
+          "description": "Add minting script",
+          "params": [
+            {
+              "name": "mintingScript",
+              "type": "PolicyScript",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "mintRedeemerValue",
+          "description": "Add mint redeemer",
+          "params": [
+            {
+              "name": "redeemer",
+              "type": "Redeemer",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "registerStake",
+          "description": "Register stake address",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "deregisterStake",
+          "description": "Deregister stake address",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "delegateStake",
+          "description": "Delegate stake to pool",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "poolKeyHash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "withdrawal",
+          "description": "Withdraw rewards",
+          "params": [
+            {
+              "name": "rewardAddress",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "amount",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "metadataValue",
+          "description": "Add metadata to transaction",
+          "params": [
+            {
+              "name": "label",
+              "type": "BigNum",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "value",
+              "type": "string | number | object",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "auxiliaryData",
+          "description": "Add auxiliary data hash",
+          "params": [
+            {
+              "name": "hash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "invalidBefore",
+          "description": "Set invalid before slot",
+          "params": [
+            {
+              "name": "slot",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "invalidAfter",
+          "description": "Set invalid after slot",
+          "params": [
+            {
+              "name": "slot",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "requiredSignerHash",
+          "description": "Add required signer by public key hash",
+          "params": [
+            {
+              "name": "pubKeyHash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "changeAddress",
+          "description": "Set change address",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "calculateFee",
+          "description": "Calculate minimum fee",
+          "params": [],
+          "returnType": "BigNum",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "setFee",
+          "description": "Set specific fee amount",
+          "params": [
+            {
+              "name": "fee",
+              "type": "BigNum",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "setMinFee",
+          "description": "Set specific fee amount",
+          "params": [
+            {
+              "name": "minFee",
+              "type": "BigNum",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "addOutput",
+          "description": "Legacy method: Add output",
+          "params": [
+            {
+              "name": "output",
+              "type": "TxOutput",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "addOutputs",
+          "description": "Legacy method: Add multiple outputs",
+          "params": [
+            {
+              "name": "outputs",
+              "type": "TxOutput",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "addLovelaceOutput",
+          "description": "Legacy method: Add lovelace-only output",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "lovelace",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "setChangeAddress",
+          "description": "Legacy method: Set change address",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "minAda",
+          "description": "Legacy method: Calculate min ada for assets",
+          "params": [
+            {
+              "name": "placeholderOutput",
+              "type": "TransactionOutput",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "protocolParams",
+              "type": "Protocol",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "DEFAULT_PROTOCOL_PARAMETERS"
+            }
+          ],
+          "returnType": "BigNum",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "minAdaForAssets",
+          "description": "Legacy method: Calculate min ada for assets",
+          "params": [
+            {
+              "name": "assets",
+              "type": "Asset",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "BigNum",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "complete",
+          "description": "Build and complete the transaction",
+          "params": [],
+          "returnType": "Transaction",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "reset",
+          "description": "Reset the transaction builder to initial state",
+          "params": [],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addOutputToBuilder",
+          "description": "Add output to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "output",
+              "type": "TxOutput",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_outputAmountToValue",
+          "description": "",
+          "params": [
+            {
+              "name": "amount",
+              "type": "Asset",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Value",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addInputToBuilder",
+          "description": "Add input to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "input",
+              "type": "TxIn",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addInputsToBuilder",
+          "description": "",
+          "params": [
+            {
+              "name": "inputs",
+              "type": "TxIn",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "strategy",
+              "type": "\"LargestFirst\" | \"RandomImprove\" | \"LargestFirstMultiAsset\" | \"RandomImproveMultiAsset\"",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "'LargestFirstMultiAsset'"
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addCollateralToBuilder",
+          "description": "Add collateral to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "collateral",
+              "type": "CollateralInput",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addMintToBuilder",
+          "description": "Add mint to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "_mint",
+              "type": "MintAsset",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addCertificateToBuilder",
+          "description": "Add certificate to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "_cert",
+              "type": "Certificate",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addWithdrawalToBuilder",
+          "description": "Add withdrawal to the CardanoWASM transaction builder",
+          "params": [
+            {
+              "name": "withdrawal",
+              "type": "Withdrawal",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_setValidityRange",
+          "description": "Set validity range on the transaction builder",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addRequiredSigner",
+          "description": "Add required signer to the transaction builder",
+          "params": [
+            {
+              "name": "pubKeyHash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_addMetadata",
+          "description": "Add metadata to the transaction builder",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "_buildCostModels",
+          "description": "",
+          "params": [],
+          "returnType": "Costmdls",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getTxBuilder",
+          "description": "",
+          "params": [
+            {
+              "name": "pp",
+              "type": "Protocol",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "TransactionBuilder",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "hydra-bridge/src/bridge.ts": [
+    {
+      "kind": "class",
+      "name": "HydraBridge",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "InitHydraBridgeOptions",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(options: InitHydraBridgeOptions) {\n\t\tthis._verbose = options.verbose || false\n\t\tif ('connector' in options) {\n\t\t\tthis.connector = options.connector\n\t\t} else {\n\t\t\tthis.connector = new WebsocketConnector({\n\t\t\t\twebsocketUrl: options.url\n\t\t\t})\n\t\t}\n\t\tthis._eventEmitter = this.connector.eventEmitter\n\t\tthis._eventEmitter.on('onConnected', () => {\n\t\t\tthis.querySnapshotUtxo()\n\t\t})\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "snapshotUtxoArray",
+          "description": "",
+          "params": [],
+          "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "connected",
+          "description": "",
+          "params": [],
+          "returnType": "boolean",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "connect",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<boolean>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "disconnect",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<boolean>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "headInfo",
+          "description": "",
+          "params": [],
+          "returnType": "HydraHeadStatus",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "sendCommand",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "HydraCommand",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "commit",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "CommitBody",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "CommitResponse",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "submitCardanoTransaction",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "SubmitTxBody",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "SubmitTxResponse",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "queryRawProtocolParameters",
+          "description": "",
+          "params": [],
+          "returnType": "RawProtocolParameters",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getProtocolParameters",
+          "description": "",
+          "params": [],
+          "returnType": "Protocol",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "querySnapshotUtxo",
+          "description": "",
+          "params": [],
+          "returnType": "UTxOObject",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "addressesInHead",
+          "description": "",
+          "params": [],
+          "returnType": "Promise<string[]>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "initHydraHead",
+          "description": "",
+          "params": [
+            {
+              "name": "retry",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "interval",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "submitTxSync",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "Transaction",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "{ timeout: number; }",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "{ timeout: 30000 }"
+            }
+          ],
+          "returnType": "HydraHeadTag",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "decommit",
+          "description": "",
+          "params": [
+            {
+              "name": "{ cborHex, txId, timeout = 30000 }",
+              "type": "{ cborHex: string; timeout?: number; txId: string; }",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "DecommitApproved",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "queryAddressUTxO",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "hydra-bridge/src/utils/url-parser.ts": [
+    {
+      "kind": "function",
+      "name": "parseUrl",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "input",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "ParsedUrl"
+    }
+  ],
+  "hydra-bridge/src/utils/url-builder.ts": [
+    {
+      "kind": "function",
+      "name": "buildUrl",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "{\n\tprotocol = 'https',\n\thost,\n\tport,\n\tpath = '',\n\tqueryParams = {}\n}",
+          "type": "{ protocol: \"http\" | \"https\" | \"ws\" | \"wss\"; host: string; port?: string | number; path?: string; queryParams?: Record<string, string>; }",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "hydra-bridge/src/utils/haskell-deserialize.ts": [
+    {
+      "kind": "function",
+      "name": "deserializeHaskellErrorToJson",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "errorStr",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "JsonResult"
+    }
+  ],
+  "hydra-bridge/src/types/protocol-parameters.type.ts": [
+    {
+      "kind": "function",
+      "name": "toProtocol",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "pp",
+          "type": "RawProtocolParameters",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Protocol"
+    }
+  ],
+  "hydra-bridge/src/constants/protocol-parameters.ts": [
+    {
+      "kind": "function",
+      "name": "resolveTxFees",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "txSize",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "txFeePerByte",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "DEFAULT_RAW_PROTOCOL_PARAMETERS.txFeePerByte"
+        },
+        {
+          "name": "txFeeFixed",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "DEFAULT_RAW_PROTOCOL_PARAMETERS.txFeeFixed"
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "hydra-bridge/src/connector/websocket.ts": [
+    {
+      "kind": "function",
+      "name": "defaultWsFetcher",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "connector",
+          "type": "WebsocketConnector",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "HydraBridgeFetcher"
+    },
+    {
+      "kind": "class",
+      "name": "WebsocketConnector",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "WebsocketConnectorOptions",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(options: WebsocketConnectorOptions | string) {\n\t\tif (typeof options === 'string') {\n\t\t\toptions = {\n\t\t\t\twebsocketUrl: options\n\t\t\t}\n\t\t}\n\n\t\tconst option = parseUrl(options.websocketUrl)\n\n\t\tif (!option.valid || !option.host) {\n\t\t\tthrow new Error('Invalid websocket url')\n\t\t}\n\t\tthis.conn = {\n\t\t\tssl: option.ssl,\n\t\t\thost: option.host,\n\t\t\tport: option.port,\n\t\t\tpath: option.path\n\t\t}\n\n\t\tthis.apiFetch = axios.create({\n\t\t\tbaseURL: this.networkInfo.httpUrl,\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = options?.fetcher || defaultWsFetcher(this)\n\t\tthis.submitter = options?.submitter || defaultWsSubmitter(this)\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "connect",
+          "description": "",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "disconnect",
+          "description": "",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "connected",
+          "description": "",
+          "params": [],
+          "returnType": "boolean",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "sendCommand",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "HydraCommand",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "rawMessageHandler",
+          "description": "",
+          "params": [
+            {
+              "name": "event",
+              "type": "MessageEvent<any>",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "submitTxSync",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "Transaction",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "{ timeout: number; }",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "{ timeout: 30000 }"
+            }
+          ],
+          "returnType": "HydraHeadTag",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "hydra-bridge/src/connector/hexcore.ts": [
+    {
+      "kind": "function",
+      "name": "defaultHexcoreFetcher",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "connector",
+          "type": "HexcoreConnector",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "HydraBridgeFetcher"
+    },
+    {
+      "kind": "function",
+      "name": "defaultHexcoreSubmitter",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "connector",
+          "type": "HexcoreConnector",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "HydraBridgeSubmitter"
+    },
+    {
+      "kind": "class",
+      "name": "HexcoreConnector",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "socketIoUrl",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "HexcoreConnectorOptions",
+              "optional": true,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(socketIoUrl: string, options?: HexcoreConnectorOptions) {\n\t\tconst option = parseUrl(socketIoUrl)\n\t\tif (!option.valid || !option.host) {\n\t\t\tthrow new Error('Invalid socket io url')\n\t\t}\n\t\tthis.conn = {\n\t\t\tssl: option.ssl,\n\t\t\thost: option.host,\n\t\t\tport: option.port,\n\t\t\tpath: option.path\n\t\t}\n\n\t\tconst httpUrl = buildUrl({\n\t\t\tprotocol: this.conn.ssl ? 'https' : 'http',\n\t\t\thost: this.conn.host,\n\t\t\tport: this.conn.port,\n\t\t\tpath: this.conn.path\n\t\t})\n\t\tthis.apiFetch = axios.create({\n\t\t\tbaseURL: httpUrl,\n\t\t\ttimeout: 10000\n\t\t})\n\t\tthis.namespace = options?.namespace || 'hydra'\n\n\t\tthis.fetcher = options?.fetcher || defaultHexcoreFetcher(this)\n\t\tthis.submitter = options?.submitter || defaultHexcoreSubmitter(this)\n\n\t\tthis.socketIoClient = io(httpUrl + this.namespace, {\n\t\t\t...options?.socketIoOptions,\n\t\t\tautoConnect: options?.socketIoOptions?.autoConnect || false,\n\t\t\ttransports: ['websocket', 'polling']\n\t\t})\n\n\t\tthis.socketIoClient.on('connect', () => {\n\t\t\tthis.eventEmitter.emit('onConnected')\n\t\t})\n\n\t\tthis.socketIoClient.on('disconnect', () => {\n\t\t\tthis.eventEmitter.emit('onDisconnected')\n\t\t})\n\n\t\tthis.socketIoClient.on('message', (message: any) => {\n\t\t\tconsole.log('[HexcoreConnector][message]:', message)\n\t\t})\n\n\t\tthis.socketIoClient.on('hydra', (message: { status: 'success' | 'fail'; data: HydraPayload }) => {\n\t\t\tthis.eventEmitter.emit('onMessage', message.data)\n\t\t})\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "connect",
+          "description": "",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "disconnect",
+          "description": "",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "connected",
+          "description": "",
+          "params": [],
+          "returnType": "boolean",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "sendCommand",
+          "description": "",
+          "params": [
+            {
+              "name": "data",
+              "type": "HydraCommand",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "core/src/wallet.ts": [
+    {
+      "kind": "class",
+      "name": "AppWallet",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "CreateAppWalletOptions",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(options: CreateAppWalletOptions) {\n\t\tthis._fetcher = options.fetcher\n\t\tthis._submitter = options.submitter\n\n\t\tswitch (options.key.type) {\n\t\t\tcase 'mnemonic':\n\t\t\t\tthis._wallet = new EmbeddedWallet({\n\t\t\t\t\tnetworkId: options.networkId,\n\t\t\t\t\tkey: {\n\t\t\t\t\t\ttype: 'mnemonic',\n\t\t\t\t\t\twords: options.key.words\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t\tbreak\n\t\t\tcase 'root':\n\t\t\t\tthis._wallet = new EmbeddedWallet({\n\t\t\t\t\tnetworkId: options.networkId,\n\t\t\t\t\tkey: {\n\t\t\t\t\t\ttype: 'root',\n\t\t\t\t\t\tbech32: options.key.bech32\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t\t\tbreak\n\t\t\tcase 'cli':\n\t\t\t\tthis._wallet = new EmbeddedWallet({\n\t\t\t\t\tnetworkId: options.networkId,\n\t\t\t\t\tkey: {\n\t\t\t\t\t\ttype: 'cli',\n\t\t\t\t\t\tpayment: options.key.payment,\n\t\t\t\t\t\tstake: options.key.stake\n\t\t\t\t\t}\n\t\t\t\t})\n\t\t}\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getAccount",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "Account",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getEnterpriseAddress",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getPaymentAddress",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getRewardAddress",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getNetworkId",
+          "description": "",
+          "params": [],
+          "returnType": "number",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "signTx",
+          "description": "",
+          "params": [
+            {
+              "name": "unsignedTx",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "partialSign",
+              "type": "boolean",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "false"
+            },
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "brew",
+          "description": "",
+          "params": [
+            {
+              "name": "strength",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "256"
+            }
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "signData",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "payload",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "DataSignature",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "signTxs",
+          "description": "",
+          "params": [
+            {
+              "name": "unsignedTxs",
+              "type": "string[]",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "partialSign",
+              "type": "boolean",
+              "optional": true,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Promise<string[]>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "submitTx",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getFetcher",
+          "description": "",
+          "params": [],
+          "returnType": "IFetcher",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getSubmitter",
+          "description": "",
+          "params": [],
+          "returnType": "ISubmitter",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "queryUTxOs",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "core/src/embedded.ts": [
+    {
+      "kind": "class",
+      "name": "WalletStaticMethods",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [],
+      "methods": [
+        {
+          "name": "privateKeyBech32ToPrivateKeyHex",
+          "description": "",
+          "params": [
+            {
+              "name": "_bech32",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "mnemonicToPrivateKeyHex",
+          "description": "",
+          "params": [
+            {
+              "name": "words",
+              "type": "string[]",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "''"
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "privateKeyHexToBech32",
+          "description": "",
+          "params": [
+            {
+              "name": "privateKeyHex",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "signingKeyToHexes",
+          "description": "",
+          "params": [
+            {
+              "name": "paymentKey",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "stakeKey",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "[string, string]",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "bip32BytesToPrivateKeyHex",
+          "description": "",
+          "params": [
+            {
+              "name": "bip32Bytes",
+              "type": "Uint8Array<ArrayBufferLike>",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getAddresses",
+          "description": "",
+          "params": [
+            {
+              "name": "paymentKey",
+              "type": "Bip32PrivateKey",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "stakingKey",
+              "type": "Bip32PrivateKey",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "networkId",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "Address",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "generateMnemonic",
+          "description": "",
+          "params": [
+            {
+              "name": "strength",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "256"
+            }
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "kind": "class",
+      "name": "EmbeddedWallet",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "CreateEmbeddedWalletOptions",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(options: CreateEmbeddedWalletOptions) {\n\t\tsuper()\n\t\tthis._networkId = options.networkId\n\n\t\tswitch (options.key.type) {\n\t\t\tcase 'mnemonic':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.mnemonicToPrivateKeyHex(options.key.words)\n\t\t\t\tbreak\n\t\t\tcase 'root':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.privateKeyBech32ToPrivateKeyHex(options.key.bech32)\n\t\t\t\tbreak\n\t\t\tcase 'cli':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.signingKeyToHexes(\n\t\t\t\t\toptions.key.payment,\n\t\t\t\t\toptions.key.stake ?? 'f0'.repeat(32)\n\t\t\t\t)\n\t\t\t\tbreak\n\t\t\tcase 'bip32Bytes':\n\t\t\t\tthis._walletSecret = WalletStaticMethods.bip32BytesToPrivateKeyHex(options.key.bip32Bytes)\n\t\t\t\tbreak\n\t\t}\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getPrivateKeyHex",
+          "description": "",
+          "params": [],
+          "returnType": "string | [string, string]",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getAccount",
+          "description": "",
+          "params": [
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "Account",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getNetworkId",
+          "description": "Get wallet network ID.",
+          "params": [],
+          "returnType": "number",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "signTx",
+          "description": "This endpoints sign the provided transaction (unsignedTx) with the private key of the owner.",
+          "params": [
+            {
+              "name": "unsignedTx",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "Vkeywitness",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "core/src/cardanocli-wallet.ts": [
+    {
+      "kind": "class",
+      "name": "CardanoCliWallet",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "options",
+              "type": "CardanoCliWalletConstr",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(options: CardanoCliWalletConstr) {\n\t\tsuper()\n\t\tthis._networkId = options.networkId ?? NETWORK_ID.MAINNET\n\t\tthis._skey = options.skey\n\t\tthis._vkey = options.vkey\n\t\tthis._submitter = options.submitter\n\t\tthis._fetcher = options.fetcher\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getAddressBech32",
+          "description": "",
+          "params": [],
+          "returnType": "string",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getNetworkId",
+          "description": "",
+          "params": [],
+          "returnType": "number",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "signTx",
+          "description": "",
+          "params": [
+            {
+              "name": "unsignedTx",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "partialSign",
+              "type": "boolean",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "false"
+            }
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "submitTx",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "queryUTxOs",
+          "description": "",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "core/src/utils/validator.util.ts": [
+    {
+      "kind": "function",
+      "name": "isValidAddress",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "address",
+          "type": "string | Uint8Array<ArrayBufferLike>",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "\"bytes\" | \"bech32\" | \"hex\"",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "'bech32'"
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "kind": "function",
+      "name": "isValidTxOutput",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "output",
+          "type": "TxOutput",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "boolean"
+    }
+  ],
+  "core/src/utils/time.ts": [
+    {
+      "kind": "function",
+      "name": "slotToBeginUnixTime",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "slot",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "slotConfig",
+          "type": "SlotConfig",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "kind": "function",
+      "name": "unixTimeToEnclosingSlot",
+      "description": "Eqivalent to `slotToBeginUnixTime` but option to provide optional config",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "unixTime",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "slotConfig",
+          "type": "SlotConfig",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "kind": "function",
+      "name": "resolveSlotNo",
+      "description": "Resolve slot number based on timestamp in milliseconds.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "network",
+          "type": "\"MAINNET\" | \"PREPROD\" | \"PREVIEW\"",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "milliseconds",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "Date.now()"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "resolveEpochNo",
+      "description": "Resolve epoch number based on timestamp in  milliseconds.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "network",
+          "type": "\"MAINNET\" | \"PREPROD\" | \"PREVIEW\"",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "milliseconds",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "Date.now()"
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "kind": "function",
+      "name": "buildHydraSlotConfig",
+      "description": "Build Hydra slot configuration for a specific timestamp.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "startTimestamp",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "options",
+          "type": "SlotConfig",
+          "optional": true,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "SlotConfig"
+    }
+  ],
+  "core/src/utils/policy.ts": [
+    {
+      "kind": "function",
+      "name": "buildPolicyScriptFromPubkey",
+      "description": "Builds a minting policy script from a public key script.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "pubkeyScript",
+          "type": "{ type: \"sig\"; keyHash: string; }",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "buildMintingPolicyScriptFromAddress",
+      "description": "Builds a minting policy script from a Bech32 encoded address.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "addressBech32",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "buildMintingPolicyScriptFromKeyHash",
+      "description": "Builds a minting policy script from a key hash.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "keyHashHex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "policyIdFromNativeScript",
+      "description": "Extracts the policy ID from a native script.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "script",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/parser.ts": [
+    {
+      "kind": "function",
+      "name": "bytesToHex",
+      "description": "Converting bytes to hex string",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "bytes",
+          "type": "ArrayBuffer | Uint8Array<ArrayBufferLike> | Buffer<ArrayBufferLike>",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "hexToBytes",
+      "description": "Converting hex string to bytes",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Buffer<ArrayBuffer>"
+    },
+    {
+      "kind": "function",
+      "name": "stringToHex",
+      "description": "Converting utf8 string to hex string",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "str",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "hexToString",
+      "description": "Converting hex string to utf8 string",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "toBytes",
+      "description": "Converting either hex string or utf8 string to bytes",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Uint8Array<ArrayBufferLike>"
+    },
+    {
+      "kind": "function",
+      "name": "fromUTF8",
+      "description": "Converting utf8 string to hex string",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "utf8",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "toUTF8",
+      "description": "Converting hex string to utf8 string",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/metadata.ts": [
+    {
+      "kind": "function",
+      "name": "metadataObjToMetadatum",
+      "description": "Converts various metadata types to a CardanoWASM.TransactionMetadatum.\n\nNote:\n- Maximum metadata `bytes` size is `64`\n- Maximum metadata `text` size is `64`",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "metadata",
+          "type": "string | number | bigint | Object | any[] | Uint8Array<ArrayBufferLike> | Map<any, any>",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "TransactionMetadatum"
+    }
+  ],
+  "core/src/utils/keys.util.ts": [
+    {
+      "kind": "function",
+      "name": "cardanoCliKeygen",
+      "description": "Generate a Cardano CLI compatible ed25519 key pair.",
+      "exported": true,
+      "visibility": "public",
+      "params": [],
+      "returnType": "CardanoCLiVkey"
+    },
+    {
+      "kind": "function",
+      "name": "hydraCliKeygen",
+      "description": "Generate a Hydra compatible ed25519 key pair.",
+      "exported": true,
+      "visibility": "public",
+      "params": [],
+      "returnType": "HydraCliVkey"
+    },
+    {
+      "kind": "function",
+      "name": "genVkey",
+      "description": "Generate verification key from signing key.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "skey",
+          "type": "CardanoCLiSkey",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "CardanoCLiVkey"
+    },
+    {
+      "kind": "function",
+      "name": "mnemonicToCliKey",
+      "description": "Convert mnemonic to Cardano CLI compatible key pair.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "mnemonic",
+          "type": "string[]",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "accountIndex",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "0"
+        },
+        {
+          "name": "keyIndex",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "0"
+        }
+      ],
+      "returnType": "CardanoCLiVkey"
+    }
+  ],
+  "core/src/utils/datum.ts": [
+    {
+      "kind": "function",
+      "name": "mkInt",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "n",
+          "type": "string | number | bigint",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "PlutusData"
+    },
+    {
+      "kind": "function",
+      "name": "mkBytes",
+      "description": "Create a PlutusData object from a hex string representing bytes",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "hex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "PlutusData"
+    },
+    {
+      "kind": "function",
+      "name": "mkConstr",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "alt",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "fields",
+          "type": "PlutusData",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "PlutusData"
+    },
+    {
+      "kind": "function",
+      "name": "mkMap",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "entries",
+          "type": "PlutusMapValues",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "PlutusData"
+    }
+  ],
+  "core/src/utils/cost-models.ts": [
+    {
+      "kind": "function",
+      "name": "buildCostModels",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "{\n\tplutusV1,\n\tplutusV2,\n\tplutusV3\n}",
+          "type": "{ plutusV1?: number[]; plutusV2?: number[]; plutusV3?: number[]; }",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Costmdls"
+    }
+  ],
+  "core/src/utils/address.ts": [
+    {
+      "kind": "function",
+      "name": "getPubkeyHashFromAddress",
+      "description": "Get the public key hash from a bech32 Cardano address",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/providers/ogmios.provider.ts": [
+    {
+      "kind": "class",
+      "name": "OgmiosProvider",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "config",
+              "type": "OgmiosProviderConfig",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(config: OgmiosProviderConfig) {\n\t\tsuper()\n\t\t// Implementation for OgmiosProvider\n\t\tthis.fetcher = this.buildFetcher()\n\t\tthis.submitter = this.buildSubmitter()\n\n\t\tthis._axiosInstance = axios.create({\n\t\t\tbaseURL: config.apiEndpoint || 'http://localhost:1337',\n\t\t\theaders: {\n\t\t\t\t'Content-Type': 'application/json'\n\t\t\t}\n\t\t})\n\t\t// Set up interceptors if needed\n\t\tthis._axiosInstance.interceptors.request.use(request => {\n\t\t\treturn request\n\t\t})\n\t\tthis._axiosInstance.interceptors.response.use(response => {\n\t\t\treturn response\n\t\t})\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "buildFetcher",
+          "description": "",
+          "params": [],
+          "returnType": "IFetcher",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "buildSubmitter",
+          "description": "",
+          "params": [],
+          "returnType": "ISubmitter",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "rpcRequest",
+          "description": "",
+          "params": [
+            {
+              "name": "method",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "params",
+              "type": "Record<string, any>",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "{ id?: number; }",
+              "optional": true,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Promise<T>",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "toUTxO",
+          "description": "",
+          "params": [
+            {
+              "name": "response",
+              "type": "AddressUtxoResponse",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "core/src/utils/providers/blockfrost.provider.ts": [
+    {
+      "kind": "class",
+      "name": "BlockfrostProvider",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "config",
+              "type": "BlockfrostProviderConfig",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(config: BlockfrostProviderConfig) {\n\t\tsuper()\n\n\t\tthis._network = config.network\n\t\tthis._projectId = config.apiKey\n\t\tif (config.apiKey === '') {\n\t\t\tthrow new Error('Blockfrost API key is required')\n\t\t}\n\n\t\tthis._cachingOptions = { ...this._cachingOptions, ...config.cachingOptions }\n\n\t\tthis._axiosInstance = axios.create({\n\t\t\tbaseURL: `https://cardano-${this._network}.blockfrost.io/api/v${config.apiVersion ?? 0}`,\n\t\t\theaders: {\n\t\t\t\tproject_id: this._projectId\n\t\t\t},\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = this.buildFetcher()\n\t\tthis.submitter = this.buildSubmitter()\n\t}"
+        }
+      ],
+      "methods": [
+        {
+          "name": "buildFetcher",
+          "description": "",
+          "params": [],
+          "returnType": "IFetcher",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "buildSubmitter",
+          "description": "",
+          "params": [],
+          "returnType": "ISubmitter",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "toUTxO",
+          "description": "",
+          "params": [
+            {
+              "name": "response",
+              "type": "UtxoResponse",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        }
+      ]
+    }
+  ],
+  "core/src/utils/providers/base.ts": [
+    {
+      "kind": "class",
+      "name": "BaseWalletProvider",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [],
+      "methods": []
+    }
+  ],
+  "core/src/utils/cardano-wasm/serializer.ts": [
+    {
+      "kind": "function",
+      "name": "serializeAssetUnit",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "policyId",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "assetName",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/utils/cardano-wasm/resolver.ts": [
+    {
+      "kind": "function",
+      "name": "resolveTxHash",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "cborHex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "resolveTxBodyHash",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "txBody",
+          "type": "TransactionBody",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "TransactionHash"
+    }
+  ],
+  "core/src/utils/cardano-wasm/deserializer.ts": [
+    {
+      "kind": "function",
+      "name": "deserializeTx",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "txCborHex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "FixedTransaction"
+    },
+    {
+      "kind": "function",
+      "name": "deserializeAssetUnit",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "assetUnit",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "{ policyId: string; assetName: string; }"
+    },
+    {
+      "kind": "function",
+      "name": "deserializeAddress",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "bech32",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "DeserializerAddress"
+    },
+    {
+      "kind": "function",
+      "name": "deserializePlutusScript",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "scriptCbor",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "version",
+          "type": "LanguageVersion",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "'V3'"
+        }
+      ],
+      "returnType": "PlutusScript"
+    },
+    {
+      "kind": "function",
+      "name": "deserializePlutusScriptHash",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "scriptCbor",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "version",
+          "type": "LanguageVersion",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "'V3'"
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "deserializePlutusData",
+      "description": "Deserialize PlutusData from cbor hex\nUsed to convert inlineDatum from string to PlutusData",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "dataCbor",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "PlutusData"
+    }
+  ],
+  "core/src/utils/cardano-wasm/converter.ts": [
+    {
+      "kind": "function",
+      "name": "convertUTxOToUTxOObject",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "utxos",
+          "type": "UTxO",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "UTxOObject"
+    },
+    {
+      "kind": "function",
+      "name": "convertUTxOObjectToUTxO",
+      "description": "Convert UTxO Object to UTxO[]",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "utxoObject",
+          "type": "UTxOObject",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "UTxO"
+    },
+    {
+      "kind": "function",
+      "name": "convertTxOutputToWasm",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "output",
+          "type": "TxOutput",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "TransactionOutput"
+    }
+  ],
+  "core/src/utils/cardano-wasm/build-keys.ts": [
+    {
+      "kind": "function",
+      "name": "harden",
+      "description": "",
+      "exported": false,
+      "visibility": "internal",
+      "params": [
+        {
+          "name": "num",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "number"
+    },
+    {
+      "kind": "function",
+      "name": "buildBaseAddress",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "networkId",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "paymentKeyHash",
+          "type": "Ed25519KeyHash",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "stakeKeyHash",
+          "type": "Ed25519KeyHash",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "BaseAddress"
+    },
+    {
+      "kind": "function",
+      "name": "buildEnterpriseAddress",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "networkId",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "paymentKeyHash",
+          "type": "Ed25519KeyHash",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "EnterpriseAddress"
+    },
+    {
+      "kind": "function",
+      "name": "buildRewardAddress",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "networkId",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "stakeKeyHash",
+          "type": "Ed25519KeyHash",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "RewardAddress"
+    },
+    {
+      "kind": "function",
+      "name": "buildDRepID",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "dRepKey",
+          "type": "Ed25519KeyHash",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "networkId",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "NETWORK_ID.MAINNET"
+        }
+      ],
+      "returnType": "any"
+    },
+    {
+      "kind": "function",
+      "name": "buildKeys",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "privateKeyHex",
+          "type": "string | [string, string]",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "accountIndex",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "keyIndex",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "0"
+        }
+      ],
+      "returnType": "Bip32PrivateKey"
+    },
+    {
+      "kind": "function",
+      "name": "clampScalar",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "scalar",
+          "type": "Buffer<ArrayBufferLike>",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Buffer<ArrayBufferLike>"
+    },
+    {
+      "kind": "function",
+      "name": "stripExtendedKey",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "extendedKeyHex",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core/src/types/protocol.ts": [
+    {
+      "kind": "function",
+      "name": "castProtocol",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "data",
+          "type": "Protocol",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Protocol"
+    }
+  ],
+  "core/src/types/cardano/asset.ts": [
+    {
+      "kind": "function",
+      "name": "mergeAssets",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "assets",
+          "type": "Asset",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Asset"
+    }
+  ],
+  "core/src/types/cardano/asset-metadata.ts": [
+    {
+      "kind": "function",
+      "name": "metadataToCip68",
+      "description": "Transform the metadata into the format needed in CIP68 inline datum (in Mesh Data type)",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "metadata",
+          "type": "any",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "Data"
+    }
+  ],
+  "core/src/constants/protocol-parameters.ts": [
+    {
+      "kind": "function",
+      "name": "resolveTxFees",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "txSize",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "minFeeA",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "DEFAULT_PROTOCOL_PARAMETERS.minFeeA"
+        },
+        {
+          "name": "minFeeB",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "DEFAULT_PROTOCOL_PARAMETERS.minFeeB"
+        }
+      ],
+      "returnType": "string"
+    }
+  ]
+}
