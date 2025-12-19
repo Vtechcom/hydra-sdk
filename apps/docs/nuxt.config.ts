@@ -161,6 +161,11 @@ export default defineNuxtConfig({
 		url: 'https://hydrasdk.com', // URL gốc của site
 		siteName: 'Hydra SDK Documentation'
 	},
+	runtimeConfig: {
+		public: {
+			askAiApiBaseUrl: process.env.NUXT_PUBLIC_ASK_AI_API_BASE_URL || ''
+		}
+	},
 	// Nitro configuration for static generation
 	ssr: true,
 	nitro: {

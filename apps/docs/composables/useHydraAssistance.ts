@@ -62,7 +62,11 @@ export const useHydraAssistance = () => {
 			onDone?: () => void
 		}
 	) {
-		const res = await fetch('http://localhost:3000/api/ask/stream', {
+		const apiBaseUrl = useRuntimeConfig().public.askAiApiBaseUrl
+		if (!apiBaseUrl) {
+			throw new Error('ASK AI API URL is not configured')
+		}
+		const res = await fetch(`${apiBaseUrl}/api/ask/stream`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
