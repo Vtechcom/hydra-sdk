@@ -23,11 +23,16 @@
 		"@hydra-sdk/cardano-wasm": "workspace:*",
 		"@hydra-sdk/core": "workspace:*",
 		"@hydra-sdk/transaction": "workspace:*",
+		"@noble/ciphers": "^2.1.1",
+		"@noble/hashes": "^2.0.1",
+		"argon2": "^0.44.0",
 		"axios": "1.9.0",
 		"bignumber.js": "9.3.0",
+		"crypto-js": "^4.2.0",
 		"dotenv": "^17.2.2"
 	},
 	"devDependencies": {
+		"@types/crypto-js": "^4.2.2",
 		"@types/jest": "^30.0.0",
 		"@types/lodash": "^4.17.20",
 		"jest": "^30.0.5",
