@@ -4,12 +4,18 @@
 		<UiHeader container-class="container" />
 
 		<!-- Main Content -->
-		<main class="flex-1">
-			<slot />
-		</main>
+		<div class="flex">
+			<main class="flex-1">
+				<slot />
+			</main>
+			<client-only>
+				<UiAiAssistanceSidePanel />
+				<UiAiAssistanceToggleBtn class="z-1000 fixed bottom-3 right-3" />
+			</client-only>
+		</div>
 
 		<!-- Footer -->
-		<footer class="bg-white border-t border-gray-200 dark:border-gray-800 dark:bg-gray-900">
+		<footer class="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
 			<div class="container mx-auto px-4 py-12">
 				<div class="grid grid-cols-1 gap-8 md:grid-cols-4">
 					<!-- About -->

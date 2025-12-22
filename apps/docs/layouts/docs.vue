@@ -6,10 +6,12 @@
 		<div class="relative flex">
 			<!-- Sidebar -->
 			<aside
-				:class="[
-					'w-68 fixed top-16 z-40 h-[calc(100vh-4rem)] shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50 transition-transform duration-300 xl:sticky dark:border-gray-800 dark:bg-gray-900',
-					sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
-				]"
+				:class="
+					cn([
+						'w-68 fixed top-16 z-40 h-[calc(100vh-4rem)] shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50 transition-transform duration-300 xl:sticky dark:border-gray-800 dark:bg-gray-900',
+						sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
+					])
+				"
 			>
 				<nav class="space-y-8 p-6">
 					<!-- Search -->
@@ -44,7 +46,7 @@
 			<div v-if="sidebarOpen" class="absolute inset-0 z-30 bg-gray-600/50 xl:hidden" @click="sidebarOpen = false"></div>
 
 			<!-- Overlay for mobile -->
-			<div class="fixed right-4 top-[108px] z-30">
+			<div class="fixed right-4 top-[108px] z-30" :class="visiblePanel ? 'right-[calc(450px+16px)]' : 'right-4'">
 				<UButton icon="ic:round-layers" variant="soft" square size="md" class="rounded-full shadow-lg xl:hidden" color="green" @click="sidebarOpen = !sidebarOpen" />
 			</div>
 
@@ -143,6 +145,11 @@
 					</div>
 				</div>
 			</aside>
+
+			<client-only>
+				<UiAiAssistanceSidePanel />
+				<UiAiAssistanceToggleBtn class="z-1000 fixed bottom-3 right-3" />
+			</client-only>
 		</div>
 	</div>
 </template>
@@ -151,10 +158,13 @@
 	import { version as coreVersion } from '../../../packages/core/package.json'
 	import { version as bridgeVersion } from '../../../packages/hydra-bridge/package.json'
 	import { version as transactionVersion } from '../../../packages/hydra-transaction/package.json'
+	import { cn } from '~/lib/utils'
 
 	const sidebarOpen = ref(false)
 	const searchQuery = ref('')
 	const openDialogSearch = ref(false)
+
+	const { visiblePanel } = useHydraAssistance()
 
 	const { t, locale } = useI18n()
 	const localePath = useLocalePath()
