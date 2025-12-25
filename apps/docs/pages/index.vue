@@ -511,7 +511,7 @@
 			name: t('home.community.links.discord.name'),
 			description: t('home.community.links.discord.description'),
 			icon: 'i-simple-icons-discord',
-			url: 'https://discord.gg/wW9FJnEj',
+			url: 'https://discord.com/invite/eZKRyQnbea',
 			buttonText: t('home.community.links.discord.button'),
 			buttonIcon: 'i-heroicons-chat-bubble-left-right'
 		},

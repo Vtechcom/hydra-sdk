@@ -58,8 +58,16 @@
 					<!-- Language Switcher -->
 					<UiLanguageSwitcher />
 
-					<!-- GitHub Link -->
-					<UButton icon="i-simple-icons-github" variant="ghost" size="sm" target="_blank" color="secondary" to="https://github.com/Vtechcom/hydra-sdk" />
+					<div>
+						<!-- NPM Link -->
+						<UButton icon="i-simple-icons-npm" variant="ghost" size="sm" target="_blank" color="secondary" to="https://www.npmjs.com/package/hydra-sdk" />
+
+						<!-- Discord Link -->
+						<UButton icon="i-simple-icons-discord" variant="ghost" size="sm" target="_blank" color="secondary" to="https://discord.com/invite/eZKRyQnbea" />
+
+						<!-- GitHub Link -->
+						<UButton icon="i-simple-icons-github" variant="ghost" size="sm" target="_blank" color="secondary" to="https://github.com/Vtechcom/hydra-sdk" />
+					</div>
 
 					<!-- Theme Toggle -->
 					<UiColorModeButton />
