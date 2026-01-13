@@ -192,7 +192,8 @@
 					to: localePath('/packages/transaction'),
 					icon: 'i-heroicons-cog-6-tooth',
 					badge: { text: `v${transactionVersion}`, color: 'fuchsia' as any }
-				}
+				},
+				{ label: t('common.cardanoWasm'), to: localePath('/packages/cardano-wasm'), icon: 'i-heroicons-cpu-chip', badge: { text: `v${bridgeVersion}`, color: 'fuchsia' as any } }
 			]
 		},
 		{

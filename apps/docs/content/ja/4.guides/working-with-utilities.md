@@ -10,17 +10,17 @@ description: nodejs-playground の実装をベースに Hydra SDK の Utilities 
 ## 基本インポート
 
 ```typescript
-import { 
-  DatumUtils,
-  ParserUtils,
-  PolicyUtils,
-  TimeUtils,
-  SLOT_CONFIG_NETWORK,
-  Serializer,
-  Deserializer,
-  KeysUtils,
-  MetadataUtils,
-  ProviderUtils
+import {
+	DatumUtils,
+	ParserUtils,
+	PolicyUtils,
+	TimeUtils,
+	SLOT_CONFIG_NETWORK,
+	Serializer,
+	Deserializer,
+	KeysUtils,
+	MetadataUtils,
+	ProviderUtils
 } from '@hydra-sdk/core'
 ```
 
@@ -50,7 +50,8 @@ console.log('Derived vkey:', vkey)
 import { PolicyUtils, ParserUtils, Serializer } from '@hydra-sdk/core'
 
 const walletAddress = wallet.getAccount().baseAddressBech32
-const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
+const scriptCborHex =
+	PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
 const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
 
 const assetNameHex = ParserUtils.stringToHex('MyToken')
@@ -66,31 +67,36 @@ console.log('Asset Unit:', assetUnit)
 import { DatumUtils } from '@hydra-sdk/core'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 
-const buildDatum = (key: string, l1Vkh: string, l2Vkh: string, amount: string) => {
-  const bKey = DatumUtils.mkBytes(key)
-  const cL1Vkh = DatumUtils.mkConstr(0, [DatumUtils.mkBytes(l1Vkh)])
-  const cL2Vkh = DatumUtils.mkConstr(0, [DatumUtils.mkBytes(l2Vkh)])
+const buildDatum = (
+	key: string,
+	l1Vkh: string,
+	l2Vkh: string,
+	amount: string
+) => {
+	const bKey = DatumUtils.mkBytes(key)
+	const cL1Vkh = DatumUtils.mkConstr(0, [DatumUtils.mkBytes(l1Vkh)])
+	const cL2Vkh = DatumUtils.mkConstr(0, [DatumUtils.mkBytes(l2Vkh)])
 
-  const constrKey = DatumUtils.mkConstr(0, [bKey, cL1Vkh, cL2Vkh])
-  const wrap1 = DatumUtils.mkConstr(0, [constrKey])
+	const constrKey = DatumUtils.mkConstr(0, [bKey, cL1Vkh, cL2Vkh])
+	const wrap1 = DatumUtils.mkConstr(0, [constrKey])
 
-  const emptyBytes = DatumUtils.mkBytes('')
-  const mapVal = CardanoWASM.PlutusMapValues.new()
-  mapVal.add(DatumUtils.mkInt(amount))
-  const innerMap = DatumUtils.mkMap([[emptyBytes, mapVal]])
+	const emptyBytes = DatumUtils.mkBytes('')
+	const mapVal = CardanoWASM.PlutusMapValues.new()
+	mapVal.add(DatumUtils.mkInt(amount))
+	const innerMap = DatumUtils.mkMap([[emptyBytes, mapVal]])
 
-  const outerMapVal = CardanoWASM.PlutusMapValues.new()
-  outerMapVal.add(innerMap)
-  const outerMap = DatumUtils.mkMap([[emptyBytes, outerMapVal]])
+	const outerMapVal = CardanoWASM.PlutusMapValues.new()
+	outerMapVal.add(innerMap)
+	const outerMap = DatumUtils.mkMap([[emptyBytes, outerMapVal]])
 
-  return DatumUtils.mkConstr(0, [wrap1, outerMap])
+	return DatumUtils.mkConstr(0, [wrap1, outerMap])
 }
 
 const datum = buildDatum(
-  'ee91e90e791e4cd983d1b1f331d1e8eb',
-  '326cd6bff6114c4d14ebf2385883aac43c4e64476e6a47314f9b2003',
-  'f602ad4b16ec2e1a96989dc140eacf546359695cfece8510c8d1c0ac',
-  '4000000'
+	'ee91e90e791e4cd983d1b1f331d1e8eb',
+	'326cd6bff6114c4d14ebf2385883aac43c4e64476e6a47314f9b2003',
+	'f602ad4b16ec2e1a96989dc140eacf546359695cfece8510c8d1c0ac',
+	'4000000'
 )
 ```
 
@@ -102,8 +108,10 @@ import { MetadataUtils, ParserUtils } from '@hydra-sdk/core'
 const vkeyHash = '34f37700b10586c0662e42fcbdf3339c4c52d10e4b13fdef22ecd9b2'
 
 const metadata = MetadataUtils.metadataObjToMetadatum({
-  toHeadId: ParserUtils.toBytes('4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'),
-  toAddress: ParserUtils.toBytes(vkeyHash)
+	toHeadId: ParserUtils.toBytes(
+		'4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+	),
+	toAddress: ParserUtils.toBytes(vkeyHash)
 })
 
 console.log('Metadata CBOR:', metadata.to_hex())
@@ -115,18 +123,18 @@ console.log('Metadata CBOR:', metadata.to_hex())
 import { TimeUtils, SLOT_CONFIG_NETWORK } from '@hydra-sdk/core'
 
 const currentSlot = TimeUtils.unixTimeToEnclosingSlot(
-  Date.now(),
-  SLOT_CONFIG_NETWORK.PREPROD
+	Date.now(),
+	SLOT_CONFIG_NETWORK.PREPROD
 )
 
 const deadline = TimeUtils.unixTimeToEnclosingSlot(
-  Date.now() + (24 * 60 * 60 * 1000),
-  SLOT_CONFIG_NETWORK.PREPROD
+	Date.now() + 24 * 60 * 60 * 1000,
+	SLOT_CONFIG_NETWORK.PREPROD
 )
 
 const readableTime = TimeUtils.slotToBeginUnixTime(
-  currentSlot,
-  SLOT_CONFIG_NETWORK.PREPROD
+	currentSlot,
+	SLOT_CONFIG_NETWORK.PREPROD
 )
 
 console.log('Current slot:', currentSlot)
@@ -140,12 +148,12 @@ console.log('Readable time:', new Date(readableTime))
 import { ProviderUtils } from '@hydra-sdk/core'
 
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
-  projectId: process.env.BLOCKFROST_PROJECT_ID || '',
-  network: 'preprod'
+	projectId: process.env.BLOCKFROST_PROJECT_ID || '',
+	network: 'preprod'
 })
 
 const ogmiosProvider = new ProviderUtils.OgmiosProvider({
-  url: 'ws://localhost:1337'
+	url: 'ws://localhost:1337'
 })
 
 const utxos = await blockfrostProvider.getUtxos(address)
@@ -160,32 +168,41 @@ const protocolParams = await blockfrostProvider.getProtocolParameters()
 import { ParserUtils, Serializer, Deserializer } from '@hydra-sdk/core'
 
 const processTokenData = (tokenName: string, metadata: Record<string, any>) => {
-  const nameHex = ParserUtils.stringToHex(tokenName)
-  
-  const metadataEntries = Object.entries(metadata).map(([key, value]) => ({
-    key: ParserUtils.stringToHex(key),
-    value: ParserUtils.stringToHex(String(value))
-  }))
-  
-  return { nameHex, metadataEntries }
+	const nameHex = ParserUtils.stringToHex(tokenName)
+
+	const metadataEntries = Object.entries(metadata).map(([key, value]) => ({
+		key: ParserUtils.stringToHex(key),
+		value: ParserUtils.stringToHex(String(value))
+	}))
+
+	return { nameHex, metadataEntries }
 }
 
 const processAssetUnit = (policyId: string, assetName: string) => {
-  const assetNameHex = ParserUtils.stringToHex(assetName)
-  const assetUnit = Serializer.serializeAssetUnit(policyId, assetNameHex)
-  
-  const { policyId: deserializedPolicy, assetName: deserializedName } = 
-    Deserializer.deserializeAssetUnit(assetUnit)
-  
-  return {
-    original: { policyId, assetName },
-    serialized: assetUnit,
-    deserialized: { 
-      policyId: deserializedPolicy, 
-      assetName: ParserUtils.hexToString(deserializedName)
-    }
-  }
+	const assetNameHex = ParserUtils.stringToHex(assetName)
+	const assetUnit = Serializer.serializeAssetUnit(policyId, assetNameHex)
+
+	const { policyId: deserializedPolicy, assetName: deserializedName } =
+		Deserializer.deserializeAssetUnit(assetUnit)
+
+	return {
+		original: { policyId, assetName },
+		serialized: assetUnit,
+		deserialized: {
+			policyId: deserializedPolicy,
+			assetName: ParserUtils.hexToString(deserializedName)
+		}
+	}
 }
+
+// 使用例
+const tokenData = processTokenData('MyNFT', {
+	name: 'Special NFT',
+	creator: 'Hydra Team',
+	rarity: 'Legendary'
+})
+
+const assetData = processAssetUnit('abc123...', 'MyToken')
 ```
 
 ## エラーハンドリングパターン
@@ -194,21 +211,22 @@ const processAssetUnit = (policyId: string, assetName: string) => {
 import { ParserUtils, DatumUtils } from '@hydra-sdk/core'
 
 const safeConversion = (input: string, type: 'hex' | 'datum') => {
-  try {
-    switch (type) {
-      case 'hex':
-        return ParserUtils.stringToHex(input)
-      case 'datum':
-        return DatumUtils.mkBytes(ParserUtils.stringToHex(input))
-      default:
-        throw new Error('Unsupported conversion type')
-    }
-  } catch (error) {
-    console.error(`Conversion failed for ${type}:`, error)
-    return null
-  }
+	try {
+		switch (type) {
+			case 'hex':
+				return ParserUtils.stringToHex(input)
+			case 'datum':
+				return DatumUtils.mkBytes(ParserUtils.stringToHex(input))
+			default:
+				throw new Error('Unsupported conversion type')
+		}
+	} catch (error) {
+		console.error(`Conversion failed for ${type}:`, error)
+		return null
+	}
 }
 
+// フォールバック付きで使用
 const result = safeConversion('test data', 'hex') || 'default_hex_value'
 ```
 

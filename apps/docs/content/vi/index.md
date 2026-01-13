@@ -28,12 +28,12 @@ Bắt đầu với Hydra SDK trong vài phút:
 npm install @hydra-sdk/core @hydra-sdk/bridge @hydra-sdk/transaction
 
 # Tạo một ví đơn giản với utilities
-import { 
-  AppWallet, 
-  NETWORK_ID, 
-  ParserUtils, 
-  TimeUtils, 
-  DatumUtils 
+import {
+  AppWallet,
+  NETWORK_ID,
+  ParserUtils,
+  TimeUtils,
+  DatumUtils
 } from '@hydra-sdk/core'
 
 const wallet = new AppWallet({
@@ -53,25 +53,23 @@ console.log('Slot hiện tại:', currentSlot)
 console.log('Datum hex:', datum.to_hex())
 console.log('Message dạng hex:', hexData)
 ```
-  key: { type: 'mnemonic', words: AppWallet.brew() }
-})
-
-const account = wallet.getAccount(0, 0)
-console.log('Địa chỉ:', account.baseAddressBech32)
-```
 
 ## Các Package Core
 
 ### [@hydra-sdk/core](/vi/api/core)
+
 Chức năng ví Cardano cốt lõi bao gồm hỗ trợ HD wallet, ký giao dịch và tích hợp mạng.
 
 ### [@hydra-sdk/bridge](/vi/api/bridge)
+
 Tích hợp Hydra Layer 2 với quản lý vòng đời Head hoàn chỉnh, sự kiện thời gian thực và xử lý giao dịch.
 
 ### [@hydra-sdk/transaction](/vi/api/transaction)
+
 Tiện ích xây dựng giao dịch nâng cao với hỗ trợ Hydra, quản lý UTxO và tối ưu hóa phí.
 
 ### [@hydra-sdk/cardano-wasm](/vi/api/cardano-wasm)
+
 Bindings Cardano WASM cho ứng dụng trình duyệt với các hoạt động serialization và mật mã.
 
 ## Tổng Quan Kiến Trúc
@@ -81,16 +79,16 @@ graph TD
     A[Ứng Dụng Của Bạn] --> B[@hydra-sdk/core]
     A --> C[@hydra-sdk/bridge]
     A --> D[@hydra-sdk/transaction]
-    
+
     B --> E[@hydra-sdk/cardano-wasm]
     C --> B
     C --> E
     D --> B
     D --> E
-    
+
     E --> F[Cardano Serialization Lib]
     C --> G[Socket.IO Client]
-    
+
     H[Hydra Node] -.-> C
     I[Cardano Network] -.-> B
 ```
@@ -98,15 +96,19 @@ graph TD
 ## Các Trường Hợp Sử Dụng
 
 ### Phát Triển DApp
+
 Xây dựng ứng dụng phi tập trung với tích hợp ví Cardano liền mạch và mở rộng Hydra Layer 2.
 
 ### Ứng Dụng Ví
+
 Tạo ứng dụng ví đầy đủ tính năng với hỗ trợ HD wallet, quản lý giao dịch và cập nhật thời gian thực.
 
 ### Giải Pháp Thanh Toán
+
 Triển khai giải pháp thanh toán nhanh, chi phí thấp sử dụng Hydra Heads cho giao dịch tức thì.
 
 ### Giao Thức DeFi
+
 Tích hợp với các giao thức DeFi sử dụng xây dựng giao dịch nâng cao và quản lý trạng thái thời gian thực.
 
 ## Bắt Đầu
@@ -135,4 +137,4 @@ Khám phá các ví dụ thực tế:
 
 ## Giấy Phép
 
-Hydra SDK là phần mềm mã nguồn mở được cấp phép theo [Apache 2.0 License](https://github.com/Vtechcom/hydra-sdk/blob/dev/LICENSE).
+Hydra SDK là phần mềm mã nguồn mở được cấp phép theo [MIT License](https://github.com/Vtechcom/hydra-sdk/blob/dev/LICENSE).
