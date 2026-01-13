@@ -1,3 +1,8 @@
+---
+title: Guides
+description: Step-by-step guides and best practices for building wallet apps with Hydra SDK
+---
+
 # Guides
 
 Welcome to the guides section of the Hydra SDK documentation. Here you'll find step-by-step tutorials and best practices for building Cardano wallet applications with Hydra Layer 2 integration.
@@ -17,3 +22,5 @@ The guides are organized into several categories:
 - **Enhanced Utilities Guide** - Comprehensive coverage of new utility functions
 - **Advanced Patterns** - Real-world examples and best practices
 - **Performance Optimization** - Tips for efficient Cardano development
+
+> See also: [Getting Started](/getting-started/), [API](/api/), [Examples](/examples/)

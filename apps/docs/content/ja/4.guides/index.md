@@ -22,3 +22,5 @@ description: Hydra SDK を使った Cardano ウォレットアプリ構築と Hy
 - **Utilities ガイドの強化** – 新しい Utility 関数を含む包括的な解説
 - **高度なパターン** – 実運用を想定したコード例とベストプラクティス
 - **パフォーマンス最適化** – Cardano / Hydra 開発を効率化するためのヒント
+
+> 参照: [はじめに](/ja/getting-started/), [API](/ja/api/), [例](/ja/examples/)
