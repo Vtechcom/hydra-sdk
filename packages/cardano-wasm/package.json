@@ -70,7 +70,7 @@
 		"vite": "^7.0.5"
 	},
 	"dependencies": {
-		"@emurgo/cardano-serialization-lib-asmjs": "14",
+		"@emurgo/cardano-serialization-lib-asmjs": "14.1.2",
 		"@emurgo/cardano-serialization-lib-browser": "14.1.2",
 		"@emurgo/cardano-serialization-lib-nodejs": "14.1.2"
 	}

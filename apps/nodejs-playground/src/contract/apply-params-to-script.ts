@@ -1,0 +1,23 @@
+import { DatumUtils, PlutusUtils } from '@hydra-sdk/core'
+;(async () => {
+	try {
+		const compileCode =
+			'5901a2010100229800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400130080024888966002600460106ea800e266446644b300130060018acc004c034dd5004400a2c80722b300130030018acc004c034dd5004400a2c80722c805900b099192cc004c04400626464b30013008300e3754015159800980418071baa32330010013758602600a44b30010018a6103d87a80008992cc004cdd7980a98091baa001018899ba548000cc0500052f5c113300300330160024040602800280922b30013371e6eb8c03800922010089802800c528201a8b201a899b870014800500d1bad300e00130100018b201c3259800980198061baa0018a5eb7bdb18226eacc040c034dd5000a016323300100137566020602260226022602200444b30010018a60103d87a8000899192cc004cdc8803800c56600266e3c01c006266e9520003301230100024bd7045300103d87a80004039133004004301400340386eb8c038004c04400500f18059baa003300a375400c6eb8c030c024dd50019b874800a2c8038601000260066ea802229344d95900101'
+		const plutusScriptHex = PlutusUtils.applyParamsToScript(compileCode, [
+			DatumUtils.mkConstr(0, [
+				DatumUtils.mkConstr(0, [DatumUtils.mkBytes('ad773d3065356ed8ffa006f9770b716f97c0f41a259be24672d089f292735126')]),
+				DatumUtils.mkInt(2) //
+			]).to_bytes()
+		])
+		console.log('>>> / apply-params-to-script.ts:6 / plutusScriptHex:', plutusScriptHex)
+
+		const spendingValidator = {
+			type: 'PlutusV3',
+			scriptCborHex: plutusScriptHex
+		} as const
+		const address = PlutusUtils.validatorToAddress(spendingValidator, 0)
+		console.log('>>> / apply-params-to-script.ts:14 / address:', address)
+	} catch (error) {
+		console.error('Error applying params to script:', error)
+	}
+})()
