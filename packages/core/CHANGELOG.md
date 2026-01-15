@@ -1,5 +1,13 @@
 # @hydra-sdk/core
 
+## 1.1.6
+
+### Patch Changes
+
+- View in github
+- Updated dependencies
+  - @hydra-sdk/cardano-wasm@0.0.6
+
 ## 1.1.5
 
 ### Patch Changes

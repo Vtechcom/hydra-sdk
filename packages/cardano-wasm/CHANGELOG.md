@@ -1,5 +1,11 @@
 # @hydra-sdk/cardano-wasm
 
+## 0.0.6
+
+### Patch Changes
+
+- View in github
+
 ## 0.0.5
 
 ### Patch Changes
