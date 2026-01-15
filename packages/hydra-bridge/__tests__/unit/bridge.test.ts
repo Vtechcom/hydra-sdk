@@ -148,6 +148,35 @@ describe('HydraBridge', () => {
 
 			expect(onSpy).toHaveBeenCalledWith('onConnected', expect.any(Function))
 		})
+
+		it('should create HydraBridge with websocket URL and new options', () => {
+			const urlBridge = new HydraBridge({
+				url: 'ws://localhost:4001',
+				noHistory: true,
+				noSnapshotUtxo: true,
+				address: 'addr_test1...',
+				verbose: false
+			})
+
+			expect(urlBridge.connector).toBeDefined()
+			// Verify options are passed to connector
+			const wsConnector = urlBridge.connector as any
+			expect(wsConnector.conn.noHistory).toBe(true)
+			expect(wsConnector.conn.noSnapshotUtxo).toBe(true)
+			expect(wsConnector.conn.address).toBe('addr_test1...')
+		})
+
+		it('should create HydraBridge with only xApiKey params', () => {
+			const apiKey = 'my-secret-key'
+			const bridge = new HydraBridge({
+				url: `ws://localhost:4001?X-Api-Key=${apiKey}`,
+				verbose: false
+			})
+
+			const wsConnector = bridge.connector as any
+			expect(wsConnector.conn.params['X-Api-Key']).toBe(apiKey)
+			expect(wsConnector.apiFetch.defaults.headers['X-Api-Key']).toBe(apiKey)
+		})
 	})
 
 	describe('connected', () => {

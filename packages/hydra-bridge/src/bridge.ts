@@ -23,6 +23,9 @@ type InitHydraBridgeOptions = {
 			 * Using websocket connector
 			 */
 			url: string
+			noHistory?: boolean
+			noSnapshotUtxo?: boolean
+			address?: string
 	  }
 	| {
 			/**
@@ -86,7 +89,10 @@ export class HydraBridge implements IHydraBridge {
 			this.connector = options.connector
 		} else {
 			this.connector = new WebsocketConnector({
-				websocketUrl: options.url
+				websocketUrl: options.url,
+				noHistory: options.noHistory,
+				noSnapshotUtxo: options.noSnapshotUtxo,
+				address: options.address
 			})
 		}
 		this._eventEmitter = this.connector.eventEmitter
