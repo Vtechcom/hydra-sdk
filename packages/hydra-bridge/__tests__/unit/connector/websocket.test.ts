@@ -153,6 +153,20 @@ describe('WebsocketConnector', () => {
 			expect(conn.fetcher).toBeDefined()
 			expect(conn.submitter).toBeDefined()
 		})
+
+		it('should accept all new options together', () => {
+			const testAddress = 'addr_test1qz...'
+			const conn = new WebsocketConnector({
+				websocketUrl: 'ws://localhost:4001',
+				noHistory: true,
+				noSnapshotUtxo: true,
+				address: testAddress
+			})
+
+			expect(conn.conn.noHistory).toBe(true)
+			expect(conn.conn.noSnapshotUtxo).toBe(true)
+			expect(conn.conn.address).toBe(testAddress)
+		})
 	})
 
 	describe('networkInfo', () => {
@@ -178,6 +192,44 @@ describe('WebsocketConnector', () => {
 
 			expect(info.socketUrl).toContain('history=no')
 			expect(info.socketUrl).toContain('snapshot-utxo=no')
+			expect(info.socketUrl).toContain('address=addr_test1')
+		})
+
+		it('should include xApiKey in query params when configured', () => {
+			const apiKey = 'test-api-key-123'
+			const conn = new WebsocketConnector({
+				websocketUrl: `ws://localhost:4001?X-Api-Key=${apiKey}`
+			})
+
+			const info = conn.networkInfo
+
+			expect(conn.conn.params['X-Api-Key']).toBe(apiKey)
+			expect(info.socketUrl).toContain(`X-Api-Key=${apiKey}`)
+		})
+
+		it('should include path in URLs when configured', () => {
+			const conn = new WebsocketConnector({
+				websocketUrl: 'ws://localhost:4001/custom/path'
+			})
+
+			const info = conn.networkInfo
+
+			expect(info.socketUrl).toContain('/custom/path')
+			expect(info.httpUrl).toContain('/custom/path')
+		})
+
+		it('should combine xApiKey with other query params', () => {
+			const apiKey = 'test-api-key-123'
+			const conn = new WebsocketConnector({
+				websocketUrl: `ws://localhost:4001?X-Api-Key=${apiKey}`,
+				noHistory: true,
+				address: 'addr_test1...'
+			})
+
+			const info = conn.networkInfo
+			expect(info.socketUrl).toContain(`X-Api-Key=${apiKey}`)
+			expect(conn.conn.params['X-Api-Key']).toBe(apiKey)
+			expect(info.socketUrl).toContain('history=no')
 			expect(info.socketUrl).toContain('address=addr_test1')
 		})
 	})

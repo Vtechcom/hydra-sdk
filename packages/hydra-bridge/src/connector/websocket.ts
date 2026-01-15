@@ -16,6 +16,9 @@ export type WebsocketConnectorOptions = {
 	websocketUrl: string
 	fetcher?: HydraBridgeFetcher
 	submitter?: HydraBridgeSubmitter
+	noHistory?: boolean
+	noSnapshotUtxo?: boolean
+	address?: string
 }
 
 export const defaultWsFetcher = (connector: WebsocketConnector): HydraBridgeFetcher => {
@@ -136,12 +139,23 @@ export class WebsocketConnector implements HydraConnector {
 			ssl: option.ssl,
 			host: option.host,
 			port: option.port,
-			path: option.path
+			path: option.path,
+			params: option.params,
+			noHistory: options.noHistory,
+			noSnapshotUtxo: options.noSnapshotUtxo,
+			address: options.address
 		}
+
+		const headers = this.conn?.params?.['X-Api-Key']
+			? {
+					'X-Api-Key': this.conn.params['X-Api-Key']
+				}
+			: undefined
 
 		this.apiFetch = axios.create({
 			baseURL: this.networkInfo.httpUrl,
-			timeout: 10000
+			timeout: 10000,
+			headers
 		})
 
 		this.fetcher = options?.fetcher || defaultWsFetcher(this)
@@ -157,13 +171,15 @@ export class WebsocketConnector implements HydraConnector {
 		const httpUrl = buildUrl({
 			protocol: this.conn.ssl ? 'https' : 'http',
 			host: this.conn.host,
-			port: this.conn.port
+			port: this.conn.port,
+			path: this.conn.path
 		})
 		const socketUrl = buildUrl({
 			protocol: this.conn.ssl ? 'wss' : 'ws',
 			host: this.conn.host,
 			port: this.conn.port,
-			queryParams
+			path: this.conn.path,
+			queryParams: Object.assign({}, this.conn.params, queryParams)
 		})
 		return { socketUrl, httpUrl }
 	}

@@ -16,6 +16,7 @@ export type HydraConnectorEndpoint = {
 	ssl: boolean
 	host: string
 	path: string
+	params?: Record<string, string>
 	port?: number | string
 }
 
