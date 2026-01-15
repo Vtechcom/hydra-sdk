@@ -1,7 +1,7 @@
 {
   "name": "@hydra-sdk/core",
   "license": "Apache-2.0",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "publishConfig": {
     "access": "public"
   },
@@ -61,12 +61,13 @@
     "vite": "^7.0.5"
   },
   "dependencies": {
-    "@harmoniclabs/plutus-data": "^1.2.6",
-    "@harmoniclabs/uplc": "^1.4.1",
+    "@harmoniclabs/plutus-data": "1.2.6",
+    "@harmoniclabs/uplc": "1.4.1",
+    "@harmoniclabs/crypto": "0.3.0-dev0",
     "@hydra-sdk/cardano-wasm": "workspace:*",
-    "@scure/base": "^1.2.6",
+    "@scure/base": "1.2.6",
     "axios": "1.9.0",
     "bip39": "3.1.0",
-    "cbor-x": "^1.6.0"
+    "cbor-x": "1.6.0"
   }
 }
