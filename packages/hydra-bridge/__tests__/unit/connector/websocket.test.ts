@@ -158,12 +158,12 @@ describe('WebsocketConnector', () => {
 			const testAddress = 'addr_test1qz...'
 			const conn = new WebsocketConnector({
 				websocketUrl: 'ws://localhost:4001',
-				noHistory: true,
+				history: true,
 				noSnapshotUtxo: true,
 				address: testAddress
 			})
 
-			expect(conn.conn.noHistory).toBe(true)
+			expect(conn.conn.history).toBe(true)
 			expect(conn.conn.noSnapshotUtxo).toBe(true)
 			expect(conn.conn.address).toBe(testAddress)
 		})
@@ -184,13 +184,13 @@ describe('WebsocketConnector', () => {
 				websocketUrl: 'ws://localhost:4001'
 			})
 			// Manually set conn options
-			connWithParams.conn.noHistory = true
+			connWithParams.conn.history = true
 			connWithParams.conn.noSnapshotUtxo = true
 			connWithParams.conn.address = 'addr_test1...'
 
 			const info = connWithParams.networkInfo
 
-			expect(info.socketUrl).toContain('history=no')
+			expect(info.socketUrl).toContain('history=yes')
 			expect(info.socketUrl).toContain('snapshot-utxo=no')
 			expect(info.socketUrl).toContain('address=addr_test1')
 		})
@@ -222,14 +222,14 @@ describe('WebsocketConnector', () => {
 			const apiKey = 'test-api-key-123'
 			const conn = new WebsocketConnector({
 				websocketUrl: `ws://localhost:4001?X-Api-Key=${apiKey}`,
-				noHistory: true,
+				history: true,
 				address: 'addr_test1...'
 			})
 
 			const info = conn.networkInfo
 			expect(info.socketUrl).toContain(`X-Api-Key=${apiKey}`)
 			expect(conn.conn.params['X-Api-Key']).toBe(apiKey)
-			expect(info.socketUrl).toContain('history=no')
+			expect(info.socketUrl).toContain('history=yes')
 			expect(info.socketUrl).toContain('address=addr_test1')
 		})
 	})
