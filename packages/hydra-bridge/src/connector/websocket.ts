@@ -16,7 +16,7 @@ export type WebsocketConnectorOptions = {
 	websocketUrl: string
 	fetcher?: HydraBridgeFetcher
 	submitter?: HydraBridgeSubmitter
-	noHistory?: boolean
+	history?: boolean
 	noSnapshotUtxo?: boolean
 	address?: string
 }
@@ -106,7 +106,7 @@ export class WebsocketConnector implements HydraConnector {
 		/**
 		 * Specify weather the client wants to receive the full node history. Default is yes.
 		 */
-		noHistory?: boolean
+		history?: boolean
 		/**
 		 * Specify weather the client wants see the snapshot utxo. Default is yes.
 		 */
@@ -141,7 +141,7 @@ export class WebsocketConnector implements HydraConnector {
 			port: option.port,
 			path: option.path,
 			params: option.params,
-			noHistory: options.noHistory,
+			history: options.history,
 			noSnapshotUtxo: options.noSnapshotUtxo,
 			address: options.address
 		}
@@ -164,8 +164,8 @@ export class WebsocketConnector implements HydraConnector {
 
 	get networkInfo() {
 		const queryParams = {
-			...(this.conn?.noHistory ? { history: 'no' } : {}),
-			...(this.conn?.noSnapshotUtxo ? { 'snapshot-utxo': 'no' } : {}),
+			...(this.conn?.history ? { history: 'yes' } : {}), //default history=no
+			...(this.conn?.noSnapshotUtxo && { 'snapshot-utxo': 'no' }), //default snapshot-utxo=yes
 			...(this.conn?.address ? { address: this.conn.address } : {})
 		}
 		const httpUrl = buildUrl({

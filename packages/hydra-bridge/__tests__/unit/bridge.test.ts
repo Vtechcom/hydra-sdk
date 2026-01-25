@@ -152,7 +152,7 @@ describe('HydraBridge', () => {
 		it('should create HydraBridge with websocket URL and new options', () => {
 			const urlBridge = new HydraBridge({
 				url: 'ws://localhost:4001',
-				noHistory: true,
+				history: true,
 				noSnapshotUtxo: true,
 				address: 'addr_test1...',
 				verbose: false
@@ -161,7 +161,7 @@ describe('HydraBridge', () => {
 			expect(urlBridge.connector).toBeDefined()
 			// Verify options are passed to connector
 			const wsConnector = urlBridge.connector as any
-			expect(wsConnector.conn.noHistory).toBe(true)
+			expect(wsConnector.conn.history).toBe(true)
 			expect(wsConnector.conn.noSnapshotUtxo).toBe(true)
 			expect(wsConnector.conn.address).toBe('addr_test1...')
 		})
