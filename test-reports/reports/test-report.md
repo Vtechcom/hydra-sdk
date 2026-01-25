@@ -7,7 +7,7 @@
 | Lines | 93.1% |
 | Statements | 93.1% |
 | Functions | 95.45% |
-| Branches | 89.75% |
+| Branches | 89.73% |
 
 <details>
 <summary>📊 View Details</summary>
@@ -19,7 +19,7 @@
 
 ### Reports
 - 📈 [Coverage Report](https://vtechcom.github.io/hydra-sdk/test-reports/coverage/)
-- 📋 [Actions Run](https://github.com/Vtechcom/hydra-sdk/actions/runs/21029379538)
+- 📋 [Actions Run](https://github.com/Vtechcom/hydra-sdk/actions/runs/21331655874)
 </details>
 
 ---
