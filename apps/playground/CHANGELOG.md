@@ -1,5 +1,15 @@
 # hydrawallet-playground
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/core@1.1.7
+  - @hydra-sdk/bridge@1.1.7
+  - @hydra-sdk/transaction@1.1.7
+  - @hydra-sdk/cardano-wasm@0.0.7
+
 ## 0.0.6
 
 ### Patch Changes
