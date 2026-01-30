@@ -1,5 +1,19 @@
 # @hydra-sdk/core
 
+## 1.1.7
+
+### Patch Changes
+
+- Release v1.1.7:
+  - Implement CIP-8 message signing in EmbeddedWallet
+  - Add support for Cardano Reference Inputs in TxBuilder
+  - Add support for Reference Scripts in TxBuilder
+  - Standardize Plutus types across packages
+  - Update Ogmios provider for structured script references
+
+- Updated dependencies
+  - @hydra-sdk/cardano-wasm@0.0.7
+
 ## 1.1.6
 
 ### Patch Changes

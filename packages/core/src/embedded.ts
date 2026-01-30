@@ -11,6 +11,7 @@ import {
 } from './utils/cardano-wasm/build-keys'
 import { resolveTxHash } from './utils/cardano-wasm/resolver'
 import { toBytes } from './utils/parser'
+import { DataSignature } from './types/cardano'
 
 export class WalletStaticMethods {
 	static privateKeyBech32ToPrivateKeyHex(_bech32: string): string {
@@ -251,30 +252,32 @@ export class EmbeddedWallet extends WalletStaticMethods {
 		}
 	}
 
-	//   /**
-	//    * This endpoint utilizes the [CIP-8 - Message Signing](https://cips.cardano.org/cips/cip8/) to sign arbitrary data, to verify the data was signed by the owner of the private key.
-	//    *
-	//    * @param address - bech32 address to sign the data with
-	//    * @param payload - the data to be signed
-	//    * @param accountIndex account index (default: 0)
-	//    * @returns a signature
-	//    */
-	//   signData(address: string, payload: string, accountIndex = 0, keyIndex = 0): DataSignature {
-	//     try {
-	//       const { baseAddress, enterpriseAddress, rewardAddress, paymentKey } = this.getAccount(accountIndex, keyIndex)
+	/**
+	 * This endpoint utilizes the [CIP-8 - Message Signing](https://cips.cardano.org/cips/cip8/) to sign arbitrary data, to verify the data was signed by the owner of the private key.
+	 *
+	 * @param address - bech32 address to sign the data with
+	 * @param payload - the data to be signed
+	 * @param accountIndex account index (default: 0)
+	 * @returns a signature
+	 */
+	signData(address: string, payload: string, accountIndex = 0, keyIndex = 0): DataSignature {
+		try {
+			const { baseAddress, enterpriseAddress, rewardAddress, paymentKey } = this.getAccount(accountIndex, keyIndex)
 
-	//       const foundAddress = [baseAddress, enterpriseAddress, rewardAddress].find(a => a.toBech32() === address)
+			const foundAddress = [baseAddress, enterpriseAddress, rewardAddress].find(a => a.to_bech32() === address)
 
-	//       if (foundAddress === undefined)
-	//         throw new Error(`[EmbeddedWallet] Address: ${address} doesn't belong to this account.`)
+			if (foundAddress === undefined)
+				throw new Error(`[EmbeddedWallet] Address: ${address} doesn't belong to this account.`)
 
-	//       // todo tw
-	//       return signData(payload, {
-	//         address: Address.fromBech32(address),
-	//         key: paymentKey
-	//       })
-	//     } catch (error) {
-	//       throw new Error(`[EmbeddedWallet] An error occurred during signData: ${error}.`)
-	//     }
-	//   }
+			const messageBytes = toBytes(payload)
+			const privateSigningKey = paymentKey.to_raw_key()
+			const dataSignature = privateSigningKey.sign(messageBytes)
+			return {
+				signature: dataSignature.to_hex(),
+				key: paymentKey.to_public().to_raw_key().to_hex()
+			}
+		} catch (error) {
+			throw new Error(`[EmbeddedWallet] An error occurred during signData: ${error}.`)
+		}
+	}
 }

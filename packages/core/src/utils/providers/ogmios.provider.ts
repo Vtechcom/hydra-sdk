@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
-import { Asset, UTxO } from '../../types/cardano'
+import { Asset, ScriptRef, UTxO } from '../../types/cardano'
 import { IFetcher } from '../../types/wallet/fetcher'
 import { ISubmitter } from '../../types/wallet/submitter'
 import { BaseWalletProvider } from './base'
@@ -191,16 +191,19 @@ export class OgmiosProvider extends BaseWalletProvider {
 			return amounts
 		}
 
-		const convertScript = (script: AddressUtxoResponse[number]['script']): string | null => {
+		const convertScript = (script: AddressUtxoResponse[number]['script']): ScriptRef | null => {
 			if (!script) return null
 			if (script.language === 'native') {
 				// For native scripts, we may not have CBOR, so we return null or handle differently
 				// TODO: Update this with CardanoWASM.NativeScript conversion if needed
-				return script.cbor || null
+				return null
 			} else if (script.language.startsWith('plutus:')) {
 				// For Plutus scripts, we have CBOR
 				// TODO: Update this with CardanoWASM.PlutusScript conversion if needed
-				return script.cbor
+				return {
+					version: script.language.split(':')[1].toUpperCase() as 'V1' | 'V2' | 'V3',
+					scriptCbor: script.cbor
+				}
 			}
 			return null
 		}
