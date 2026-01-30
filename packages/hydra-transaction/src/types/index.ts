@@ -1,5 +1,12 @@
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
-import { Asset, IFetcher, ISubmitter, Protocol } from '@hydra-sdk/core'
+import { Asset, Datum, IFetcher, ISubmitter, Protocol, Redeemer, ScriptRef } from '@hydra-sdk/core'
+
+/**
+ * Export for compatibility with 1.1.6 version
+ * Will be removed in future versions
+ */
+export type { Redeemer, ScriptRef, Datum } from '@hydra-sdk/core'
+export type { LanguageVersion as PlutusVersion } from '@hydra-sdk/core'
 
 export interface TxBuilderOptions {
 	fetcher?: IFetcher
@@ -31,19 +38,6 @@ export const COIN_SELECTION_STRATEGY = {
 } as const
 
 export type CoinSelectionStrategy = keyof typeof COIN_SELECTION_STRATEGY
-
-// Plutus script version
-export type PlutusVersion = 'V1' | 'V2' | 'V3'
-
-// Datum and redeemer types
-export type Datum = CardanoWASM.PlutusData
-export type Redeemer = CardanoWASM.Redeemer
-
-// Script reference types
-export interface ScriptRef {
-	scriptCbor: string
-	version: PlutusVersion
-}
 
 // Policy script types
 export type PolicyScript = {
@@ -141,7 +135,7 @@ export interface TxScriptIn {
 	inlineDatum?: Datum
 	inlineDatumHash?: string
 	inineDatumRaw?: string
-	redeemer?: CardanoWASM.Redeemer
+	redeemer?: Redeemer
 	scriptRef?: ScriptRef
 }
 

@@ -57,6 +57,11 @@ export type TxOutput = {
 	 * ```
 	 */
 	inlineDatum?: CardanoWASM.PlutusData | null
-	scriptRef?: string | null
+	scriptRef?: {
+		scriptCbor: string
+		version: PlutusVersion
+	} | null
 	scriptHash?: string | null
 }
+
+type PlutusVersion = 'V1' | 'V2' | 'V3'

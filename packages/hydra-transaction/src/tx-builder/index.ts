@@ -12,7 +12,8 @@ import {
 	Resolver,
 	TxOutput,
 	UTxO,
-	UTxOObject
+	UTxOObject,
+	LanguageVersion
 } from '@hydra-sdk/core'
 
 import {
@@ -29,7 +30,6 @@ import {
 	Metadatum,
 	TxBuilderOptions,
 	ScriptRef,
-	PlutusVersion,
 	COIN_SELECTION_STRATEGY,
 	PolicyScript
 } from '../types'
@@ -184,7 +184,7 @@ export class TxBuilder {
 	/**
 	 * Add script to the last input
 	 */
-	txInScript(scriptCbor: string, version: PlutusVersion = 'V3'): TxBuilder {
+	txInScript(scriptCbor: string, version: LanguageVersion = 'V3'): TxBuilder {
 		if (!this._inputs.length) {
 			throw new Error('No input to attach script to. Call txIn() first.')
 		}
@@ -224,7 +224,7 @@ export class TxBuilder {
 	/**
 	 * Set spending Plutus script version
 	 */
-	spendingPlutusScript(version: PlutusVersion): TxBuilder {
+	spendingPlutusScript(version: LanguageVersion): TxBuilder {
 		if (!this._inputs.length) {
 			throw new Error('No input to set script version for. Call setInputScriptTx() first.')
 		}
@@ -286,14 +286,16 @@ export class TxBuilder {
 	/**
 	 * Add script reference to output
 	 */
-	txOutReferenceScript(scriptCbor: string, version: PlutusVersion = 'V3'): TxBuilder {
+	txOutReferenceScript(scriptCbor: string, version: LanguageVersion = 'V3'): TxBuilder {
 		if (this._outputs.length === 0) {
 			throw new Error('No output to attach script to. Call txOut() first.')
 		}
 		const lastOutput = this._outputs[this._outputs.length - 1]
-		// FIXME: update script ref logic
-		console.log('txOutReferenceScript: ', scriptCbor, version)
-		lastOutput.scriptRef = scriptCbor
+
+		lastOutput.scriptRef = {
+			scriptCbor,
+			version
+		}
 		return this
 	}
 
@@ -517,7 +519,7 @@ export class TxBuilder {
 	/**
 	 * Mint assets with native script
 	 */
-	mintPlutusScript(version: PlutusVersion): TxBuilder {
+	mintPlutusScript(version: LanguageVersion): TxBuilder {
 		// This sets the context for the next mint operation
 		console.log('mintPlutusScript: ', version)
 		return this
@@ -1038,9 +1040,24 @@ export class TxBuilder {
 			const datumHash = CardanoWASM.hash_plutus_data(output.datum).to_hex()
 			txOutput.set_data_hash(CardanoWASM.DataHash.from_hex(datumHash))
 		}
-		// FIXME:
+		// Add script reference if present
 		if (output?.scriptRef) {
-			// txOutput.set_script_ref(CardanoWASM.ScriptRef.from_json('').)
+			// txOutput.set_script_ref(CardanoWASM.ScriptRef.from_json(''))
+			let plutusVersion: CardanoWASM.Language
+			if (output.scriptRef.version === 'V2') {
+				plutusVersion = CardanoWASM.Language.new_plutus_v2()
+			} else if (output.scriptRef.version === 'V3') {
+				plutusVersion = CardanoWASM.Language.new_plutus_v3()
+			} else if (output.scriptRef.version === 'V1') {
+				plutusVersion = CardanoWASM.Language.new_plutus_v1()
+			} else {
+				throw new Error(`Unsupported Plutus version: ${output.scriptRef.version}`)
+			}
+			this._verbose && console.log('[🛠️][TxBuilder] [Output scriptRef]: ', output.scriptRef)
+			const plutusScript = CardanoWASM.PlutusScript.from_hex_with_version(output.scriptRef.scriptCbor, plutusVersion)
+			const scriptRef = CardanoWASM.ScriptRef.new_plutus_script(plutusScript)
+			txOutput.set_script_ref(scriptRef)
+			this._verbose && console.log('[🛠️][TxBuilder] [Output has scriptRef]: ', txOutput.has_script_ref())
 		}
 		this._txBuilder.add_output(txOutput)
 		this._verbose && console.log('[🛠️][TxBuilder] [Output]: ', txOutput.to_json())
