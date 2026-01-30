@@ -210,6 +210,18 @@ export class TxBuilder {
 	}
 
 	/**
+	 * Add UTxO reference input
+	 */
+	txInReference(txHash: string, outputIndex: number): TxBuilder {
+		const input: TxIn = {
+			txHash,
+			outputIndex
+		}
+		this._referenceInputs.push(input)
+		return this
+	}
+
+	/**
 	 * Set spending Plutus script version
 	 */
 	spendingPlutusScript(version: PlutusVersion): TxBuilder {
@@ -896,6 +908,9 @@ export class TxBuilder {
 		this._verbose &&
 			console.log('[🛠️][TxBuilder] [Input After]: ', safeStringify(this._txBuilder.get_total_input().to_js_value()))
 
+		// Add all reference inputs to the transaction builder
+		this._addReferenceInputsToBuilder(this._referenceInputs)
+
 		try {
 			let tx: CardanoWASM.Transaction
 			if (this._isHydra) {
@@ -1162,6 +1177,16 @@ export class TxBuilder {
 			this._txBuilder.calc_script_data_hash(costMdls)
 		}
 		this.selectUtxosFrom(rawUTxOs, strategy, { recalculateScriptDataHash })
+	}
+
+	private _addReferenceInputsToBuilder(referenceInputs: TxIn[]): void {
+		referenceInputs.forEach(refInput => {
+			const txInput = CardanoWASM.TransactionInput.new(
+				CardanoWASM.TransactionHash.from_hex(refInput.txHash),
+				refInput.outputIndex
+			)
+			this._txBuilder.add_reference_input(txInput)
+		})
 	}
 
 	/**
