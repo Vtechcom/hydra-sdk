@@ -5,15 +5,15 @@ services:
       - .:/devnet
       - ./persistence/alice:/devnet/persistence/alice
     ports:
-      - "4001:4001"
-      - "5001:5001"
+      - "4002:4002"
+      - "5002:5002"
     command:
       [
         "--node-id", "1",
         "--api-host", "0.0.0.0",
-        "--listen", "128.1.2.10:5001",
-        "--monitoring-port", "6001",
-        "--api-port", "4001",
+        "--listen", "128.1.2.10:5002",
+        "--monitoring-port", "6002",
+        "--api-port", "4002",
         "--peer", "128.1.2.30:5003",
         "--hydra-signing-key", "/devnet/credentials/alice/alice-hydra.sk",
         "--hydra-verification-key", "/devnet/credentials/bob/bob-hydra.vk",
@@ -42,7 +42,7 @@ services:
         "--listen", "128.1.2.30:5003",
         "--monitoring-port", "6003",
         "--api-port", "4003",
-        "--peer", "128.1.2.10:5001",
+        "--peer", "128.1.2.10:5002",
         "--hydra-signing-key", "/devnet/credentials/bob/bob-hydra.sk",
         "--hydra-verification-key", "/devnet/credentials/alice/alice-hydra.vk",
         "--persistence-dir", "/devnet/persistence/bob",
