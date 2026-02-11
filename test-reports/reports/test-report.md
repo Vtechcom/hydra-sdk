@@ -19,7 +19,7 @@
 
 ### Reports
 - 📈 [Coverage Report](https://vtechcom.github.io/hydra-sdk/test-reports/coverage/)
-- 📋 [Actions Run](https://github.com/Vtechcom/hydra-sdk/actions/runs/21510829204)
+- 📋 [Actions Run](https://github.com/Vtechcom/hydra-sdk/actions/runs/21907190001)
 </details>
 
 ---
