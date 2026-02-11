@@ -1,6 +1,6 @@
 services:
   hydra-node-alice:
-    image: ghcr.io/cardano-scaling/hydra-node:1.1.0
+    image: ghcr.io/cardano-scaling/hydra-node:1.2.0
     volumes:
       - .:/devnet
       - C:\workspaces\blockchain\1.cardano\cardano-node:/cardano-node

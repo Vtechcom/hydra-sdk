@@ -460,6 +460,8 @@ export class TxBuilder {
 
 	/**
 	 * Legacy method for backward compatibility
+	 * @warn This method will override all inputs
+	 * @tip Always call this method before txIn()
 	 */
 	setInputs(utxos: UTxO[], options: { strategy: CoinSelectionStrategy } = { strategy: 'LargestFirstMultiAsset' }) {
 		this._selectionStrategy = options.strategy
