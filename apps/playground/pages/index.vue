@@ -1,13 +1,21 @@
 <template>
-	<div class="container mx-auto p-6 max-w-4xl">
-		<h1 class="text-3xl font-bold text-center mb-8 text-primary">🌐 Browser Hydra SDK playground</h1>
+	<div class="container mx-auto p-6 max-w-6xl">
+		<div class="mb-8">
+			<h1 class="text-3xl font-bold text-center text-primary">🌐 Browser Hydra SDK playground</h1>
+			<p class="text-center text-sm text-gray-500 mt-2">Runtime testing, transaction tooling, and Hydra message diagnostics in one workspace</p>
+		</div>
 
-		<div class="grid gap-6">
+		<div class="grid gap-6 lg:grid-cols-2">
 			<!-- Environment Info Card -->
-			<el-card shadow="hover">
+			<el-card shadow="hover" class="lg:col-span-2">
 				<template #header>
-					<div class="flex items-center gap-2">
+					<div class="flex items-center justify-between gap-2">
 						<span class="text-lg font-semibold">🔍 Environment Detection</span>
+						<div class="flex gap-2 flex-wrap">
+							<el-tag size="small" type="info">browser</el-tag>
+							<el-tag size="small" type="success">sdk-runtime</el-tag>
+							<el-tag size="small" type="warning">playground</el-tag>
+						</div>
 					</div>
 				</template>
 				<div class="space-y-2">
@@ -21,11 +29,17 @@
 				<template #header>
 					<div class="flex items-center gap-2">
 						<Icon name="ic:baseline-build-circle" size="24" class="inline-block text-primary-300" />
-						<span class="text-lg font-semibold"> Transaction builder playground</span>
+						<span class="text-lg font-semibold">Transaction builder playground</span>
 					</div>
 				</template>
 
 				<div class="space-y-4">
+					<p class="text-sm text-gray-600">Build and inspect transactions quickly with a browser-first builder workflow.</p>
+					<div class="flex gap-2 flex-wrap">
+						<el-tag size="small" type="danger">TxBuilder</el-tag>
+						<el-tag size="small" type="warning">wallet</el-tag>
+						<el-tag size="small" type="info">blockfrost</el-tag>
+					</div>
 					<el-button @click="$router.push('/transaction-builder')" type="primary" size="large" class="w-full">
 						<Icon name="mdi:play" size="20" class="inline-block mr-1" />
 						Start playground
@@ -35,8 +49,31 @@
 				</div>
 			</el-card>
 
-			<!-- Test Results Card -->
 			<el-card shadow="hover">
+				<template #header>
+					<div class="flex items-center gap-2">
+						<Icon name="mdi:routes" size="24" class="inline-block text-primary-300" />
+						<span class="text-lg font-semibold">Hydra Tx Trace</span>
+					</div>
+				</template>
+
+				<div class="space-y-4">
+					<p class="text-sm text-gray-600">Parse Hydra WS validation failures, inspect TxInfo blocks, and view structured trace output.</p>
+					<div class="flex gap-2 flex-wrap">
+						<el-tag size="small" type="danger">trace</el-tag>
+						<el-tag size="small" type="warning">txinfo</el-tag>
+						<el-tag size="small" type="info">debug</el-tag>
+					</div>
+					<el-button @click="$router.push('/hydra-tx-trace')" type="success" size="large" class="w-full">
+						<Icon name="mdi:play" size="20" class="inline-block mr-1" />
+						Open trace tool
+					</el-button>
+					<img src="/images/hydra-tx-trace-demo.png" alt="Hydra Tx Trace Demo" class="w-full rounded-lg border" />
+				</div>
+			</el-card>
+
+			<!-- Test Results Card -->
+			<el-card shadow="hover" class="lg:col-span-2">
 				<template #header>
 					<div class="flex items-center gap-2 justify-between">
 						<span class="text-lg font-semibold">🧪 Cardano WASM Tests</span>
@@ -176,10 +213,9 @@
 
 	// Console test code
 	const consoleTestCode = ref(`// Test Cardano WASM in Browser Console
-const { CardanoWASM } = await import('@hydra-sdk/cardano-wasm')
-console.log('CardanoWASM loaded:', !!CardanoWASM)
-const bigNum = CardanoWASM.BigNum.from_str('1000000')
-console.log('BigNum test:', bigNum.to_str())`)
+	console.log('CardanoWASM loaded:', !!CardanoWASM)
+	const bigNum = CardanoWASM.BigNum.from_str('1000000')
+	console.log('BigNum test:', bigNum.to_str())`)
 
 	// Initialize environment info
 	onMounted(() => {
@@ -189,6 +225,8 @@ console.log('BigNum test:', bigNum.to_str())`)
 			platform: navigator.platform,
 			language: navigator.language
 		}
+		CardanoWASM ? console.log('CardanoWASM is available in the browser environment') : console.warn('CardanoWASM is not available in the browser environment')
+		;(window as any).CardanoWASM = CardanoWASM // Expose globally for console testing
 	})
 
 	// Test functions

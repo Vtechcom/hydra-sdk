@@ -13,6 +13,11 @@
 		twitterImage: '/images/og-image.webp',
 		twitterCard: 'summary'
 	})
+
+	const colorMode = useColorMode()
+	onMounted(() => {
+		colorMode.preference = 'light'
+	})
 </script>
 
 <template>
