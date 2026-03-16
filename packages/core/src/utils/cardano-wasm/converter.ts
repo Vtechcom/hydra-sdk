@@ -4,11 +4,21 @@ import { deserializeAssetUnit } from './deserializer'
 import { isValidAddress } from '../validator.util'
 import { Deserializer, ParserUtils } from '../..'
 
+type ConvertUTxOObjectToUTxOOptions = {
+	maxDatumCacheSize?: number
+}
+
+const DEFAULT_MAX_DATUM_CACHE_SIZE = 1024
+
 export const convertUTxOToUTxOObject = (utxos: UTxO[]): UTxOObject => {
-	return utxos.reduce((acc, cur) => {
+	const result = {} as UTxOObject
+
+	for (let i = 0; i < utxos.length; i++) {
+		const cur = utxos[i]
 		let datumhash = null
 		let inlineDatum = null
 		let inlineDatumhash = null
+
 		if (cur.output.inlineDatum) {
 			datumhash = null
 			inlineDatumhash = CardanoWASM.hash_plutus_data(cur.output.inlineDatum).to_hex()
@@ -17,7 +27,24 @@ export const convertUTxOToUTxOObject = (utxos: UTxO[]): UTxOObject => {
 			datumhash = cur.output.datumHash || null
 		}
 
-		acc[`${cur.input.txHash}#${cur.input.outputIndex}` as TxHash] = {
+		const value: Record<string, unknown> = {}
+		for (let j = 0; j < cur.output.amount.length; j++) {
+			const amount = cur.output.amount[j]
+			if (amount.unit === 'lovelace') {
+				value.lovelace = Number(amount.quantity)
+				continue
+			}
+
+			const { policyId, assetName } = deserializeAssetUnit(amount.unit)
+			let policyAssets = value[policyId] as Record<string, number> | undefined
+			if (!policyAssets) {
+				policyAssets = {}
+				value[policyId] = policyAssets
+			}
+			policyAssets[assetName] = Number(amount.quantity)
+		}
+
+		result[`${cur.input.txHash}#${cur.input.outputIndex}` as TxHash] = {
 			address: cur.output.address,
 
 			// datum
@@ -31,27 +58,11 @@ export const convertUTxOToUTxOObject = (utxos: UTxO[]): UTxOObject => {
 
 			// TODO: update it if using scriptRef
 			referenceScript: null,
-			value: cur.output.amount.reduce(
-				(acc, cur) => {
-					if (cur.unit === 'lovelace') {
-						acc.lovelace = Number(cur.quantity)
-					} else {
-						const { policyId, assetName } = deserializeAssetUnit(cur.unit)
-						// @ts-ignore
-						if (!acc[policyId]) {
-							// @ts-ignore
-							acc[policyId] = {}
-						}
-						// @ts-ignore
-						acc[policyId][assetName] = Number(cur.quantity)
-					}
-					return acc
-				},
-				{} as UTxOObjectValue['value']
-			)
+			value: value as UTxOObjectValue['value']
 		}
-		return acc
-	}, {} as UTxOObject)
+	}
+
+	return result
 }
 
 /**
@@ -63,98 +74,86 @@ export const convertUTxOToUTxOObject = (utxos: UTxO[]): UTxOObject => {
  * to a separate thread, preventing UI blocking in frontend applications.
  */
 export const convertUTxOObjectToUTxO = (utxoObject: UTxOObject): UTxO[] => {
-	const entries = Object.entries(utxoObject)
-	const length = entries.length
-	const result: UTxO[] = new Array(length)
+	return convertUTxOObjectToUTxOWithOptions(utxoObject)
+}
+
+export const convertUTxOObjectToUTxOWithOptions = (
+	utxoObject: UTxOObject,
+	options: ConvertUTxOObjectToUTxOOptions = {}
+): UTxO[] => {
+	const result: UTxO[] = []
+	const maxDatumCacheSize = options.maxDatumCacheSize ?? DEFAULT_MAX_DATUM_CACHE_SIZE
 	const datumCache = new Map<string, CardanoWASM.PlutusData>()
+	const setDatumCache = (key: string, datum: CardanoWASM.PlutusData) => {
+		if (maxDatumCacheSize > 0 && datumCache.size >= maxDatumCacheSize) {
+			const oldestKey = datumCache.keys().next().value
+			if (oldestKey) {
+				datumCache.delete(oldestKey)
+			}
+		}
+		datumCache.set(key, datum)
+	}
 
-	for (let i = 0; i < length; i++) {
-		const [txHash, utxo] = entries[i]
+	for (const txHash in utxoObject) {
+		const utxo = utxoObject[txHash as TxHash]
+		if (!utxo) continue
 
-		// Parse txHash - tối ưu bằng cách tính toán trực tiếp
 		const hashIndex = txHash.indexOf('#')
+		if (hashIndex <= 0 || hashIndex === txHash.length - 1) continue
+
 		const txId = txHash.slice(0, hashIndex)
 		const outputIndex = Number(txHash.slice(hashIndex + 1))
 
-		// Pre-calculate total assets để allocate chính xác size
-		const value = utxo.value
-		let assetCount = 1 // lovelace
-		const policyIds = Object.keys(value)
-		for (let j = 0; j < policyIds.length; j++) {
-			const policyId = policyIds[j]
-			if (policyId !== 'lovelace') {
-				// @ts-ignore
-				assetCount += Object.keys(value[policyId]).length
+		const value = utxo.value as Record<string, unknown> & { lovelace?: number }
+		const amount: Asset[] = [
+			{
+				unit: 'lovelace',
+				quantity: String(value.lovelace ?? 0)
 			}
-		}
+		]
 
-		// Pre-allocate amount array với size chính xác
-		const amount: Asset[] = new Array(assetCount)
-		let amountIndex = 0
-
-		// Add lovelace first
-		amount[amountIndex++] = {
-			unit: 'lovelace',
-			quantity: String(value.lovelace)
-		}
-
-		// Process assets - optimize bằng cách giảm scope lookups
-		for (let j = 0; j < policyIds.length; j++) {
-			const policyId = policyIds[j]
+		for (const policyId in value) {
 			if (policyId === 'lovelace') continue
 
-			// @ts-ignore
-			const assets = value[policyId]
-			const assetNames = Object.keys(assets)
+			const assets = value[policyId] as Record<string, number> | undefined
+			if (!assets || typeof assets !== 'object') continue
 
-			for (let k = 0; k < assetNames.length; k++) {
-				const assetName = assetNames[k]
-				amount[amountIndex++] = {
-					unit: policyId + assetName, // Concatenation nhanh hơn template literal
+			for (const assetName in assets) {
+				amount.push({
+					unit: policyId + assetName,
 					quantity: String(assets[assetName])
-				}
+				})
 			}
 		}
 
-		// Parse inlineDatum - early return pattern
 		let inlineDatum: CardanoWASM.PlutusData | undefined
 		const inlineDatumValue = utxo.inlineDatum
+		const inlineDatumRaw = utxo.inlineDatumRaw
 
-		if (inlineDatumValue) {
-			// Fast path first - raw hex (common case)
-			if (utxo.inlineDatumRaw) {
-				if (datumCache.has(utxo.inlineDatumRaw)) {
-					inlineDatum = datumCache.get(utxo.inlineDatumRaw)
-				} else {
-					inlineDatum = CardanoWASM.PlutusData.from_hex(utxo.inlineDatumRaw)
-					datumCache.set(utxo.inlineDatumRaw, inlineDatum)
-				}
+		if (inlineDatumRaw) {
+			const cached = datumCache.get(inlineDatumRaw)
+			if (cached) {
+				inlineDatum = cached
+			} else {
+				inlineDatum = CardanoWASM.PlutusData.from_hex(inlineDatumRaw)
+				setDatumCache(inlineDatumRaw, inlineDatum)
 			}
-			// String hex
-			else if (typeof inlineDatumValue === 'string') {
-				if (datumCache.has(inlineDatumValue)) {
-					inlineDatum = datumCache.get(inlineDatumValue)
-				} else {
-					inlineDatum = CardanoWASM.PlutusData.from_hex(inlineDatumValue)
-					datumCache.set(inlineDatumValue, inlineDatum)
-				}
+		} else if (typeof inlineDatumValue === 'string') {
+			const cached = datumCache.get(inlineDatumValue)
+			if (cached) {
+				inlineDatum = cached
+			} else {
+				inlineDatum = CardanoWASM.PlutusData.from_hex(inlineDatumValue)
+				setDatumCache(inlineDatumValue, inlineDatum)
 			}
-			// Object - slowest path
-			/**
-			 * Note: Thông thường nếu inlineDatum là object thì sẽ có inlineDatumRaw là hex string
-			 * Tuy nhiên vẫn cần handle trường hợp này để đảm bảo tính đúng đắn
-			 * Vì vậy performance sẽ không bị ảnh hưởng nhiều trong thực tế
-			 */
-			else if (typeof inlineDatumValue === 'object') {
-				inlineDatum = CardanoWASM.PlutusData.from_json(
-					JSON.stringify(inlineDatumValue),
-					CardanoWASM.PlutusDatumSchema.DetailedSchema
-				)
-			}
+		} else if (inlineDatumValue && typeof inlineDatumValue === 'object') {
+			inlineDatum = CardanoWASM.PlutusData.from_json(
+				JSON.stringify(inlineDatumValue),
+				CardanoWASM.PlutusDatumSchema.DetailedSchema
+			)
 		}
 
-		// Construct UTxO object
-		result[i] = {
+		result.push({
 			input: {
 				outputIndex,
 				txHash: txId
@@ -168,7 +167,7 @@ export const convertUTxOObjectToUTxO = (utxoObject: UTxOObject): UTxO[] => {
 				scriptRef: undefined,
 				scriptHash: undefined
 			}
-		}
+		})
 	}
 
 	return result
@@ -180,10 +179,17 @@ export const convertTxOutputToWasm = (output: TxOutput): CardanoWASM.Transaction
 		if (!Array.isArray(output.amount)) throw new Error('Invalid amount')
 
 		const shelleyOutputAddress = CardanoWASM.Address.from_bech32(output.address)
-		const lovelaceSend = output.amount.find(el => el.unit === 'lovelace')?.quantity || '0'
+		let lovelaceSend = '0'
+		const withAssets: Asset[] = []
+		for (let i = 0; i < output.amount.length; i++) {
+			const asset = output.amount[i]
+			if (asset.unit === 'lovelace') {
+				lovelaceSend = asset.quantity
+				continue
+			}
+			withAssets.push(asset)
+		}
 		const lovelaceBigNum = CardanoWASM.BigNum.from_str(lovelaceSend)
-
-		const withAssets = output.amount.filter(el => el.unit !== 'lovelace')
 
 		let txOutput: CardanoWASM.TransactionOutput
 		if (withAssets.length > 0) {
