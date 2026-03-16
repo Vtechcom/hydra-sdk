@@ -38,8 +38,6 @@ type InitHydraBridgeOptions = {
 export type IHydraBridge = {
 	connector: HydraConnector
 
-	_verbose: boolean
-
 	connect(): Promise<boolean>
 	disconnect(): Promise<boolean>
 	connected(): boolean
@@ -77,14 +75,14 @@ export type IHydraBridge = {
 export class HydraBridge implements IHydraBridge {
 	connector: HydraConnector
 
-	private _rawPotocolParameters: RawProtocolParameters | null = null
-	private _snapshotUTxOObject: UTxOObject = {}
-	private _eventEmitter: HydraConnector['eventEmitter']
+	private rawProtocolParameters: RawProtocolParameters | null = null
+	private snapshotUTxOObject: UTxOObject = {}
+	private eventEmitter: HydraConnector['eventEmitter']
 
-	_verbose: boolean = false
+	verbose: boolean = false
 
 	constructor(options: InitHydraBridgeOptions) {
-		this._verbose = options.verbose || false
+		this.verbose = options.verbose || false
 		if ('connector' in options) {
 			this.connector = options.connector
 		} else {
@@ -95,14 +93,14 @@ export class HydraBridge implements IHydraBridge {
 				address: options.address
 			})
 		}
-		this._eventEmitter = this.connector.eventEmitter
-		this._eventEmitter.on('onConnected', () => {
+		this.eventEmitter = this.connector.eventEmitter
+		this.eventEmitter.on('onConnected', () => {
 			this.querySnapshotUtxo()
 		})
 	}
 
 	snapshotUtxoArray() {
-		const utxos: UTxO[] = Converter.convertUTxOObjectToUTxO(this._snapshotUTxOObject)
+		const utxos: UTxO[] = Converter.convertUTxOObjectToUTxO(this.snapshotUTxOObject)
 		return utxos
 	}
 
@@ -111,16 +109,16 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async connect() {
-		this._verbose && console.log('[⚡ HydraBridge] Create connection')
+		this.verbose && console.log('[⚡ HydraBridge] Create connection')
 		this.connector.connect()
 		return new Promise<boolean>((resolve, reject) => {
 			const connectedHandler = () => {
-				this._verbose && console.log('[⚡ HydraBridge] Connected to Hydra node')
+				this.verbose && console.log('[⚡ HydraBridge] Connected to Hydra node')
 				this.connector.eventEmitter.off('onConnected', connectedHandler)
 				resolve(true)
 			}
 			const disconnectedHandler = () => {
-				this._verbose && console.log('[⚡ HydraBridge] Disconnected from Hydra node')
+				this.verbose && console.log('[⚡ HydraBridge] Disconnected from Hydra node')
 				this.connector.eventEmitter.off('onDisconnected', disconnectedHandler)
 				reject(false)
 			}
@@ -130,14 +128,14 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async disconnect() {
-		this._verbose && console.log('[⚡ HydraBridge] disconnect')
+		this.verbose && console.log('[⚡ HydraBridge] disconnect')
 		this.connector.disconnect()
 		if (this.connector.connected() === false) {
 			return Promise.resolve(true)
 		}
 		return new Promise<boolean>(resolve => {
 			const disconnectedHandler = () => {
-				this._verbose && console.log('[⚡ HydraBridge] Disconnected from Hydra node')
+				this.verbose && console.log('[⚡ HydraBridge] Disconnected from Hydra node')
 				resolve(true)
 			}
 			this.connector.eventEmitter.on('onDisconnected', disconnectedHandler)
@@ -168,8 +166,8 @@ export class HydraBridge implements IHydraBridge {
 
 	private async queryRawProtocolParameters() {
 		try {
-			this._rawPotocolParameters = await this.connector.fetcher.queryRawProtocolParameters()
-			return this._rawPotocolParameters
+			this.rawProtocolParameters = await this.connector.fetcher.queryRawProtocolParameters()
+			return this.rawProtocolParameters
 		} catch (error) {
 			console.error('HydraBridge::: queryRawProtocolParameters error', error)
 			throw new Error('Failed to query protocol parameters')
@@ -177,8 +175,8 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	public async getProtocolParameters(): Promise<Protocol> {
-		if (this._rawPotocolParameters) {
-			return toProtocol(this._rawPotocolParameters)
+		if (this.rawProtocolParameters) {
+			return toProtocol(this.rawProtocolParameters)
 		}
 		const rawPP = await this.queryRawProtocolParameters()
 		return toProtocol(rawPP)
@@ -187,7 +185,7 @@ export class HydraBridge implements IHydraBridge {
 	async querySnapshotUtxo() {
 		try {
 			const utxo = await this.connector.fetcher.querySnapshotUtxo()
-			this._snapshotUTxOObject = utxo
+			this.snapshotUTxOObject = utxo
 			return utxo
 		} catch (error) {
 			console.error('HydraBridge::: queryUtxo error', error)
@@ -209,7 +207,7 @@ export class HydraBridge implements IHydraBridge {
 					payload: {
 						transaction: {
 							cborHex: cborHex,
-							description: description ? 'Ledger Cddl Format' : '',
+							description: description,
 							type: 'Witnessed Tx ConwayEra'
 						}
 					},
@@ -252,11 +250,11 @@ export class HydraBridge implements IHydraBridge {
 	async initHydraHead(retry: number, interval: number) {
 		return new Promise((resolve, reject) => {
 			this.commands.init()
-			this._verbose && console.log('[⚡ HydraBridge] Waiting for head is initializing')
+			this.verbose && console.log('[⚡ HydraBridge] Waiting for head is initializing')
 
 			const handler = (payload: HydraPayload) => {
 				if (payload.tag === HydraHeadTag.HeadIsInitializing) {
-					this._eventEmitter.off('onMessage', handler)
+					this.eventEmitter.off('onMessage', handler)
 					clearInterval(retryInterval)
 					resolve(true)
 				}
@@ -265,14 +263,14 @@ export class HydraBridge implements IHydraBridge {
 				if (retry > 0) {
 					this.commands.init()
 					retry--
-					this._verbose && console.log('[⚡ HydraBridge] Retry init remaining: ', retry)
+					this.verbose && console.log('[⚡ HydraBridge] Retry init remaining: ', retry)
 				} else {
 					clearInterval(retryInterval)
-					this._eventEmitter.off('onMessage', handler)
+					this.eventEmitter.off('onMessage', handler)
 					reject(new Error('Init timeout'))
 				}
 			}, interval)
-			this._eventEmitter.on('onMessage', handler)
+			this.eventEmitter.on('onMessage', handler)
 		})
 	}
 
@@ -285,7 +283,7 @@ export class HydraBridge implements IHydraBridge {
 		isConfirmed: boolean
 		result: Readonly<SnapshotConfirmed> | HydraHeadTag.SnapshotConfirmed | null
 	}> {
-		this._verbose && console.log('[⚡ HydraBridge] submitTxSync', tx.txId)
+		this.verbose && console.log('[⚡ HydraBridge] submitTxSync', tx.txId)
 		// Wait for the transaction to be confirmed
 		if (!this.connected()) {
 			console.warn('[⚡ HydraBridge] Not connected, cannot submit transaction')
@@ -306,24 +304,24 @@ export class HydraBridge implements IHydraBridge {
 					}
 				}
 			})
-			this._verbose && console.log('[⚡ HydraBridge] Waiting for decommit is finalized')
+			this.verbose && console.log('[⚡ HydraBridge] Waiting for decommit is finalized')
 			const handler = (payload: HydraPayload) => {
 				if (payload.tag === HydraHeadTag.DecommitApproved && payload.decommitTxId === txId) {
-					this._eventEmitter.off('onMessage', handler)
+					this.eventEmitter.off('onMessage', handler)
 					clearTimeout(txTimeout)
 					resolve(payload)
 				}
 			}
 			const txTimeout = setTimeout(() => {
-				this._eventEmitter.off('onMessage', handler)
+				this.eventEmitter.off('onMessage', handler)
 				reject(new Error('Decommit timeout'))
 			}, timeout)
-			this._eventEmitter.on('onMessage', handler)
+			this.eventEmitter.on('onMessage', handler)
 		})
 	}
 
 	public get events() {
-		return this._eventEmitter
+		return this.eventEmitter
 	}
 
 	public async queryAddressUTxO(address: string): Promise<UTxO[]> {

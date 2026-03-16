@@ -104,11 +104,11 @@ const defaultWsSubmitter = (connector: WebsocketConnector): HydraBridgeSubmitter
 export class WebsocketConnector implements HydraConnector {
 	conn: HydraConnectorEndpoint & {
 		/**
-		 * Specify weather the client wants to receive the full node history. Default is yes.
+		 * Specify whether the client wants to receive the full node history. Default is yes.
 		 */
 		history?: boolean
 		/**
-		 * Specify weather the client wants see the snapshot utxo. Default is yes.
+		 * Specify whether the client wants see the snapshot utxo. Default is yes.
 		 */
 		noSnapshotUtxo?: boolean
 		/**
@@ -285,7 +285,7 @@ export class WebsocketConnector implements HydraConnector {
 					})
 				} else if (
 					payload.tag === HydraHeadTag.SnapshotConfirmed &&
-					payload.snapshot.confirmed.findIndex(tx => tx.txId === tx.txId) !== -1
+					payload.snapshot.confirmed.findIndex(confirmedTx => confirmedTx.txId === tx.txId) !== -1
 				) {
 					clearTimeout(txTimeout)
 					this.eventEmitter.off('onMessage', handler)
