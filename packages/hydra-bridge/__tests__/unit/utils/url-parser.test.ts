@@ -159,6 +159,71 @@ describe('parseUrl', () => {
 		})
 	})
 
+	describe('real-world Hydra node URL formats', () => {
+		it('should parse http://localhost:4001', () => {
+			const result = parseUrl('http://localhost:4001')
+			expect(result.valid).toBe(true)
+			if (result.valid) {
+				expect(result.protocol).toBe('http:')
+				expect(result.host).toBe('localhost')
+				expect(result.port).toBe('4001')
+				expect(result.path).toBe('/')
+				expect(result.ssl).toBe(false)
+			}
+		})
+
+		it('should parse http://localhost:4001/ (trailing slash)', () => {
+			const result = parseUrl('http://localhost:4001/')
+			expect(result.valid).toBe(true)
+			if (result.valid) {
+				expect(result.host).toBe('localhost')
+				expect(result.port).toBe('4001')
+				expect(result.path).toBe('/')
+			}
+		})
+
+		it('should parse ws://localhost:4001', () => {
+			const result = parseUrl('ws://localhost:4001')
+			expect(result.valid).toBe(true)
+			if (result.valid) {
+				expect(result.protocol).toBe('ws:')
+				expect(result.host).toBe('localhost')
+				expect(result.port).toBe('4001')
+				expect(result.ssl).toBe(false)
+			}
+		})
+
+		it('should parse https gateway URL with path and X-Api-Key', () => {
+			const result = parseUrl(
+				'https://dev-kong.hydrahub.io.vn/head/010d3f2c-0c7b-4b41-af73-20618f11622c?X-Api-Key=proj_54446da5307a4a01aa8e738e49ba8f79'
+			)
+			expect(result.valid).toBe(true)
+			if (result.valid) {
+				expect(result.protocol).toBe('https:')
+				expect(result.host).toBe('dev-kong.hydrahub.io.vn')
+				expect(result.port).toBe('443')
+				expect(result.path).toBe('/head/010d3f2c-0c7b-4b41-af73-20618f11622c')
+				expect(result.params).toEqual({ 'X-Api-Key': 'proj_54446da5307a4a01aa8e738e49ba8f79' })
+				expect(result.ssl).toBe(true)
+			}
+		})
+
+		it('should parse wss gateway URL with path and X-Api-Key', () => {
+			const result = parseUrl(
+				'wss://dev-kong.hydrahub.io.vn/head/010d3f2c-0c7b-4b41-af73-20618f11622c?X-Api-Key=proj_54446da5307a4a01aa8e738e49ba8f79'
+			)
+			expect(result.valid).toBe(true)
+			if (result.valid) {
+				expect(result.protocol).toBe('wss:')
+				expect(result.host).toBe('dev-kong.hydrahub.io.vn')
+				expect(result.port).toBe('443')
+				expect(result.path).toBe('/head/010d3f2c-0c7b-4b41-af73-20618f11622c')
+				expect(result.params).toEqual({ 'X-Api-Key': 'proj_54446da5307a4a01aa8e738e49ba8f79' })
+				expect(result.ssl).toBe(true)
+			}
+		})
+	})
+
 	describe('URL without protocol (auto-add http://)', () => {
 		it('should add http:// to URL without protocol', () => {
 			const result = parseUrl('localhost:4001')

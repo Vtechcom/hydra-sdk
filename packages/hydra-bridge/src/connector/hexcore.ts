@@ -1,7 +1,7 @@
 import mitt, { Emitter } from 'mitt'
 import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client'
 
-import { HydraBridgeEvents, HydraConnector } from '../types/hydra-connector.type'
+import { HydraBridgeEvents, HydraConnector, HydraConnectorEndpoint } from '../types/hydra-connector.type'
 import { HydraBridgeFetcher } from '../types/fetcher.type'
 import { HydraBridgeSubmitter } from '../types/submitter.type'
 import { HydraCommand, HydraHeadTag, HydraPayload } from '../types/payload.type'
@@ -128,12 +128,6 @@ export const defaultHexcoreSubmitter = (connector: HexcoreConnector): HydraBridg
 	}
 }
 
-type HydraConnectorEndpoint = {
-	ssl: boolean
-	host: string
-	path: string
-	port?: number | string
-}
 
 export class HexcoreConnector implements HydraConnector {
 	conn: HydraConnectorEndpoint

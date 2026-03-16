@@ -660,5 +660,229 @@ describe('HydraBridge', () => {
 
 			expect(utxos.length).toBe(0)
 		})
+
+		it('should use addressUtxoIndex and skip HTTP when cache is seeded', async () => {
+			const mockSnapshot = {
+				'txhash1#0': {
+					address: 'addr_test1target',
+					datum: null,
+					datumhash: null,
+					inlineDatum: null,
+					referenceScript: null,
+					value: { lovelace: 5000000 }
+				}
+			} as UTxOObject
+
+			// Seed via Greetings (no HTTP call)
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.Greetings,
+				snapshotUtxo: mockSnapshot,
+				headStatus: HydraHeadStatus.Open,
+				hydraHeadId: 'head-id',
+				me: { vkey: 'vkey' },
+				hydraNodeVersion: '1.3.0',
+				timestamp: new Date()
+			} as any)
+
+			const fetchSpy = mockConnector.fetcher.querySnapshotUtxo as Mock
+			fetchSpy.mockClear()
+
+			const utxos = await bridge.queryAddressUTxO('addr_test1target')
+			expect(utxos.length).toBe(1)
+			expect(utxos[0].output.address).toBe('addr_test1target')
+			expect(fetchSpy).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('snapshot cache', () => {
+		const mockSnapshot: UTxOObject = {
+			'txhash1#0': {
+				address: 'addr_test1target',
+				datum: null,
+				datumhash: null,
+				inlineDatum: null,
+				referenceScript: null,
+				value: { lovelace: 5000000 }
+			},
+			'txhash2#0': {
+				address: 'addr_test1other',
+				datum: null,
+				datumhash: null,
+				inlineDatum: null,
+				referenceScript: null,
+				value: { lovelace: 3000000 }
+			}
+		}
+
+		it('should return null from getAddressBalance when cache is not seeded', () => {
+			expect(bridge.getAddressBalance('addr_test1target')).toBeNull()
+		})
+
+		it('should return empty Map for unknown address after cache is seeded', async () => {
+			;(mockConnector.fetcher.querySnapshotUtxo as Mock).mockResolvedValue(mockSnapshot)
+			await bridge.querySnapshotUtxo()
+			expect(bridge.getAddressBalance('addr_unknown')).toEqual(new Map())
+		})
+
+		it('should seed cache from Greetings snapshotUtxo without HTTP call', () => {
+			const fetchSpy = mockConnector.fetcher.querySnapshotUtxo as Mock
+			fetchSpy.mockClear()
+
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.Greetings,
+				snapshotUtxo: mockSnapshot,
+				headStatus: HydraHeadStatus.Open,
+				hydraHeadId: 'head-id',
+				me: { vkey: 'vkey' },
+				hydraNodeVersion: '1.3.0',
+				timestamp: new Date()
+			} as any)
+
+			expect(bridge.getAddressBalance('addr_test1target')).not.toBeNull()
+			expect(fetchSpy).not.toHaveBeenCalled()
+		})
+
+		it('should update cache and lastSnapshotNumber from SnapshotConfirmed', () => {
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.SnapshotConfirmed,
+				seq: 1,
+				headId: 'head-id',
+				snapshot: {
+					number: 5,
+					utxo: mockSnapshot,
+					headId: 'head-id',
+					version: 0,
+					confirmed: [],
+					utxoToCommit: {},
+					utxoToDecommit: {}
+				}
+			} as any)
+
+			expect(bridge.lastSnapshotNumber).toBe(5)
+			expect(bridge.getAddressBalance('addr_test1target')).not.toBeNull()
+		})
+
+		it('should skip out-of-order SnapshotConfirmed', () => {
+			// Apply snapshot #10
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.SnapshotConfirmed,
+				seq: 1,
+				headId: 'head-id',
+				snapshot: { number: 10, utxo: mockSnapshot, headId: 'head-id', version: 0, confirmed: [], utxoToCommit: {}, utxoToDecommit: {} }
+			} as any)
+			expect(bridge.lastSnapshotNumber).toBe(10)
+
+			// Try to apply an older snapshot #5 with different data
+			const newAddrSnapshot: UTxOObject = {
+				'txhash3#0': {
+					address: 'addr_new',
+					datum: null,
+					datumhash: null,
+					inlineDatum: null,
+					referenceScript: null,
+					value: { lovelace: 1 }
+				}
+			}
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.SnapshotConfirmed,
+				seq: 1,
+				headId: 'head-id',
+				snapshot: { number: 5, utxo: newAddrSnapshot, headId: 'head-id', version: 0, confirmed: [], utxoToCommit: {}, utxoToDecommit: {} }
+			} as any)
+
+			// Counter must not regress
+			expect(bridge.lastSnapshotNumber).toBe(10)
+			// Data from snapshot #10 still intact
+			expect(bridge.getAddressBalance('addr_test1target')).not.toBeNull()
+		})
+
+		it('should use index for addressesInHead when cache is seeded', async () => {
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.Greetings,
+				snapshotUtxo: mockSnapshot,
+				headStatus: HydraHeadStatus.Open,
+				hydraHeadId: 'head-id',
+				me: { vkey: 'vkey' },
+				hydraNodeVersion: '1.3.0',
+				timestamp: new Date()
+			} as any)
+
+			const fetchSpy = mockConnector.fetcher.querySnapshotUtxo as Mock
+			fetchSpy.mockClear()
+
+			const addresses = await bridge.addressesInHead()
+			expect(addresses).toContain('addr_test1target')
+			expect(addresses).toContain('addr_test1other')
+			expect(fetchSpy).not.toHaveBeenCalled()
+		})
+
+		it('should reset lastSnapshotNumber to -1 on reconnect', () => {
+			// Seed a snapshot first
+			mockConnector.eventEmitter.emit('onMessage', {
+				tag: HydraHeadTag.SnapshotConfirmed,
+				seq: 1,
+				headId: 'head-id',
+				snapshot: { number: 10, utxo: mockSnapshot, headId: 'head-id', version: 0, confirmed: [], utxoToCommit: {}, utxoToDecommit: {} }
+			} as any)
+			expect(bridge.lastSnapshotNumber).toBe(10)
+
+			mockConnector.eventEmitter.emit('onConnected')
+			expect(bridge.lastSnapshotNumber).toBe(-1)
+		})
+	})
+
+	describe('autoReconnect', () => {
+		it('should not auto-reconnect by default', () => {
+			const connectSpy = vi.spyOn(mockConnector, 'connect')
+			mockConnector.eventEmitter.emit('onDisconnected')
+			expect(connectSpy).not.toHaveBeenCalled()
+		})
+
+		it('should reconnect after interval when autoReconnect is enabled', () => {
+			vi.useFakeTimers()
+			const connector = createMockConnector()
+			new HydraBridge({ connector, autoReconnect: true, reconnectInterval: 500 })
+			const connectSpy = vi.spyOn(connector, 'connect')
+
+			connector.eventEmitter.emit('onDisconnected')
+			expect(connectSpy).not.toHaveBeenCalled()
+
+			vi.advanceTimersByTime(500)
+			expect(connectSpy).toHaveBeenCalledTimes(1)
+			vi.useRealTimers()
+		})
+
+		it('should stop reconnecting after maxReconnectAttempts', () => {
+			vi.useFakeTimers()
+			const connector = createMockConnector()
+			new HydraBridge({ connector, autoReconnect: true, reconnectInterval: 100, maxReconnectAttempts: 1 })
+			const connectSpy = vi.spyOn(connector, 'connect')
+
+			// First disconnect → triggers 1 attempt
+			connector.eventEmitter.emit('onDisconnected')
+			vi.advanceTimersByTime(100)
+			expect(connectSpy).toHaveBeenCalledTimes(1)
+
+			// Second disconnect → max reached, no more attempts
+			connector.eventEmitter.emit('onDisconnected')
+			vi.advanceTimersByTime(100)
+			expect(connectSpy).toHaveBeenCalledTimes(1)
+			vi.useRealTimers()
+		})
+
+		it('should cancel reconnect timer and stop on disconnect()', async () => {
+			vi.useFakeTimers()
+			const connector = createMockConnector()
+			;(connector.connected as Mock).mockReturnValue(false)
+			const reconnectBridge = new HydraBridge({ connector, autoReconnect: true, reconnectInterval: 1000 })
+			const connectSpy = vi.spyOn(connector, 'connect')
+
+			connector.eventEmitter.emit('onDisconnected')
+			await reconnectBridge.disconnect()
+
+			vi.advanceTimersByTime(1000)
+			expect(connectSpy).not.toHaveBeenCalled()
+			vi.useRealTimers()
+		})
 	})
 })

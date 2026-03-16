@@ -213,6 +213,57 @@ describe('buildUrl', () => {
 		})
 	})
 
+	describe('default port stripping', () => {
+		it('should omit port 80 for http', () => {
+			const url = buildUrl({ protocol: 'http', host: 'example.com', port: '80' })
+			expect(url).toBe('http://example.com/')
+		})
+
+		it('should omit port 443 for https', () => {
+			const url = buildUrl({ protocol: 'https', host: 'api.example.com', port: '443' })
+			expect(url).toBe('https://api.example.com/')
+		})
+
+		it('should omit port 80 for ws', () => {
+			const url = buildUrl({ protocol: 'ws', host: 'localhost', port: '80' })
+			expect(url).toBe('ws://localhost/')
+		})
+
+		it('should omit port 443 for wss', () => {
+			const url = buildUrl({ protocol: 'wss', host: 'secure.example.com', port: '443' })
+			expect(url).toBe('wss://secure.example.com/')
+		})
+
+		it('should keep non-default port for https', () => {
+			const url = buildUrl({ protocol: 'https', host: 'api.example.com', port: '8443' })
+			expect(url).toBe('https://api.example.com:8443/')
+		})
+
+		it('should build correct httpUrl from gateway URL with path and api-key', () => {
+			// Simulates: https://dev-kong.hydrahub.io.vn/head/010d3f2c-...?X-Api-Key=proj_...
+			const url = buildUrl({
+				protocol: 'https',
+				host: 'dev-kong.hydrahub.io.vn',
+				port: '443',
+				path: '/head/010d3f2c-0c7b-4b41-af73-20618f11622c'
+			})
+			expect(url).toBe('https://dev-kong.hydrahub.io.vn/head/010d3f2c-0c7b-4b41-af73-20618f11622c')
+		})
+
+		it('should build correct wsUrl from gateway URL with path and api-key', () => {
+			const url = buildUrl({
+				protocol: 'wss',
+				host: 'dev-kong.hydrahub.io.vn',
+				port: '443',
+				path: '/head/010d3f2c-0c7b-4b41-af73-20618f11622c',
+				queryParams: { 'X-Api-Key': 'proj_54446da5307a4a01aa8e738e49ba8f79' }
+			})
+			expect(url).toBe(
+				'wss://dev-kong.hydrahub.io.vn/head/010d3f2c-0c7b-4b41-af73-20618f11622c?X-Api-Key=proj_54446da5307a4a01aa8e738e49ba8f79'
+			)
+		})
+	})
+
 	describe('edge cases', () => {
 		it('should handle IP address as host', () => {
 			const url = buildUrl({
