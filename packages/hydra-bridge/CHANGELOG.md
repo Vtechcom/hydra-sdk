@@ -4,6 +4,29 @@
 
 ### Minor Changes
 
+- ## @hydra-sdk/bridge v1.3.0
+  - **In-memory snapshot cache**: O(1) `getAddressBalance()` and `queryAddressUTxO()` via two-level Map cache rebuilt once per `SnapshotConfirmed`/`Greetings`
+  - **`submitTx` callback API**: fire-and-forget submission with Node.js error-first callback pattern
+  - **Auto-reconnect**: `autoReconnect`, `reconnectInterval`, `maxReconnectAttempts` options
+  - **WebSocket best practices**: `per-message deflate` disabled, ping interval tuned
+  - **`awaitHydraMessage` utility**: single-cleanup Promise wrapper eliminating manual listener/timer teardown
+  - **Hydra node v0.20+ compatibility**: `slotZeroTimestamp`, `lastSnapshotNumber`, `Greetings.currentSlot`
+  - Bug fixes: duplicate `TxValid` events, stale listener leak on timeout, `decommit` cleanup
+
+  ## @hydra-sdk/core v1.3.0
+  - **`convertUTxOObjectToUTxOWithOptions`**: bounded datum deserialization cache (`maxDatumCacheSize`, LRU eviction)
+  - **Converter performance**: `for` loops replace `reduce`/`filter` chains; no intermediate array allocations
+  - **Benchmark script**: `scripts/bench-converter.ts`
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/core@1.2.0
+
+## 1.3.0
+
+### Minor Changes
+
 #### hydra-node v1.3.0 Compatibility
 
 - **`Greetings` message extended** — added four optional fields that hydra-node v1.3.0 now sends on WebSocket connect:
@@ -15,9 +38,11 @@
 - **Slot-zero timestamp computation** (`slotZeroTimestamp`) — when `Greetings.currentSlot` is present, `HydraBridge` now automatically derives the Unix timestamp (ms) of slot 0 using `TimeUtils.buildHydraSlotConfig` + `TimeUtils.slotToBeginUnixTime`. Exposed as `IHydraBridge.slotZeroTimestamp: number | null` for downstream slot ↔ time arithmetic.
 
 - **`submitTx` — callback-style API** — new Node.js error-first callback method alongside the existing `submitTxSync`:
+
   ```typescript
   bridge.submitTx(tx, (error, result) => { ... }, { timeout: 30000 })
   ```
+
   Available on `HydraBridge`, `HydraBridgeSubmitter`, `WebsocketConnector`, and `HexcoreConnector`.
 
 - **`/head` API endpoint** — `HydraHeadInfo` type completely rewritten to match the actual hydra-node v1.3.0 `/head` response:
@@ -49,11 +74,11 @@ Implements the snapshot lifecycle patterns documented in `improve-hydra-snapshot
 
 New `InitHydraBridgeOptions` fields:
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `autoReconnect` | `boolean` | `false` | Automatically reconnect when the WebSocket drops |
-| `reconnectInterval` | `number` (ms) | `3000` | Wait time between reconnect attempts |
-| `maxReconnectAttempts` | `number` | `0` (unlimited) | Stop after N failures; 0 = keep trying forever |
+| Option                 | Type          | Default         | Description                                      |
+| ---------------------- | ------------- | --------------- | ------------------------------------------------ |
+| `autoReconnect`        | `boolean`     | `false`         | Automatically reconnect when the WebSocket drops |
+| `reconnectInterval`    | `number` (ms) | `3000`          | Wait time between reconnect attempts             |
+| `maxReconnectAttempts` | `number`      | `0` (unlimited) | Stop after N failures; 0 = keep trying forever   |
 
 - Reconnect loop is cancelled immediately and cleanly when `bridge.disconnect()` is called (no spurious reconnects after intentional disconnect).
 
@@ -88,10 +113,12 @@ New utility `src/utils/await-hydra-message.ts` replaces the repeated manual even
 
 ```typescript
 export function awaitHydraMessage<T>(
-    emitter: Emitter<HydraBridgeEvents>,
-    predicate: (payload: HydraPayload) => { resolve: T } | { reject: unknown } | null,
-    timeoutMs = 30_000,
-    timeoutError?: unknown
+	emitter: Emitter<HydraBridgeEvents>,
+	predicate: (
+		payload: HydraPayload
+	) => { resolve: T } | { reject: unknown } | null,
+	timeoutMs = 30_000,
+	timeoutError?: unknown
 ): Promise<T>
 ```
 
@@ -100,11 +127,11 @@ export function awaitHydraMessage<T>(
 
 **Impact on existing functions:**
 
-| Function | Before | After |
-|---|---|---|
-| `WebsocketConnector.submitTxSync` | 60 lines, 3 manual cleanup points | 30 lines, 0 manual cleanup |
-| `HydraBridge.decommit` | 25 lines, 2 manual cleanup points | 12 lines, 0 manual cleanup |
-| `HydraBridge.initHydraHead` | 25 lines, `setInterval`+`off`+`clearInterval` entangled | 20 lines, retry sender isolated from message wait |
+| Function                          | Before                                                  | After                                             |
+| --------------------------------- | ------------------------------------------------------- | ------------------------------------------------- |
+| `WebsocketConnector.submitTxSync` | 60 lines, 3 manual cleanup points                       | 30 lines, 0 manual cleanup                        |
+| `HydraBridge.decommit`            | 25 lines, 2 manual cleanup points                       | 12 lines, 0 manual cleanup                        |
+| `HydraBridge.initHydraHead`       | 25 lines, `setInterval`+`off`+`clearInterval` entangled | 20 lines, retry sender isolated from message wait |
 
 `HydraPayload` import removed from `bridge.ts` (no longer needed in inline handlers).
 

@@ -4,6 +4,24 @@
 
 ### Minor Changes
 
+- ## @hydra-sdk/bridge v1.3.0
+  - **In-memory snapshot cache**: O(1) `getAddressBalance()` and `queryAddressUTxO()` via two-level Map cache rebuilt once per `SnapshotConfirmed`/`Greetings`
+  - **`submitTx` callback API**: fire-and-forget submission with Node.js error-first callback pattern
+  - **Auto-reconnect**: `autoReconnect`, `reconnectInterval`, `maxReconnectAttempts` options
+  - **WebSocket best practices**: `per-message deflate` disabled, ping interval tuned
+  - **`awaitHydraMessage` utility**: single-cleanup Promise wrapper eliminating manual listener/timer teardown
+  - **Hydra node v0.20+ compatibility**: `slotZeroTimestamp`, `lastSnapshotNumber`, `Greetings.currentSlot`
+  - Bug fixes: duplicate `TxValid` events, stale listener leak on timeout, `decommit` cleanup
+
+  ## @hydra-sdk/core v1.3.0
+  - **`convertUTxOObjectToUTxOWithOptions`**: bounded datum deserialization cache (`maxDatumCacheSize`, LRU eviction)
+  - **Converter performance**: `for` loops replace `reduce`/`filter` chains; no intermediate array allocations
+  - **Benchmark script**: `scripts/bench-converter.ts`
+
+## 1.3.0
+
+### Minor Changes
+
 #### `converter.ts` — Performance refactor
 
 All three converter functions in `src/utils/cardano-wasm/converter.ts` have been rewritten for lower allocations and faster iteration.
@@ -36,14 +54,14 @@ npx ts-node scripts/bench-converter.ts \
   --inline-every=3 --datum-pool=64 --cache-size=1024
 ```
 
-| Flag | Default | Description |
-|---|---|---|
-| `--size` | 10000 | Number of UTxOs in the snapshot |
-| `--assets` | 3 | Native assets per UTxO |
-| `--runs` | 5 | Number of benchmark iterations |
-| `--inline-every` | 3 | Every N-th UTxO gets an inline datum |
-| `--datum-pool` | 64 | Unique datum variants (tests cache hit rate) |
-| `--cache-size` | 1024 | `maxDatumCacheSize` passed to `convertUTxOObjectToUTxOWithOptions` |
+| Flag             | Default | Description                                                        |
+| ---------------- | ------- | ------------------------------------------------------------------ |
+| `--size`         | 10000   | Number of UTxOs in the snapshot                                    |
+| `--assets`       | 3       | Native assets per UTxO                                             |
+| `--runs`         | 5       | Number of benchmark iterations                                     |
+| `--inline-every` | 3       | Every N-th UTxO gets an inline datum                               |
+| `--datum-pool`   | 64      | Unique datum variants (tests cache hit rate)                       |
+| `--cache-size`   | 1024    | `maxDatumCacheSize` passed to `convertUTxOObjectToUTxOWithOptions` |
 
 ### New Exports
 
