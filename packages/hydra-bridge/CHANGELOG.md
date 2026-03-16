@@ -1,5 +1,113 @@
 # @hydra-sdk/bridge
 
+## 1.3.0
+
+### Minor Changes
+
+#### hydra-node v1.3.0 Compatibility
+
+- **`Greetings` message extended** — added four optional fields that hydra-node v1.3.0 now sends on WebSocket connect:
+  - `currentSlot?: number` — current chain slot at the time of connection
+  - `chainSyncedStatus?: string` — whether the node is fully synced with the chain
+  - `env?: { configuredPeers, contestationPeriod, depositPeriod, otherParties, participants, party, signingKey, unsyncedPeriod }` — node environment configuration
+  - `networkInfo?: { networkConnected, peersInfo }` — network connectivity status
+
+- **Slot-zero timestamp computation** (`slotZeroTimestamp`) — when `Greetings.currentSlot` is present, `HydraBridge` now automatically derives the Unix timestamp (ms) of slot 0 using `TimeUtils.buildHydraSlotConfig` + `TimeUtils.slotToBeginUnixTime`. Exposed as `IHydraBridge.slotZeroTimestamp: number | null` for downstream slot ↔ time arithmetic.
+
+- **`submitTx` — callback-style API** — new Node.js error-first callback method alongside the existing `submitTxSync`:
+  ```typescript
+  bridge.submitTx(tx, (error, result) => { ... }, { timeout: 30000 })
+  ```
+  Available on `HydraBridge`, `HydraBridgeSubmitter`, `WebsocketConnector`, and `HexcoreConnector`.
+
+- **`/head` API endpoint** — `HydraHeadInfo` type completely rewritten to match the actual hydra-node v1.3.0 `/head` response:
+  - `tag` now typed as `HydraHeadStatus` (not the old ambiguous `HydraHeadTag`)
+  - `contents` fields correctly structured: `headId`, `headSeed`, `parameters`, `chainState`, `coordinatedHeadState`
+  - `coordinatedHeadState` includes: `allTxs`, `confirmedSnapshot` (with `signatures.multiSignature: string[]`), `currentDepositTxId`, `decommitTx`, `localTxs`, `localUTxO`, `seenSnapshot`, `version`
+
+#### Performance — In-memory Snapshot Cache
+
+Snapshot reads are now O(1) instead of O(n) per request. The cache is rebuilt once per snapshot event, eliminating repeated `Array.filter` passes over all UTxOs on every balance/UTxO query.
+
+- **`addressUtxoIndex: Map<address, UTxOObject>`** — pre-built per-address UTxO sub-object. Rebuilt in a single O(n) pass on every snapshot event.
+- **`balanceCache: Map<address, Map<assetUnit, bigint>>`** — pre-computed aggregate balance per address and asset. Rebuilt alongside `addressUtxoIndex` in the same pass.
+- **`getAddressBalance(address): Map<string, bigint> | null`** — O(1) balance lookup. Returns `null` on cold start (cache not yet seeded) so callers can fall back to a database; returns an empty `Map` when the address is known but holds no UTxOs.
+- **`queryAddressUTxO(address)`** — now uses the pre-built `addressUtxoIndex` (O(1) map lookup) instead of converting + filtering all 5000 UTxOs on every call.
+- **`addressesInHead()`** — returns `Array.from(addressUtxoIndex.keys())` when the index is warm; HTTP call only on cold start.
+
+#### Performance — WebSocket Snapshot Best Practices
+
+Implements the snapshot lifecycle patterns documented in `improve-hydra-snapshot-log.md`:
+
+- **Greetings seeds the cache** — `HydraBridge` now handles the `Greetings` message and calls `updateSnapshot(payload.snapshotUtxo)` directly. No extra HTTP round-trip needed on fresh connect.
+- **`lastSnapshotNumber` tracking** — exposes `IHydraBridge.lastSnapshotNumber: number` (−1 until first snapshot). Only advances, never regresses.
+- **Out-of-order snapshot guard** — `SnapshotConfirmed` handler skips any snapshot whose `number ≤ lastSnapshotNumber`, preventing cache regression after reconnect or network jitter.
+- **HTTP fallback race condition fixed** — `querySnapshotUtxo()` now checks `lastSnapshotNumber === -1` before applying the HTTP result. A slow HTTP response can no longer overwrite fresher WebSocket data.
+- **`lastSnapshotNumber` reset on reconnect** — `onConnected` resets `lastSnapshotNumber = -1` so the HTTP fallback and Greetings handler can re-seed the cache correctly after every reconnect.
+
+#### Auto-reconnect
+
+New `InitHydraBridgeOptions` fields:
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `autoReconnect` | `boolean` | `false` | Automatically reconnect when the WebSocket drops |
+| `reconnectInterval` | `number` (ms) | `3000` | Wait time between reconnect attempts |
+| `maxReconnectAttempts` | `number` | `0` (unlimited) | Stop after N failures; 0 = keep trying forever |
+
+- Reconnect loop is cancelled immediately and cleanly when `bridge.disconnect()` is called (no spurious reconnects after intentional disconnect).
+
+### Bug Fixes
+
+- **`submitTxSync` variable shadowing** — `payload.snapshot.confirmed.findIndex(tx => tx.txId === tx.txId)` always returned index 0 because the inner `tx` shadowed the outer `tx` parameter. Renamed inner variable to `confirmedTx`; the correct transaction is now located.
+- **`newTx` hardcoded description** — `commands.newTx` was overwriting the caller-supplied `description` with the literal string `'Ledger Cddl Format'`. Description is now passed through as-is (defaults to empty string).
+- **URL builder default port leak** — `buildUrl` was emitting URLs like `https://host:443/path` when the caller passed no explicit port, because `parseUrl` substitutes the protocol default. Fixed by stripping default ports (`http:80`, `https:443`, `ws:80`, `wss:443`) before constructing the URL string.
+
+### Type Improvements
+
+- **`SubmitTxResult`** and **`SubmitTxError`** exported as named types from `submitter.type.ts`.
+- **`HydraBridgeSubmitter`** interface extended with `submitTx` callback signature.
+- **`HydraHeadInfo`** rewritten to match the real `/head` API response structure (see above).
+- **`InitHydraBridgeOptions`** extended with `autoReconnect`, `reconnectInterval`, `maxReconnectAttempts`.
+- **`IHydraBridge`** extended with `lastSnapshotNumber`, `slotZeroTimestamp`, `getAddressBalance`, and `submitTx`.
+
+### Internal / Refactoring
+
+- `HexcoreConnector`: removed duplicate private `HydraConnectorEndpoint` type declaration; now imports the shared type from `hydra-connector.type.ts`.
+- Dead code removed from previous iterations (unused `ws`, `eventBuffer`, `maxBufferSize` fields).
+- `WebsocketConnector.defaultWsSubmitter` now implements `submitTx` via `submitTxSync(...).then/catch`.
+- `HexcoreConnector.defaultHexcoreSubmitter` now implements `submitTx` via direct axios call with error-first callback.
+
+#### `awaitHydraMessage` — internal async utility
+
+New utility `src/utils/await-hydra-message.ts` replaces the repeated manual event-listener + timeout cleanup pattern across the codebase.
+
+**Problem it solves:** every async flow that waited for a WebSocket message had 2–3 exit paths (resolve / reject / timeout), each needing to call both `clearTimeout` and `emitter.off` manually. Forgetting either call causes a memory leak or a ghost listener.
+
+**Solution:** a single `cleanup()` closure that calls both. Every exit path goes through it — impossible to forget.
+
+```typescript
+export function awaitHydraMessage<T>(
+    emitter: Emitter<HydraBridgeEvents>,
+    predicate: (payload: HydraPayload) => { resolve: T } | { reject: unknown } | null,
+    timeoutMs = 30_000,
+    timeoutError?: unknown
+): Promise<T>
+```
+
+- `predicate` returns `{ resolve: T }` to settle, `{ reject: unknown }` to fail, `null` to keep waiting.
+- Listener and timer are always cleaned up on the first settlement — no double-settle possible.
+
+**Impact on existing functions:**
+
+| Function | Before | After |
+|---|---|---|
+| `WebsocketConnector.submitTxSync` | 60 lines, 3 manual cleanup points | 30 lines, 0 manual cleanup |
+| `HydraBridge.decommit` | 25 lines, 2 manual cleanup points | 12 lines, 0 manual cleanup |
+| `HydraBridge.initHydraHead` | 25 lines, `setInterval`+`off`+`clearInterval` entangled | 20 lines, retry sender isolated from message wait |
+
+`HydraPayload` import removed from `bridge.ts` (no longer needed in inline handlers).
+
 ## 1.1.7
 
 ### Patch Changes

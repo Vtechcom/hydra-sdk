@@ -11,6 +11,7 @@ import { deserializeHaskellErrorToJson } from '../utils/haskell-deserialize'
 import { CommitResponse } from '../types/commit.type'
 import { Transaction } from '../types/transaction.type'
 import { buildUrl } from '../utils/url-builder'
+import { awaitHydraMessage } from '../utils/await-hydra-message'
 
 export type WebsocketConnectorOptions = {
 	websocketUrl: string
@@ -260,56 +261,41 @@ export class WebsocketConnector implements HydraConnector {
 		isConfirmed: boolean
 		result: Readonly<SnapshotConfirmed> | null
 	}> {
-		return new Promise((resolve, reject) => {
-			const data = {
-				txId: tx.txId,
-				isValid: false,
-				isConfirmed: false,
-				result: null as Readonly<SnapshotConfirmed> | null
-			}
-			const payload = {
+		this.sendCommand({
+			command: HydraCommand.NewTx,
+			payload: {
 				transaction: {
 					cborHex: tx.cborHex,
 					description: tx.description,
 					type: tx.type
 				}
 			}
-			this.sendCommand({
-				command: HydraCommand.NewTx,
-				payload
-			})
-			const handler = (payload: HydraPayload) => {
+		})
+
+		// TxValid only sets the flag — we keep waiting for SnapshotConfirmed.
+		// Closure captures isValid so the final result reflects it correctly.
+		let isValid = false
+
+		return awaitHydraMessage<{ txId: string; isValid: boolean; isConfirmed: boolean; result: Readonly<SnapshotConfirmed> | null }>(
+			this.eventEmitter,
+			(payload) => {
 				if (payload.tag === HydraHeadTag.TxValid && payload.transactionId === tx.txId) {
-					data.isValid = true
-				} else if (payload.tag === HydraHeadTag.TxInvalid && payload.transaction.txId === tx.txId) {
-					clearTimeout(txTimeout)
-					this.eventEmitter.off('onMessage', handler)
-					reject({
-						txId: tx.txId,
-						reason: payload.validationError.reason,
-						tag: payload.tag
-					})
-				} else if (
+					isValid = true
+					return null
+				}
+				if (payload.tag === HydraHeadTag.TxInvalid && payload.transaction.txId === tx.txId) {
+					return { reject: { txId: tx.txId, reason: payload.validationError.reason, tag: payload.tag } }
+				}
+				if (
 					payload.tag === HydraHeadTag.SnapshotConfirmed &&
 					payload.snapshot.confirmed.findIndex(confirmedTx => confirmedTx.txId === tx.txId) !== -1
 				) {
-					clearTimeout(txTimeout)
-					this.eventEmitter.off('onMessage', handler)
-					data.isConfirmed = true
-					data.result = payload
-					resolve(data)
+					return { resolve: { txId: tx.txId, isValid, isConfirmed: true, result: payload } }
 				}
-			}
-			const txTimeout = setTimeout(() => {
-				this.eventEmitter.off('onMessage', handler)
-				reject({
-					txId: tx.txId,
-					reason: 'Timeout',
-					tag: 'Timeout'
-				})
-			}, options.timeout)
-
-			this.eventEmitter.on('onMessage', handler)
-		})
+				return null
+			},
+			options.timeout,
+			{ txId: tx.txId, reason: 'Timeout', tag: 'Timeout' }
+		)
 	}
 }

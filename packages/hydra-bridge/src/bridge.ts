@@ -3,7 +3,6 @@ import {
 	HydraCommand,
 	HydraHeadStatus,
 	HydraHeadTag,
-	type HydraPayload,
 	type SnapshotConfirmed
 } from './types/payload.type'
 import type { SubmitTxBody } from './types/submit-tx.type'
@@ -14,6 +13,7 @@ import { Transaction } from './types/transaction.type'
 import { HydraConnector } from './types/hydra-connector.type'
 import { WebsocketConnector } from './connector/websocket'
 import { type SubmitTxError, type SubmitTxResult } from './types/submitter.type'
+import { awaitHydraMessage } from './utils/await-hydra-message'
 
 type InitHydraBridgeOptions = {
 	verbose?: boolean
@@ -424,30 +424,32 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async initHydraHead(retry: number, interval: number) {
-		return new Promise((resolve, reject) => {
-			this.commands.init()
-			this.verbose && console.log('[⚡ HydraBridge] Waiting for head is initializing')
+		this.commands.init()
+		this.verbose && console.log('[⚡ HydraBridge] Waiting for head is initializing')
 
-			const handler = (payload: HydraPayload) => {
-				if (payload.tag === HydraHeadTag.HeadIsInitializing) {
-					this.eventEmitter.off('onMessage', handler)
-					clearInterval(retryInterval)
-					resolve(true)
-				}
+		// Retry sender — runs independently of the message wait
+		let attemptsLeft = retry
+		const retryTimer = setInterval(() => {
+			if (attemptsLeft > 0) {
+				this.commands.init()
+				attemptsLeft--
+				this.verbose && console.log('[⚡ HydraBridge] Retry init remaining: ', attemptsLeft)
 			}
-			const retryInterval = setInterval(() => {
-				if (retry > 0) {
-					this.commands.init()
-					retry--
-					this.verbose && console.log('[⚡ HydraBridge] Retry init remaining: ', retry)
-				} else {
-					clearInterval(retryInterval)
-					this.eventEmitter.off('onMessage', handler)
-					reject(new Error('Init timeout'))
-				}
-			}, interval)
-			this.eventEmitter.on('onMessage', handler)
-		})
+		}, interval)
+
+		try {
+			return await awaitHydraMessage<true>(
+				this.eventEmitter,
+				(payload) => {
+					if (payload.tag === HydraHeadTag.HeadIsInitializing) return { resolve: true }
+					return null
+				},
+				(retry + 1) * interval,
+				new Error('Init timeout')
+			)
+		} finally {
+			clearInterval(retryTimer)
+		}
 	}
 
 	async submitTxSync(
@@ -482,31 +484,28 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async decommit({ cborHex, txId, timeout = 30000 }: { cborHex: string; timeout?: number; txId: string }) {
-		return new Promise<Readonly<DecommitApproved>>((resolve, reject) => {
-			this.sendCommand({
-				command: HydraCommand.Decommit,
-				payload: {
-					decommitTx: {
-						cborHex,
-						description: 'Ledger Cddl Format',
-						type: 'Witnessed Tx ConwayEra'
-					}
-				}
-			})
-			this.verbose && console.log('[⚡ HydraBridge] Waiting for decommit is finalized')
-			const handler = (payload: HydraPayload) => {
-				if (payload.tag === HydraHeadTag.DecommitApproved && payload.decommitTxId === txId) {
-					this.eventEmitter.off('onMessage', handler)
-					clearTimeout(txTimeout)
-					resolve(payload)
+		this.sendCommand({
+			command: HydraCommand.Decommit,
+			payload: {
+				decommitTx: {
+					cborHex,
+					description: 'Ledger Cddl Format',
+					type: 'Witnessed Tx ConwayEra'
 				}
 			}
-			const txTimeout = setTimeout(() => {
-				this.eventEmitter.off('onMessage', handler)
-				reject(new Error('Decommit timeout'))
-			}, timeout)
-			this.eventEmitter.on('onMessage', handler)
 		})
+		this.verbose && console.log('[⚡ HydraBridge] Waiting for decommit is finalized')
+
+		return awaitHydraMessage<Readonly<DecommitApproved>>(
+			this.eventEmitter,
+			(payload) => {
+				if (payload.tag === HydraHeadTag.DecommitApproved && payload.decommitTxId === txId)
+					return { resolve: payload }
+				return null
+			},
+			timeout,
+			new Error('Decommit timeout')
+		)
 	}
 
 	public get events() {
