@@ -1,5 +1,54 @@
 # @hydra-sdk/core
 
+## 1.3.0
+
+### Minor Changes
+
+#### `converter.ts` — Performance refactor
+
+All three converter functions in `src/utils/cardano-wasm/converter.ts` have been rewritten for lower allocations and faster iteration.
+
+**`convertUTxOObjectToUTxO`**
+
+- Refactored into two functions: the original `convertUTxOObjectToUTxO` (unchanged public API) and a new **`convertUTxOObjectToUTxOWithOptions`** (exported) that accepts an options object.
+- `for...in` loop over UTxO entries replaces `Object.entries()` — avoids allocating an intermediate `[key, value][]` array.
+- Datum deserialization cache is now **bounded**: new `maxDatumCacheSize` option (default `1024`) evicts the oldest entry when the limit is reached, preventing unbounded memory growth on snapshots with many unique inline datums.
+- Datum lookup priority simplified: `inlineDatumRaw` hex → `inlineDatum` string hex → `inlineDatum` object (JSON path). Redundant branching removed.
+- `amount` array built with `push` instead of pre-allocated `new Array(assetCount)` — removes the O(n) pre-count pass over all policy IDs.
+- Guards added: skips `null` UTxO values and malformed `txHash` strings (no `#`, or `#` at start/end).
+
+**`convertUTxOToUTxOObject`**
+
+- `reduce` replaced with `for` loop + mutable `result` object — avoids creating and discarding intermediate accumulator references.
+- Value building split into a local `value` record populated by an explicit `for` loop, replacing the nested `reduce` inside the outer `reduce`.
+
+**`convertTxOutputToWasm`**
+
+- `output.amount.find(...)` + `output.amount.filter(...)` (two passes) replaced with a single `for` loop that separates lovelace and native assets in one pass.
+
+#### New: `scripts/bench-converter.ts`
+
+CLI benchmark script for measuring `convertUTxOObjectToUTxO` and `convertUTxOToUTxOObject` throughput under configurable workloads.
+
+```
+npx ts-node scripts/bench-converter.ts \
+  --size=10000 --assets=3 --runs=5 \
+  --inline-every=3 --datum-pool=64 --cache-size=1024
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--size` | 10000 | Number of UTxOs in the snapshot |
+| `--assets` | 3 | Native assets per UTxO |
+| `--runs` | 5 | Number of benchmark iterations |
+| `--inline-every` | 3 | Every N-th UTxO gets an inline datum |
+| `--datum-pool` | 64 | Unique datum variants (tests cache hit rate) |
+| `--cache-size` | 1024 | `maxDatumCacheSize` passed to `convertUTxOObjectToUTxOWithOptions` |
+
+### New Exports
+
+- `convertUTxOObjectToUTxOWithOptions(utxoObject, options?)` — same as `convertUTxOObjectToUTxO` but accepts `{ maxDatumCacheSize?: number }`.
+
 ## 1.1.7
 
 ### Patch Changes
