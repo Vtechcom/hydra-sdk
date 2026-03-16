@@ -9,10 +9,11 @@ import {
 import type { SubmitTxBody } from './types/submit-tx.type'
 import type { CommitBody } from './types/commit.type'
 import { toProtocol, type RawProtocolParameters } from './types/protocol-parameters.type'
-import { Converter, Protocol, TxHash, UTxO, UTxOObject } from '@hydra-sdk/core'
+import { Converter, Protocol, TimeUtils, TxHash, UTxO, UTxOObject } from '@hydra-sdk/core'
 import { Transaction } from './types/transaction.type'
 import { HydraConnector } from './types/hydra-connector.type'
 import { WebsocketConnector } from './connector/websocket'
+import { type SubmitTxError, type SubmitTxResult } from './types/submitter.type'
 
 type InitHydraBridgeOptions = {
 	verbose?: boolean
@@ -42,6 +43,9 @@ export type IHydraBridge = {
 	disconnect(): Promise<boolean>
 	connected(): boolean
 
+	/** Unix timestamp (ms) of slot 0, derived from the Greetings message. null until first Greetings is received. */
+	slotZeroTimestamp: number | null
+
 	events: HydraConnector['eventEmitter']
 	headInfo: () => Promise<{
 		headId: string | null
@@ -70,6 +74,12 @@ export type IHydraBridge = {
 		isConfirmed: boolean
 		result: Readonly<SnapshotConfirmed> | HydraHeadTag.SnapshotConfirmed | null
 	}>
+
+	submitTx: (
+		tx: Transaction,
+		callback: (error: SubmitTxError | null, result: SubmitTxResult | null) => void,
+		options?: { timeout: number }
+	) => void
 }
 
 export class HydraBridge implements IHydraBridge {
@@ -80,6 +90,7 @@ export class HydraBridge implements IHydraBridge {
 	private eventEmitter: HydraConnector['eventEmitter']
 
 	verbose: boolean = false
+	slotZeroTimestamp: number | null = null
 
 	constructor(options: InitHydraBridgeOptions) {
 		this.verbose = options.verbose || false
@@ -96,6 +107,14 @@ export class HydraBridge implements IHydraBridge {
 		this.eventEmitter = this.connector.eventEmitter
 		this.eventEmitter.on('onConnected', () => {
 			this.querySnapshotUtxo()
+		})
+		this.eventEmitter.on('onMessage', (payload) => {
+			if (payload.tag === HydraHeadTag.Greetings && payload.currentSlot !== undefined) {
+				const receiveTime = Date.now()
+				const slotConfig = TimeUtils.buildHydraSlotConfig(receiveTime, { zeroSlot: payload.currentSlot })
+				this.slotZeroTimestamp = TimeUtils.slotToBeginUnixTime(0, slotConfig)
+				this.verbose && console.log('[⚡ HydraBridge] slotZeroTimestamp set:', this.slotZeroTimestamp)
+			}
 		})
 	}
 
@@ -143,12 +162,11 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async headInfo() {
-		// TODO:
-		console.error('Not implemented')
+		const info = await this.connector.fetcher.queryHeadInfo()
 		return {
-			headId: null,
-			headStatus: HydraHeadStatus.Idle,
-			vkey: null
+			headId: info.contents?.headId ?? null,
+			headStatus: info.tag as HydraHeadStatus,
+			vkey: info.contents?.parameters?.parties[0]?.vkey ?? null
 		}
 	}
 
@@ -290,6 +308,20 @@ export class HydraBridge implements IHydraBridge {
 			throw new Error('Not connected to Hydra node')
 		}
 		return this.connector.submitter.submitTxSync(tx, options)
+	}
+
+	submitTx(
+		tx: Transaction,
+		callback: (error: SubmitTxError | null, result: SubmitTxResult | null) => void,
+		options = { timeout: 30000 }
+	): void {
+		this.verbose && console.log('[⚡ HydraBridge] submitTx', tx.txId)
+		if (!this.connected()) {
+			console.warn('[⚡ HydraBridge] Not connected, cannot submit transaction')
+			callback({ txId: tx.txId, reason: 'Not connected to Hydra node', tag: 'Error' }, null)
+			return
+		}
+		this.connector.submitter.submitTx(tx, callback, options)
 	}
 
 	async decommit({ cborHex, txId, timeout = 30000 }: { cborHex: string; timeout?: number; txId: string }) {

@@ -110,6 +110,20 @@ export const defaultHexcoreSubmitter = (connector: HexcoreConnector): HydraBridg
 			} catch (error) {
 				throw new Error('[HexcoreConnector][submitTxSync]: ' + error)
 			}
+		},
+		submitTx(tx, callback, options) {
+			connector.apiFetch
+				.post('/hydra/submit-tx', tx, { timeout: options?.timeout })
+				.then(rs => {
+					if (!rs.data.data) {
+						callback(null, { txId: tx.txId, isValid: false, isConfirmed: false, result: null })
+					} else {
+						callback(null, { txId: tx.txId, isValid: true, isConfirmed: true, result: rs.data.data })
+					}
+				})
+				.catch(error => {
+					callback({ txId: tx.txId, reason: error.message, tag: 'Error' }, null)
+				})
 		}
 	}
 }

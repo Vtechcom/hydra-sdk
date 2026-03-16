@@ -88,6 +88,26 @@ export type Greetings = BasePayload & {
 	snapshotUtxo: UTxOObject
 	timestamp: Date
 	hydraNodeVersion: string
+	/** Current slot at the time of connection. Available since hydra-node v1.3.0. */
+	currentSlot?: number
+	/** Whether the node is fully synced with the chain. Available since hydra-node v1.3.0. */
+	chainSyncedStatus?: string
+	/** Node environment configuration. Available since hydra-node v1.3.0. */
+	env?: {
+		configuredPeers: string
+		contestationPeriod: number
+		depositPeriod: number
+		otherParties: Array<{ vkey: string }>
+		participants: string[]
+		party: { vkey: string }
+		signingKey: string
+		unsyncedPeriod: number
+	}
+	/** Network connectivity info. Available since hydra-node v1.3.0. */
+	networkInfo?: {
+		networkConnected: boolean
+		peersInfo: Record<string, unknown>
+	}
 }
 
 export type PeerConnected = BasePayload & {

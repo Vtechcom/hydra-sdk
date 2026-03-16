@@ -1,16 +1,16 @@
 import { UTxOObject } from '@hydra-sdk/core'
-import { HydraHeadTag } from './payload.type'
+import { HydraHeadStatus } from './payload.type'
+import { Transaction } from './transaction.type'
 
 export type HydraHeadInfo = {
-	tag: HydraHeadTag
+	/** Reflects the current head state (e.g. "Open", "Closed"). Maps to HydraHeadStatus. */
+	tag: HydraHeadStatus
 	contents: {
 		headId: string
 		headSeed: string
 		parameters: {
 			contestationPeriod: number
-			parties: Array<{
-				vkey: string
-			}>
+			parties: Array<{ vkey: string }>
 		}
 		chainState: {
 			recordedAt: null | unknown
@@ -19,19 +19,29 @@ export type HydraHeadInfo = {
 		coordinatedHeadState: {
 			allTxs: Record<string, unknown>
 			confirmedSnapshot: {
-				signatures: any
-				snapshot: any
+				signatures: {
+					multiSignature: string[]
+				}
+				snapshot: {
+					confirmed: Transaction[]
+					headId: string
+					number: number
+					utxo: UTxOObject
+					utxoToCommit: UTxOObject | null
+					utxoToDecommit: UTxOObject | null
+					version: number
+				}
 				tag: 'ConfirmedSnapshot'
 			} | null
+			currentDepositTxId: string | null
+			decommitTx: string | null
+			localTxs: Transaction[]
+			localUTxO: UTxOObject
+			seenSnapshot: {
+				lastSeen: number
+				tag: 'LastSeenSnapshot'
+			}
+			version: number
 		}
-		currentDepositTxId: string | null
-		decommitTx: string | null
-		localTxs: any[]
-		localUTxO: UTxOObject
-		seenSnapshot: {
-			lastSeen: number
-			tag: 'LastSeenSnapshot'
-		}
-		version: number
 	}
 }

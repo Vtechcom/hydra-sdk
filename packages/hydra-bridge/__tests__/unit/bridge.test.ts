@@ -58,8 +58,23 @@ const createMockConnector = (overrides?: Partial<HydraConnector>): HydraConnecto
 			}
 		} as UTxOObject),
 		queryHeadInfo: vi.fn().mockResolvedValue({
-			headId: 'test-head-id',
-			headStatus: HydraHeadStatus.Open
+			tag: HydraHeadStatus.Idle,
+			contents: {
+				headId: null,
+				headSeed: '',
+				parameters: { contestationPeriod: 0, parties: [] },
+				chainState: { recordedAt: null, spendableUTxO: {} },
+				coordinatedHeadState: {
+					allTxs: {},
+					confirmedSnapshot: null,
+					currentDepositTxId: null,
+					decommitTx: null,
+					localTxs: [],
+					localUTxO: {},
+					seenSnapshot: { lastSeen: 0, tag: 'LastSeenSnapshot' },
+					version: 0
+				}
+			}
 		})
 	}
 
@@ -71,7 +86,8 @@ const createMockConnector = (overrides?: Partial<HydraConnector>): HydraConnecto
 			isValid: true,
 			isConfirmed: true,
 			result: { tag: HydraHeadTag.SnapshotConfirmed } as SnapshotConfirmed
-		})
+		}),
+		submitTx: vi.fn()
 	}
 
 	return {
@@ -117,7 +133,7 @@ describe('HydraBridge', () => {
 				verbose: true
 			})
 			expect(customBridge.connector).toBe(customConnector)
-			expect(customBridge._verbose).toBe(true)
+			expect(customBridge.verbose).toBe(true)
 		})
 
 		it('should create HydraBridge with websocket URL', () => {
@@ -126,7 +142,7 @@ describe('HydraBridge', () => {
 				verbose: false
 			})
 			expect(urlBridge.connector).toBeDefined()
-			expect(urlBridge._verbose).toBe(false)
+			expect(urlBridge.verbose).toBe(false)
 		})
 
 		it('should create HydraBridge with verbose logging', () => {
@@ -134,7 +150,7 @@ describe('HydraBridge', () => {
 				connector: mockConnector,
 				verbose: true
 			})
-			expect(verboseBridge._verbose).toBe(true)
+			expect(verboseBridge.verbose).toBe(true)
 		})
 
 		it('should set up onConnected event handler', () => {
@@ -235,7 +251,7 @@ describe('HydraBridge', () => {
 	})
 
 	describe('headInfo', () => {
-		it('should return default head info (not implemented)', async () => {
+		it('should return head info from connector', async () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			const info = await bridge.headInfo()
 
@@ -400,7 +416,7 @@ describe('HydraBridge', () => {
 					payload: {
 						transaction: {
 							cborHex: 'cborHex123',
-							description: 'Ledger Cddl Format',
+							description: 'description',
 							type: 'Witnessed Tx ConwayEra'
 						}
 					},

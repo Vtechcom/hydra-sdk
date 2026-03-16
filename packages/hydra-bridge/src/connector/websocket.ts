@@ -97,6 +97,12 @@ const defaultWsSubmitter = (connector: WebsocketConnector): HydraBridgeSubmitter
 		},
 		async submitTxSync(tx, options = { timeout: 30000 }) {
 			return connector.submitTxSync(tx, options)
+		},
+		submitTx(tx, callback, options = { timeout: 30000 }) {
+			connector
+				.submitTxSync(tx, options)
+				.then(result => callback(null, result))
+				.catch(error => callback(error, null))
 		}
 	}
 }
@@ -252,7 +258,7 @@ export class WebsocketConnector implements HydraConnector {
 		txId: string
 		isValid: boolean
 		isConfirmed: boolean
-		result: Readonly<SnapshotConfirmed> | null | HydraHeadTag.SnapshotConfirmed
+		result: Readonly<SnapshotConfirmed> | null
 	}> {
 		return new Promise((resolve, reject) => {
 			const data = {
