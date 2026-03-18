@@ -158,6 +158,7 @@
 	import { version as coreVersion } from '../../../packages/core/package.json'
 	import { version as bridgeVersion } from '../../../packages/hydra-bridge/package.json'
 	import { version as transactionVersion } from '../../../packages/hydra-transaction/package.json'
+	import { version as cardanoWasmVersion } from '../../../packages/cardano-wasm/package.json'
 	import { cn } from '~/lib/utils'
 
 	const sidebarOpen = ref(false)
@@ -193,7 +194,7 @@
 					icon: 'i-heroicons-cog-6-tooth',
 					badge: { text: `v${transactionVersion}`, color: 'fuchsia' as any }
 				},
-				{ label: t('common.cardanoWasm'), to: localePath('/packages/cardano-wasm'), icon: 'i-heroicons-cpu-chip', badge: { text: `v${bridgeVersion}`, color: 'fuchsia' as any } }
+				{ label: t('common.cardanoWasm'), to: localePath('/packages/cardano-wasm'), icon: 'i-heroicons-cpu-chip', badge: { text: `v${cardanoWasmVersion}`, color: 'fuchsia' as any } }
 			]
 		},
 		{
