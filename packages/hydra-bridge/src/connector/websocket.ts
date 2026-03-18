@@ -42,7 +42,11 @@ export const defaultWsFetcher = (connector: WebsocketConnector): HydraBridgeFetc
 					throw new Error('Failed to query snapshot utxo')
 				}
 				return rs.data
-			} catch (error) {
+			} catch (error: any) {
+				if (error?.status === 404) {
+					console.warn('Snapshot Utxo not found, it might be because the head is not fully initialized yet.')
+					return {}
+				}
 				throw new Error('[HydraBridgeFetcher][QuerySnapshotUtxo]: ' + error)
 			}
 		},
@@ -276,9 +280,14 @@ export class WebsocketConnector implements HydraConnector {
 		// Closure captures isValid so the final result reflects it correctly.
 		let isValid = false
 
-		return awaitHydraMessage<{ txId: string; isValid: boolean; isConfirmed: boolean; result: Readonly<SnapshotConfirmed> | null }>(
+		return awaitHydraMessage<{
+			txId: string
+			isValid: boolean
+			isConfirmed: boolean
+			result: Readonly<SnapshotConfirmed> | null
+		}>(
 			this.eventEmitter,
-			(payload) => {
+			payload => {
 				if (payload.tag === HydraHeadTag.TxValid && payload.transactionId === tx.txId) {
 					isValid = true
 					return null

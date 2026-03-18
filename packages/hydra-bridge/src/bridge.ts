@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import {
 	DecommitApproved,
 	HydraCommand,
@@ -14,6 +15,11 @@ import { HydraConnector } from './types/hydra-connector.type'
 import { WebsocketConnector } from './connector/websocket'
 import { type SubmitTxError, type SubmitTxResult } from './types/submitter.type'
 import { awaitHydraMessage } from './utils/await-hydra-message'
+
+const TAG = chalk.cyan.bold('[⚡ HydraBridge]')
+const log = (...args: unknown[]) => console.log(TAG, ...args)
+const warn = (...args: unknown[]) => console.warn(chalk.yellow(TAG), ...args)
+const err = (...args: unknown[]) => console.error(chalk.red(TAG), ...args)
 
 type InitHydraBridgeOptions = {
 	verbose?: boolean
@@ -157,20 +163,20 @@ export class HydraBridge implements IHydraBridge {
 			this.querySnapshotUtxo().catch(() => {})
 		})
 
-		this.eventEmitter.on('onMessage', (payload) => {
+		this.eventEmitter.on('onMessage', payload => {
 			if (payload.tag === HydraHeadTag.Greetings) {
 				// Derive slot-zero timestamp for in-head slot arithmetic
 				if (payload.currentSlot !== undefined) {
 					const receiveTime = Date.now()
 					const slotConfig = TimeUtils.buildHydraSlotConfig(receiveTime, { zeroSlot: payload.currentSlot })
 					this.slotZeroTimestamp = TimeUtils.slotToBeginUnixTime(0, slotConfig)
-					this.verbose && console.log('[⚡ HydraBridge] slotZeroTimestamp set:', this.slotZeroTimestamp)
+					this.verbose && log(chalk.gray('slotZeroTimestamp set:'), this.slotZeroTimestamp)
 				}
 				// Greetings carries snapshotUtxo for free — use it to seed the cache
 				// without making an extra HTTP round-trip
-				if (this.lastSnapshotNumber === -1) {
+				if (this.lastSnapshotNumber === -1 && payload.snapshotUtxo != null) {
 					this.updateSnapshot(payload.snapshotUtxo)
-					this.verbose && console.log('[⚡ HydraBridge] snapshot cache seeded from Greetings')
+					this.verbose && log(chalk.green('snapshot cache seeded from Greetings'))
 				}
 			} else if (payload.tag === HydraHeadTag.SnapshotConfirmed) {
 				// Guard: only advance the cache — never regress on reconnect / out-of-order delivery
@@ -181,10 +187,7 @@ export class HydraBridge implements IHydraBridge {
 						this.updateSnapshot(payload.snapshot.utxo)
 					}
 				} else {
-					this.verbose &&
-						console.log(
-							`[⚡ HydraBridge] Skipping out-of-order snapshot #${snapNum} (last=${this.lastSnapshotNumber})`
-						)
+					this.verbose && log(chalk.yellow(`Skipping out-of-order snapshot #${snapNum} (last=${this.lastSnapshotNumber})`))
 				}
 			}
 		})
@@ -197,14 +200,11 @@ export class HydraBridge implements IHydraBridge {
 			this.eventEmitter.on('onDisconnected', () => {
 				if (!this.autoReconnectEnabled) return
 				if (maxAttempts > 0 && this.reconnectAttempts >= maxAttempts) {
-					this.verbose && console.log('[⚡ HydraBridge] Max reconnect attempts reached')
+					this.verbose && log(chalk.yellow('Max reconnect attempts reached'))
 					return
 				}
 				this.reconnectAttempts++
-				this.verbose &&
-					console.log(
-						`[⚡ HydraBridge] Reconnect attempt ${this.reconnectAttempts} in ${interval}ms`
-					)
+				this.verbose && log(chalk.yellow(`Reconnect attempt ${this.reconnectAttempts} in ${interval}ms`))
 				this.reconnectTimer = setTimeout(() => {
 					this.reconnectTimer = null
 					this.connector.connect()
@@ -273,16 +273,16 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async connect() {
-		this.verbose && console.log('[⚡ HydraBridge] Create connection')
+		this.verbose && log('Create connection')
 		this.connector.connect()
 		return new Promise<boolean>((resolve, reject) => {
 			const connectedHandler = () => {
-				this.verbose && console.log('[⚡ HydraBridge] Connected to Hydra node')
+				this.verbose && log(chalk.green('Connected to Hydra node'))
 				this.connector.eventEmitter.off('onConnected', connectedHandler)
 				resolve(true)
 			}
 			const disconnectedHandler = () => {
-				this.verbose && console.log('[⚡ HydraBridge] Disconnected from Hydra node')
+				this.verbose && log(chalk.red('Connection failed / disconnected'))
 				this.connector.eventEmitter.off('onDisconnected', disconnectedHandler)
 				reject(false)
 			}
@@ -292,7 +292,7 @@ export class HydraBridge implements IHydraBridge {
 	}
 
 	async disconnect() {
-		this.verbose && console.log('[⚡ HydraBridge] disconnect')
+		this.verbose && log('Disconnecting')
 		// Prevent auto-reconnect loop when disconnecting intentionally
 		this.autoReconnectEnabled = false
 		if (this.reconnectTimer) {
@@ -305,7 +305,7 @@ export class HydraBridge implements IHydraBridge {
 		}
 		return new Promise<boolean>(resolve => {
 			const disconnectedHandler = () => {
-				this.verbose && console.log('[⚡ HydraBridge] Disconnected from Hydra node')
+				this.verbose && log(chalk.red('Disconnected'))
 				resolve(true)
 			}
 			this.connector.eventEmitter.on('onDisconnected', disconnectedHandler)
@@ -338,7 +338,7 @@ export class HydraBridge implements IHydraBridge {
 			this.rawProtocolParameters = await this.connector.fetcher.queryRawProtocolParameters()
 			return this.rawProtocolParameters
 		} catch (error) {
-			console.error('HydraBridge::: queryRawProtocolParameters error', error)
+			err('queryRawProtocolParameters error', error)
 			throw new Error('Failed to query protocol parameters')
 		}
 	}
@@ -361,7 +361,7 @@ export class HydraBridge implements IHydraBridge {
 			}
 			return utxo
 		} catch (error) {
-			console.error('HydraBridge::: queryUtxo error', error)
+			err('querySnapshotUtxo error', error)
 			throw new Error('Failed to query utxo')
 		}
 	}
@@ -425,7 +425,7 @@ export class HydraBridge implements IHydraBridge {
 
 	async initHydraHead(retry: number, interval: number) {
 		this.commands.init()
-		this.verbose && console.log('[⚡ HydraBridge] Waiting for head is initializing')
+		this.verbose && log('Waiting for head to initialize')
 
 		// Retry sender — runs independently of the message wait
 		let attemptsLeft = retry
@@ -433,14 +433,14 @@ export class HydraBridge implements IHydraBridge {
 			if (attemptsLeft > 0) {
 				this.commands.init()
 				attemptsLeft--
-				this.verbose && console.log('[⚡ HydraBridge] Retry init remaining: ', attemptsLeft)
+				this.verbose && log(chalk.yellow(`Retry init — attempts remaining: ${attemptsLeft}`))
 			}
 		}, interval)
 
 		try {
 			return await awaitHydraMessage<true>(
 				this.eventEmitter,
-				(payload) => {
+				payload => {
 					if (payload.tag === HydraHeadTag.HeadIsInitializing) return { resolve: true }
 					return null
 				},
@@ -461,9 +461,9 @@ export class HydraBridge implements IHydraBridge {
 		isConfirmed: boolean
 		result: Readonly<SnapshotConfirmed> | HydraHeadTag.SnapshotConfirmed | null
 	}> {
-		this.verbose && console.log('[⚡ HydraBridge] submitTxSync', tx.txId)
+		this.verbose && log('submitTxSync', chalk.gray(tx.txId))
 		if (!this.connected()) {
-			console.warn('[⚡ HydraBridge] Not connected, cannot submit transaction')
+			warn('Not connected, cannot submit transaction')
 			throw new Error('Not connected to Hydra node')
 		}
 		return this.connector.submitter.submitTxSync(tx, options)
@@ -474,9 +474,9 @@ export class HydraBridge implements IHydraBridge {
 		callback: (error: SubmitTxError | null, result: SubmitTxResult | null) => void,
 		options = { timeout: 30000 }
 	): void {
-		this.verbose && console.log('[⚡ HydraBridge] submitTx', tx.txId)
+		this.verbose && log('submitTx', chalk.gray(tx.txId))
 		if (!this.connected()) {
-			console.warn('[⚡ HydraBridge] Not connected, cannot submit transaction')
+			warn('Not connected, cannot submit transaction')
 			callback({ txId: tx.txId, reason: 'Not connected to Hydra node', tag: 'Error' }, null)
 			return
 		}
@@ -494,13 +494,12 @@ export class HydraBridge implements IHydraBridge {
 				}
 			}
 		})
-		this.verbose && console.log('[⚡ HydraBridge] Waiting for decommit is finalized')
+		this.verbose && log('Waiting for decommit to finalize')
 
 		return awaitHydraMessage<Readonly<DecommitApproved>>(
 			this.eventEmitter,
-			(payload) => {
-				if (payload.tag === HydraHeadTag.DecommitApproved && payload.decommitTxId === txId)
-					return { resolve: payload }
+			payload => {
+				if (payload.tag === HydraHeadTag.DecommitApproved && payload.decommitTxId === txId) return { resolve: payload }
 				return null
 			},
 			timeout,
