@@ -1,5 +1,18 @@
 # @hydra-sdk/bridge
 
+## 1.3.1
+
+### Patch Changes
+
+- **Fix: `Greetings` handler crash when `headStatus` is `Idle`** — `snapshotUtxo` is absent from the `Greetings` payload when the head is in `Idle` state. The handler now guards against `undefined` before calling `updateSnapshot`, preventing a runtime error on fresh connects before a head is opened.
+
+- **Feat: Chalk-coloured log helpers** — all internal `console.log / console.warn / console.error` calls replaced with structured chalk helpers (cyan tag, green / yellow / red context). Debug output is now consistently formatted and easier to read in terminal environments. `chalk ^5.6.2` added as a dependency.
+
+- **Chore: Remove leftover debug dump logs** — stale raw `console.log` statements from earlier development cycles removed from `bridge.ts` and `websocket.ts`.
+
+- Updated dependencies
+  - @hydra-sdk/core@1.3.1
+
 ## 1.3.0
 
 ### Minor Changes
