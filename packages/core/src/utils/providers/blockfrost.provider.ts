@@ -23,6 +23,12 @@ export interface BlockfrostProviderConfig {
 	 * @description Blockfrost API version to use (0 or 1). Check https://docs.blockfrost.io/ for more details.
 	 */
 	apiVersion?: number
+	/**
+	 * Override the base URL for the Blockfrost API.
+	 * @description When provided, this URL is used instead of the default Blockfrost endpoint.
+	 * Useful for providers that expose a Blockfrost-compatible API (e.g. Demeter).
+	 */
+	baseURL?: string
 
 	/**
 	 * Caching options
@@ -69,7 +75,7 @@ export class BlockfrostProvider extends BaseWalletProvider {
 		this._cachingOptions = { ...this._cachingOptions, ...config.cachingOptions }
 
 		this._axiosInstance = axios.create({
-			baseURL: `https://cardano-${this._network}.blockfrost.io/api/v${config.apiVersion ?? 0}`,
+			baseURL: config.baseURL ?? `https://cardano-${this._network}.blockfrost.io/api/v${config.apiVersion ?? 0}`,
 			headers: {
 				project_id: this._projectId
 			},

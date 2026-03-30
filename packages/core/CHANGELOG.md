@@ -1,5 +1,38 @@
 # @hydra-sdk/core
 
+## 1.3.1
+
+### Patch Changes
+
+#### `metadata.ts` — Validation & logic fixes for `metadataObjToMetadatum`
+
+- **String byte-length validation**: strings are now measured in UTF-8 bytes (via `ParserUtils.stringToHex`) before being passed to WASM. Throws a descriptive error when the encoded length exceeds the Cardano limit of 64 bytes, including the actual byte count and a preview of the offending value. Previously, oversized strings were silently forwarded to WASM and produced an opaque low-level error.
+- **Bytes length validation**: `Uint8Array` values are now checked against the 64-byte limit. Throws with the actual size when exceeded.
+- **Float number guard**: `number` values are checked with `Number.isInteger()` before conversion. Non-integer floats (e.g. `1.5`) previously caused an obscure WASM panic; they now throw a clear error.
+- **`Map` branch separated**: `instanceof Map` is now handled in its own `else if` branch before the generic `typeof === 'object'` fallback. Previously it was a nested `if` inside the object branch — calling `Object.entries()` on a `Map` returns an empty array, so this was a silent data-loss bug when an empty `Map` happened to be passed. The logic is now unambiguous.
+
+#### `providers/` — New `DemeterProvider`
+
+- **`DemeterProvider`** (new): Blockfrost-compatible provider for [Demeter](https://demeter.run) hosted endpoints. Extends `BlockfrostProvider` and builds the authenticated endpoint URL automatically from the `authToken` and `network` fields:
+  ```
+  https://{authToken}.cardano-{network}.blockfrost-m1.demeter.run/api/v{version}
+  ```
+  All fetching, submission, and caching behaviour is inherited from `BlockfrostProvider` with no duplication.
+
+  ```ts
+  const provider = new DemeterProvider({
+    authToken: 'blockfrost102lx3ckhzvkjjh7677g',
+    network: 'mainnet', // 'mainnet' | 'preprod' | 'preview'
+  })
+  ```
+
+- **`BlockfrostProviderConfig.baseURL`** (new optional field): allows callers to override the default Blockfrost endpoint URL. Used internally by `DemeterProvider`; also available for custom Blockfrost-compatible deployments.
+
+### New Exports
+
+- `DemeterProvider` — from `@hydra-sdk/core`
+- `DemeterProviderConfig` — TypeScript config interface for `DemeterProvider`
+
 ## 1.3.0
 
 ### Minor Changes
