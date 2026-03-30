@@ -32,6 +32,12 @@ export const mkMap = (entries: Array<[CardanoWASM.PlutusData, CardanoWASM.Plutus
 	return CardanoWASM.PlutusData.new_map(m)
 }
 
+export const mkList = (elements: CardanoWASM.PlutusData[]) => {
+	const list = CardanoWASM.PlutusList.new()
+	elements.forEach(e => list.add(e))
+	return CardanoWASM.PlutusData.new_list(list)
+}
+
 export const DatumSchema = {
 	/**
 	 * ScriptDataJsonNoSchema in cardano-node.

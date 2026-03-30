@@ -27,6 +27,7 @@ import * as ValidatorUtils from './utils/validator.util'
 import * as MetadataUtils from './utils/metadata'
 import * as KeysUtils from './utils/keys.util'
 import * as PlutusUtils from './utils/plutus-script.util'
+import * as AddressUtils from './utils/address'
 
 export {
 	// CardanoWASM Utilities
@@ -45,5 +46,6 @@ export {
 	ValidatorUtils,
 	MetadataUtils,
 	KeysUtils,
-	PlutusUtils
+	PlutusUtils,
+	AddressUtils
 }

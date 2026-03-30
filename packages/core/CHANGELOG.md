@@ -28,10 +28,24 @@
 
 - **`BlockfrostProviderConfig.baseURL`** (new optional field): allows callers to override the default Blockfrost endpoint URL. Used internally by `DemeterProvider`; also available for custom Blockfrost-compatible deployments.
 
+#### `datum.ts` — New `mkList` helper
+
+- **`mkList(elements)`** (new): constructs a `PlutusData` list from an array of `PlutusData` elements. Completes the datum builder API alongside the existing `mkInt`, `mkBytes`, `mkConstr`, and `mkMap`.
+
+  ```ts
+  mkList([mkInt(1n), mkBytes('deadbeef'), mkConstr(0, [])])
+  ```
+
+#### `index.ts` — New `AddressUtils` export
+
+- **`AddressUtils`** is now exported from `@hydra-sdk/core`. Previously the address utilities were accessible only via direct file import.
+
 ### New Exports
 
 - `DemeterProvider` — from `@hydra-sdk/core`
 - `DemeterProviderConfig` — TypeScript config interface for `DemeterProvider`
+- `AddressUtils` — address utility namespace, now re-exported from the package root
+- `DatumUtils.mkList` — new datum builder helper
 
 ## 1.3.0
 
