@@ -1,0 +1,63 @@
+{
+  "preamble": {
+    "title": "vtech/playground",
+    "version": "0.0.1",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.21+42babe5"
+    }
+  },
+  "validators": [
+    {
+      "title": "time_valid.time_validator.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/time_valid~1TimeDatum"
+        }
+      },
+      "redeemer": {
+        "title": "_redeemer",
+        "schema": {
+          "$ref": "#/definitions/Data"
+        }
+      },
+      "compiledCode": "58e501010029800aba2aba1aab9eaab9dab9a4888896600264653001300600198031803800cdc3a40049112cc004c004c01cdd500144c8cc896600266e1d2000300a37540031598009919912cc004c01cc034dd500144c9660026010601c6ea8c040c044c03cdd5180818079baa004899b88002001899b8900200140346eb4c03cc038dd500145282018300d300c3754601a60186ea8004dd6980698061baa300d300c37540046018601a601a601a601a601a601a601a60166ea8c03002229462c804a2c8048c028004c028c02c004c020dd50014590060c018004c00cdd5003452689b2b20021",
+      "hash": "52f85db5165fdf11f3bafacc61e46bf57d397a3f604137c6dd380b63"
+    },
+    {
+      "title": "time_valid.time_validator.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "58e501010029800aba2aba1aab9eaab9dab9a4888896600264653001300600198031803800cdc3a40049112cc004c004c01cdd500144c8cc896600266e1d2000300a37540031598009919912cc004c01cc034dd500144c9660026010601c6ea8c040c044c03cdd5180818079baa004899b88002001899b8900200140346eb4c03cc038dd500145282018300d300c3754601a60186ea8004dd6980698061baa300d300c37540046018601a601a601a601a601a601a601a60166ea8c03002229462c804a2c8048c028004c028c02c004c020dd50014590060c018004c00cdd5003452689b2b20021",
+      "hash": "52f85db5165fdf11f3bafacc61e46bf57d397a3f604137c6dd380b63"
+    }
+  ],
+  "definitions": {
+    "Data": {
+      "title": "Data",
+      "description": "Any Plutus data."
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "time_valid/TimeDatum": {
+      "title": "TimeDatum",
+      "anyOf": [
+        {
+          "title": "TimeDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "deadline_timestamp",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+name = "vtech/playground"
+version = "0.0.1"
+compiler = "v1.1.21"
+plutus = "v3"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "v2.1.0"
+source = "github"

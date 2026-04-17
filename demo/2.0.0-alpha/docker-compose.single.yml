@@ -1,0 +1,44 @@
+services:
+  hydra-node-alice:
+    image: ghcr.io/cardano-scaling/hydra-node:2.0.0
+    volumes:
+      - .:/devnet
+      - ./persistence/alice:/devnet/persistence/alice
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+    command:
+      [
+        "--node-id", "1",
+        "--api-host", "0.0.0.0",
+        "--listen", "128.1.1.10:5001",
+        "--monitoring-port", "6001",
+        "--api-port", "4001",
+        "--peer", "128.1.1.30:5001",
+
+        "--hydra-signing-key", "/devnet/credentials/alice/alice-hydra.sk",
+        "--cardano-signing-key", "/devnet/credentials/alice/alice-funds.sk",
+
+        "--deposit-period", "120s",
+        "--contestation-period", "43200s",
+
+        "--persistence-dir", "/devnet/persistence/alice",
+        "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
+        "--blockfrost", "/devnet/.blockfrost",
+        "--hydra-scripts-tx-id", "7478f0cb4cc7550f66e81d673182b57772188293b0f434a12c6637bf6ca8757c"
+      ]
+    networks:
+      hydra_network:
+        ipv4_address: 128.1.1.10
+    restart: always
+
+volumes:
+  alice_persistence:
+
+networks:
+  hydra_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 128.1.1.0/24
+          gateway: 128.1.1.1

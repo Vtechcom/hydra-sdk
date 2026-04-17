@@ -1,0 +1,78 @@
+services:
+  hydra-node-alice:
+    image: ghcr.io/cardano-scaling/hydra-node:2.0.0
+    volumes:
+      - .:/devnet
+      - ./persistence/alice:/devnet/persistence/alice
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+    command:
+      [
+        "--node-id", "1",
+        "--api-host", "0.0.0.0",
+        "--listen", "128.1.1.10:5001",
+        "--monitoring-port", "6001",
+        "--api-port", "4001",
+        "--peer", "128.1.1.30:5002",
+
+        "--hydra-signing-key", "/devnet/credentials/alice/alice-hydra.sk",
+        "--cardano-signing-key", "/devnet/credentials/alice/alice-funds.sk",
+
+        "--hydra-verification-key", "/devnet/credentials/bob/bob-hydra.vk",
+        "--cardano-verification-key", "/devnet/credentials/bob/bob-funds.vk",
+
+        "--persistence-dir", "/devnet/persistence/alice",
+        "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
+        "--blockfrost", "/devnet/.blockfrost",
+        "--hydra-scripts-tx-id", "7478f0cb4cc7550f66e81d673182b57772188293b0f434a12c6637bf6ca8757c"
+      ]
+    networks:
+      hydra_network:
+        ipv4_address: 128.1.1.10
+    restart: always
+
+  hydra-node-bob:
+    image: ghcr.io/cardano-scaling/hydra-node:2.0.0
+    volumes:
+      - .:/devnet
+      - ./persistence/bob:/devnet/persistence/bob
+    ports:
+      - "4003:4003"
+      - "5002:5002"
+    command:
+      [
+        "--node-id", "3",
+        "--api-host", "0.0.0.0",
+        "--listen", "128.1.1.30:5002",
+        "--monitoring-port", "6003",
+        "--api-port", "4003",
+        "--peer", "128.1.1.10:5001",
+
+        "--hydra-signing-key", "/devnet/credentials/bob/bob-hydra.sk",
+        "--cardano-signing-key", "/devnet/credentials/bob/bob-funds.sk",
+
+        "--hydra-verification-key", "/devnet/credentials/alice/alice-hydra.vk",
+        "--cardano-verification-key", "/devnet/credentials/alice/alice-funds.vk",
+
+        "--persistence-dir", "/devnet/persistence/bob",
+        "--ledger-protocol-parameters", "/devnet/protocol-parameters.json",
+        "--blockfrost", "/devnet/.blockfrost",
+        "--hydra-scripts-tx-id", "7478f0cb4cc7550f66e81d673182b57772188293b0f434a12c6637bf6ca8757c"
+      ]
+    networks:
+      hydra_network:
+        ipv4_address: 128.1.1.30
+    restart: always
+
+volumes:
+  alice_persistence:
+  bob_persistence:
+
+networks:
+  hydra_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 128.1.1.0/24
+          gateway: 128.1.1.1
