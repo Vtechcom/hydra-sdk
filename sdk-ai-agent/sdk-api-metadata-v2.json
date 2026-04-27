@@ -1,5 +1,5 @@
 {
-  "hydra-transaction/src/utils/redeemer-builder.ts": [
+  "hydra-transaction\\src\\utils\\redeemer-builder.ts": [
     {
       "kind": "function",
       "name": "buildRedeemer",
@@ -39,7 +39,7 @@
       "returnType": "Redeemer"
     }
   ],
-  "hydra-transaction/src/utils/metadata.ts": [
+  "hydra-transaction\\src\\utils\\metadata.ts": [
     {
       "kind": "function",
       "name": "metadataObjToMetadatum",
@@ -57,7 +57,7 @@
       "returnType": "TransactionMetadatum"
     }
   ],
-  "hydra-transaction/src/utils/datum-builder.ts": [
+  "hydra-transaction\\src\\utils\\datum-builder.ts": [
     {
       "kind": "function",
       "name": "datumBuilder",
@@ -68,7 +68,7 @@
       "returnType": "PlutusData"
     }
   ],
-  "hydra-transaction/src/utils/bigint.utils.ts": [
+  "hydra-transaction\\src\\utils\\bigint.utils.ts": [
     {
       "kind": "function",
       "name": "bigIntReplacer",
@@ -257,7 +257,7 @@
       "returnType": "{ id: string; name: string; values: string[]; nested: { amount: string; description: string; }; }"
     }
   ],
-  "hydra-transaction/src/tx-builder/index.ts": [
+  "hydra-transaction\\src\\tx-builder\\index.ts": [
     {
       "kind": "class",
       "name": "TxBuilder",
@@ -334,7 +334,7 @@
           "params": [
             {
               "name": "inlineDatum",
-              "type": "PlutusData",
+              "type": "Datum",
               "optional": false,
               "hasDefault": false
             }
@@ -379,7 +379,7 @@
           "params": [
             {
               "name": "datum",
-              "type": "PlutusData",
+              "type": "Datum",
               "optional": false,
               "hasDefault": false
             }
@@ -423,10 +423,31 @@
             },
             {
               "name": "version",
-              "type": "PlutusVersion",
+              "type": "LanguageVersion",
               "optional": true,
               "hasDefault": true,
               "defaultValue": "'V3'"
+            }
+          ],
+          "returnType": "TxBuilder",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "txInReference",
+          "description": "Add UTxO reference input",
+          "params": [
+            {
+              "name": "txHash",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "outputIndex",
+              "type": "number",
+              "optional": false,
+              "hasDefault": false
             }
           ],
           "returnType": "TxBuilder",
@@ -439,7 +460,7 @@
           "params": [
             {
               "name": "version",
-              "type": "PlutusVersion",
+              "type": "LanguageVersion",
               "optional": false,
               "hasDefault": false
             }
@@ -475,7 +496,7 @@
           "params": [
             {
               "name": "inlineDatum",
-              "type": "PlutusData",
+              "type": "Datum",
               "optional": false,
               "hasDefault": false
             }
@@ -490,7 +511,7 @@
           "params": [
             {
               "name": "datum",
-              "type": "PlutusData",
+              "type": "Datum",
               "optional": false,
               "hasDefault": false
             }
@@ -511,7 +532,7 @@
             },
             {
               "name": "version",
-              "type": "PlutusVersion",
+              "type": "LanguageVersion",
               "optional": true,
               "hasDefault": true,
               "defaultValue": "'V3'"
@@ -668,7 +689,7 @@
           "params": [
             {
               "name": "version",
-              "type": "PlutusVersion",
+              "type": "LanguageVersion",
               "optional": false,
               "hasDefault": false
             }
@@ -1127,6 +1148,21 @@
           "visibility": "internal"
         },
         {
+          "name": "_addReferenceInputsToBuilder",
+          "description": "",
+          "params": [
+            {
+              "name": "referenceInputs",
+              "type": "TxIn",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
           "name": "_addCollateralToBuilder",
           "description": "Add collateral to the CardanoWASM transaction builder",
           "params": [
@@ -1243,7 +1279,7 @@
       ]
     }
   ],
-  "hydra-bridge/src/bridge.ts": [
+  "hydra-bridge\\src\\bridge.ts": [
     {
       "kind": "class",
       "name": "HydraBridge",
@@ -1261,15 +1297,45 @@
               "hasDefault": false
             }
           ],
-          "signature": "constructor(options: InitHydraBridgeOptions) {\n\t\tthis._verbose = options.verbose || false\n\t\tif ('connector' in options) {\n\t\t\tthis.connector = options.connector\n\t\t} else {\n\t\t\tthis.connector = new WebsocketConnector({\n\t\t\t\twebsocketUrl: options.url\n\t\t\t})\n\t\t}\n\t\tthis._eventEmitter = this.connector.eventEmitter\n\t\tthis._eventEmitter.on('onConnected', () => {\n\t\t\tthis.querySnapshotUtxo()\n\t\t})\n\t}"
+          "signature": "constructor(options: InitHydraBridgeOptions) {\n\t\tthis.verbose = options.verbose ?? false\n\t\tif ('connector' in options) {\n\t\t\tthis.connector = options.connector\n\t\t} else {\n\t\t\tthis.connector = new WebsocketConnector({\n\t\t\t\twebsocketUrl: options.url,\n\t\t\t\thistory: options.history,\n\t\t\t\tnoSnapshotUtxo: options.noSnapshotUtxo,\n\t\t\t\taddress: options.address\n\t\t\t})\n\t\t}\n\t\tthis.eventEmitter = this.connector.eventEmitter\n\n\t\t// Seed from onConnected: reset snapshot counter and kick off HTTP fallback\n\t\t// (non-blocking; will be skipped if Greetings or SnapshotConfirmed arrives first)\n\t\tthis.eventEmitter.on('onConnected', () => {\n\t\t\tthis.lastSnapshotNumber = -1\n\t\t\tthis.reconnectAttempts = 0\n\t\t\tthis.querySnapshotUtxo().catch(() => {})\n\t\t})\n\n\t\tthis.eventEmitter.on('onMessage', payload => {\n\t\t\tif (payload.tag === HydraHeadTag.Greetings) {\n\t\t\t\t// Derive slot-zero timestamp for in-head slot arithmetic\n\t\t\t\tif (payload.currentSlot !== undefined) {\n\t\t\t\t\tconst receiveTime = Date.now()\n\t\t\t\t\tconst slotConfig = TimeUtils.buildHydraSlotConfig(receiveTime, { zeroSlot: payload.currentSlot })\n\t\t\t\t\tthis.slotZeroTimestamp = TimeUtils.slotToBeginUnixTime(0, slotConfig)\n\t\t\t\t\tthis.verbose && log(chalk.gray('slotZeroTimestamp set:'), this.slotZeroTimestamp)\n\t\t\t\t}\n\t\t\t\t// Greetings carries snapshotUtxo for free — use it to seed the cache\n\t\t\t\t// without making an extra HTTP round-trip\n\t\t\t\tif (this.lastSnapshotNumber === -1 && payload.snapshotUtxo != null) {\n\t\t\t\t\tthis.updateSnapshot(payload.snapshotUtxo)\n\t\t\t\t\tthis.verbose && log(chalk.green('snapshot cache seeded from Greetings'))\n\t\t\t\t}\n\t\t\t} else if (payload.tag === HydraHeadTag.SnapshotConfirmed) {\n\t\t\t\t// Guard: only advance the cache — never regress on reconnect / out-of-order delivery\n\t\t\t\tconst snapNum = payload.snapshot?.number ?? -1\n\t\t\t\tif (snapNum > this.lastSnapshotNumber) {\n\t\t\t\t\tthis.lastSnapshotNumber = snapNum\n\t\t\t\t\tif (payload.snapshot?.utxo) {\n\t\t\t\t\t\tthis.updateSnapshot(payload.snapshot.utxo)\n\t\t\t\t\t}\n\t\t\t\t} else {\n\t\t\t\t\tthis.verbose && log(chalk.yellow(`Skipping out-of-order snapshot #${snapNum} (last=${this.lastSnapshotNumber})`))\n\t\t\t\t}\n\t\t\t}\n\t\t})\n\n\t\t// Auto-reconnect\n\t\tif (options.autoReconnect) {\n\t\t\tthis.autoReconnectEnabled = true\n\t\t\tconst interval = options.reconnectInterval ?? 3000\n\t\t\tconst maxAttempts = options.maxReconnectAttempts ?? 0\n\t\t\tthis.eventEmitter.on('onDisconnected', () => {\n\t\t\t\tif (!this.autoReconnectEnabled) return\n\t\t\t\tif (maxAttempts > 0 && this.reconnectAttempts >= maxAttempts) {\n\t\t\t\t\tthis.verbose && log(chalk.yellow('Max reconnect attempts reached'))\n\t\t\t\t\treturn\n\t\t\t\t}\n\t\t\t\tthis.reconnectAttempts++\n\t\t\t\tthis.verbose && log(chalk.yellow(`Reconnect attempt ${this.reconnectAttempts} in ${interval}ms`))\n\t\t\t\tthis.reconnectTimer = setTimeout(() => {\n\t\t\t\t\tthis.reconnectTimer = null\n\t\t\t\t\tthis.connector.connect()\n\t\t\t\t}, interval)\n\t\t\t})\n\t\t}\n\t}"
         }
       ],
       "methods": [
+        {
+          "name": "updateSnapshot",
+          "description": "Rebuild address UTxO index + balance cache from a snapshot.\nO(n) — called once per snapshot event, not per read.",
+          "params": [
+            {
+              "name": "snapshot",
+              "type": "UTxOObject",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "void",
+          "exported": false,
+          "visibility": "internal"
+        },
         {
           "name": "snapshotUtxoArray",
           "description": "",
           "params": [],
           "returnType": "UTxO",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "getAddressBalance",
+          "description": "O(1) balance lookup. Returns null when the cache is not yet seeded\n(cold start before first Greetings / SnapshotConfirmed).",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "returnType": "Map<string, bigint>",
           "exported": false,
           "visibility": "internal"
         },
@@ -1399,7 +1465,7 @@
               "hasDefault": false
             }
           ],
-          "returnType": "Promise<unknown>",
+          "returnType": "Promise<true>",
           "exported": false,
           "visibility": "internal"
         },
@@ -1421,7 +1487,35 @@
               "defaultValue": "{ timeout: 30000 }"
             }
           ],
-          "returnType": "HydraHeadTag",
+          "returnType": "SnapshotConfirmed",
+          "exported": false,
+          "visibility": "internal"
+        },
+        {
+          "name": "submitTx",
+          "description": "",
+          "params": [
+            {
+              "name": "tx",
+              "type": "Transaction",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "callback",
+              "type": "SubmitTxResult",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "options",
+              "type": "{ timeout: number; }",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "{ timeout: 30000 }"
+            }
+          ],
+          "returnType": "void",
           "exported": false,
           "visibility": "internal"
         },
@@ -1442,7 +1536,7 @@
         },
         {
           "name": "queryAddressUTxO",
-          "description": "",
+          "description": "Returns UTxOs for a specific address.\nUses pre-built address index (O(1) lookup) when available.\nFalls back to an HTTP snapshot query only on cold start.",
           "params": [
             {
               "name": "address",
@@ -1458,7 +1552,7 @@
       ]
     }
   ],
-  "hydra-bridge/src/utils/url-parser.ts": [
+  "hydra-bridge\\src\\utils\\url-parser.ts": [
     {
       "kind": "function",
       "name": "parseUrl",
@@ -1476,7 +1570,7 @@
       "returnType": "ParsedUrl"
     }
   ],
-  "hydra-bridge/src/utils/url-builder.ts": [
+  "hydra-bridge\\src\\utils\\url-builder.ts": [
     {
       "kind": "function",
       "name": "buildUrl",
@@ -1494,7 +1588,7 @@
       "returnType": "string"
     }
   ],
-  "hydra-bridge/src/utils/haskell-deserialize.ts": [
+  "hydra-bridge\\src\\utils\\haskell-deserialize.ts": [
     {
       "kind": "function",
       "name": "deserializeHaskellErrorToJson",
@@ -1512,7 +1606,45 @@
       "returnType": "JsonResult"
     }
   ],
-  "hydra-bridge/src/types/protocol-parameters.type.ts": [
+  "hydra-bridge\\src\\utils\\await-hydra-message.ts": [
+    {
+      "kind": "function",
+      "name": "awaitHydraMessage",
+      "description": "Waits for a Hydra message that satisfies the predicate, then resolves or\nrejects accordingly. Automatically unregisters the listener and clears the\ntimeout regardless of which outcome fires first — no manual cleanup needed.",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "emitter",
+          "type": "HydraBridgeEvents",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "predicate",
+          "type": "HydraPayload",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "timeoutMs",
+          "type": "number",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "30_000"
+        },
+        {
+          "name": "timeoutError",
+          "type": "unknown",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "{ reason: 'Timeout', tag: 'Timeout' }"
+        }
+      ],
+      "returnType": "Promise<T>"
+    }
+  ],
+  "hydra-bridge\\src\\types\\protocol-parameters.type.ts": [
     {
       "kind": "function",
       "name": "toProtocol",
@@ -1530,7 +1662,7 @@
       "returnType": "Protocol"
     }
   ],
-  "hydra-bridge/src/constants/protocol-parameters.ts": [
+  "hydra-bridge\\src\\constants\\protocol-parameters.ts": [
     {
       "kind": "function",
       "name": "resolveTxFees",
@@ -1562,7 +1694,7 @@
       "returnType": "string"
     }
   ],
-  "hydra-bridge/src/connector/websocket.ts": [
+  "hydra-bridge\\src\\connector\\websocket.ts": [
     {
       "kind": "function",
       "name": "defaultWsFetcher",
@@ -1596,7 +1728,7 @@
               "hasDefault": false
             }
           ],
-          "signature": "constructor(options: WebsocketConnectorOptions | string) {\n\t\tif (typeof options === 'string') {\n\t\t\toptions = {\n\t\t\t\twebsocketUrl: options\n\t\t\t}\n\t\t}\n\n\t\tconst option = parseUrl(options.websocketUrl)\n\n\t\tif (!option.valid || !option.host) {\n\t\t\tthrow new Error('Invalid websocket url')\n\t\t}\n\t\tthis.conn = {\n\t\t\tssl: option.ssl,\n\t\t\thost: option.host,\n\t\t\tport: option.port,\n\t\t\tpath: option.path\n\t\t}\n\n\t\tthis.apiFetch = axios.create({\n\t\t\tbaseURL: this.networkInfo.httpUrl,\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = options?.fetcher || defaultWsFetcher(this)\n\t\tthis.submitter = options?.submitter || defaultWsSubmitter(this)\n\t}"
+          "signature": "constructor(options: WebsocketConnectorOptions | string) {\n\t\tif (typeof options === 'string') {\n\t\t\toptions = {\n\t\t\t\twebsocketUrl: options\n\t\t\t}\n\t\t}\n\n\t\tconst option = parseUrl(options.websocketUrl)\n\n\t\tif (!option.valid || !option.host) {\n\t\t\tthrow new Error('Invalid websocket url')\n\t\t}\n\t\tthis.conn = {\n\t\t\tssl: option.ssl,\n\t\t\thost: option.host,\n\t\t\tport: option.port,\n\t\t\tpath: option.path,\n\t\t\tparams: option.params,\n\t\t\thistory: options.history,\n\t\t\tnoSnapshotUtxo: options.noSnapshotUtxo,\n\t\t\taddress: options.address\n\t\t}\n\n\t\tconst headers = this.conn?.params?.['X-Api-Key']\n\t\t\t? {\n\t\t\t\t\t'X-Api-Key': this.conn.params['X-Api-Key']\n\t\t\t\t}\n\t\t\t: undefined\n\n\t\tthis.apiFetch = axios.create({\n\t\t\tbaseURL: this.networkInfo.httpUrl,\n\t\t\ttimeout: 10000,\n\t\t\theaders\n\t\t})\n\n\t\tthis.fetcher = options?.fetcher || defaultWsFetcher(this)\n\t\tthis.submitter = options?.submitter || defaultWsSubmitter(this)\n\t}"
         }
       ],
       "methods": [
@@ -1672,14 +1804,14 @@
               "defaultValue": "{ timeout: 30000 }"
             }
           ],
-          "returnType": "HydraHeadTag",
+          "returnType": "SnapshotConfirmed",
           "exported": false,
           "visibility": "internal"
         }
       ]
     }
   ],
-  "hydra-bridge/src/connector/hexcore.ts": [
+  "hydra-bridge\\src\\connector\\hexcore.ts": [
     {
       "kind": "function",
       "name": "defaultHexcoreFetcher",
@@ -1781,7 +1913,7 @@
       ]
     }
   ],
-  "core/src/wallet.ts": [
+  "core\\src\\wallet.ts": [
     {
       "kind": "class",
       "name": "AppWallet",
@@ -2060,7 +2192,7 @@
       ]
     }
   ],
-  "core/src/embedded.ts": [
+  "core\\src\\embedded.ts": [
     {
       "kind": "class",
       "name": "WalletStaticMethods",
@@ -2291,11 +2423,46 @@
           "returnType": "Vkeywitness",
           "exported": false,
           "visibility": "internal"
+        },
+        {
+          "name": "signData",
+          "description": "This endpoint utilizes the [CIP-8 - Message Signing](https://cips.cardano.org/cips/cip8/) to sign arbitrary data, to verify the data was signed by the owner of the private key.",
+          "params": [
+            {
+              "name": "address",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "payload",
+              "type": "string",
+              "optional": false,
+              "hasDefault": false
+            },
+            {
+              "name": "accountIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            },
+            {
+              "name": "keyIndex",
+              "type": "number",
+              "optional": true,
+              "hasDefault": true,
+              "defaultValue": "0"
+            }
+          ],
+          "returnType": "DataSignature",
+          "exported": false,
+          "visibility": "internal"
         }
       ]
     }
   ],
-  "core/src/cardanocli-wallet.ts": [
+  "core\\src\\cardanocli-wallet.ts": [
     {
       "kind": "class",
       "name": "CardanoCliWallet",
@@ -2388,7 +2555,7 @@
       ]
     }
   ],
-  "core/src/utils/validator.util.ts": [
+  "core\\src\\utils\\validator.util.ts": [
     {
       "kind": "function",
       "name": "isValidAddress",
@@ -2429,7 +2596,7 @@
       "returnType": "boolean"
     }
   ],
-  "core/src/utils/time.ts": [
+  "core\\src\\utils\\time.ts": [
     {
       "kind": "function",
       "name": "slotToBeginUnixTime",
@@ -2543,7 +2710,7 @@
       "returnType": "SlotConfig"
     }
   ],
-  "core/src/utils/policy.ts": [
+  "core\\src\\utils\\policy.ts": [
     {
       "kind": "function",
       "name": "buildPolicyScriptFromPubkey",
@@ -2609,7 +2776,145 @@
       "returnType": "string"
     }
   ],
-  "core/src/utils/parser.ts": [
+  "core\\src\\utils\\plutus-script.util.ts": [
+    {
+      "kind": "function",
+      "name": "applyParamsToScript",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "plutusScript",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "params",
+          "type": "Uint8Array<ArrayBufferLike>[]",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "mintingPolicyToId",
+      "description": "Returns the script hash of a minting policy script in `hex`",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "mintingPolicy",
+          "type": "Script",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "validatorToScriptHash",
+      "description": "Returns the script hash of a validator script in hex",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "validator",
+          "type": "Script",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    },
+    {
+      "kind": "function",
+      "name": "validatorToAddress",
+      "description": "Returns the address of a validator script in `bech32`",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "validator",
+          "type": "Script",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "networkId",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "stakeCredential",
+          "type": "string",
+          "optional": true,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core\\src\\utils\\parser.ts": [
+    {
+      "kind": "function",
+      "name": "assert_bytes",
+      "description": "",
+      "exported": false,
+      "visibility": "internal",
+      "params": [
+        {
+          "name": "b",
+          "type": "Uint8Array<ArrayBufferLike>",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "lengths",
+          "type": "number[]",
+          "optional": true,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "void"
+    },
+    {
+      "kind": "function",
+      "name": "isBytes",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "a",
+          "type": "unknown",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "boolean"
+    },
+    {
+      "kind": "function",
+      "name": "asciiToBase16",
+      "description": "",
+      "exported": false,
+      "visibility": "internal",
+      "params": [
+        {
+          "name": "char",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "number"
+    },
     {
       "kind": "function",
       "name": "bytesToHex",
@@ -2640,7 +2945,7 @@
           "hasDefault": false
         }
       ],
-      "returnType": "Buffer<ArrayBuffer>"
+      "returnType": "Uint8Array<ArrayBuffer>"
     },
     {
       "kind": "function",
@@ -2723,11 +3028,11 @@
       "returnType": "string"
     }
   ],
-  "core/src/utils/metadata.ts": [
+  "core\\src\\utils\\metadata.ts": [
     {
       "kind": "function",
       "name": "metadataObjToMetadatum",
-      "description": "Converts various metadata types to a CardanoWASM.TransactionMetadatum.\n\nNote:\n- Maximum metadata `bytes` size is `64`\n- Maximum metadata `text` size is `64`",
+      "description": "Converts various metadata types to a CardanoWASM.TransactionMetadatum.\n\nCardano metadata constraints:\n- `text` fields must be ≤ 64 bytes (UTF-8 encoded)\n- `bytes` fields must be ≤ 64 bytes\n- `number` must be an integer (no floats)",
       "exported": true,
       "visibility": "public",
       "params": [
@@ -2741,7 +3046,7 @@
       "returnType": "TransactionMetadatum"
     }
   ],
-  "core/src/utils/keys.util.ts": [
+  "core\\src\\utils\\keys.util.ts": [
     {
       "kind": "function",
       "name": "cardanoCliKeygen",
@@ -2807,7 +3112,7 @@
       "returnType": "CardanoCLiVkey"
     }
   ],
-  "core/src/utils/datum.ts": [
+  "core\\src\\utils\\datum.ts": [
     {
       "kind": "function",
       "name": "mkInt",
@@ -2877,9 +3182,25 @@
         }
       ],
       "returnType": "PlutusData"
+    },
+    {
+      "kind": "function",
+      "name": "mkList",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "elements",
+          "type": "PlutusData",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "PlutusData"
     }
   ],
-  "core/src/utils/cost-models.ts": [
+  "core\\src\\utils\\cost-models.ts": [
     {
       "kind": "function",
       "name": "buildCostModels",
@@ -2897,7 +3218,25 @@
       "returnType": "Costmdls"
     }
   ],
-  "core/src/utils/address.ts": [
+  "core\\src\\utils\\cbor.ts": [
+    {
+      "kind": "function",
+      "name": "applyDoubleCborEncoding",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "script",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false
+        }
+      ],
+      "returnType": "string"
+    }
+  ],
+  "core\\src\\utils\\address.ts": [
     {
       "kind": "function",
       "name": "getPubkeyHashFromAddress",
@@ -2915,7 +3254,7 @@
       "returnType": "string"
     }
   ],
-  "core/src/utils/providers/ogmios.provider.ts": [
+  "core\\src\\utils\\providers\\ogmios.provider.ts": [
     {
       "kind": "class",
       "name": "OgmiosProvider",
@@ -2998,7 +3337,31 @@
       ]
     }
   ],
-  "core/src/utils/providers/blockfrost.provider.ts": [
+  "core\\src\\utils\\providers\\demeter.provider.ts": [
+    {
+      "kind": "class",
+      "name": "DemeterProvider",
+      "description": "Provider for Demeter's Blockfrost-compatible hosted endpoints.\n\nDemeter exposes a Blockfrost-compatible API where authentication is embedded\nin the subdomain of the endpoint URL.\n\nAuthenticated Endpoint URL format:\n`https://{authToken}.cardano-{network}.blockfrost-m1.demeter.run`",
+      "exported": true,
+      "visibility": "public",
+      "constructors": [
+        {
+          "description": "",
+          "params": [
+            {
+              "name": "config",
+              "type": "DemeterProviderConfig",
+              "optional": false,
+              "hasDefault": false
+            }
+          ],
+          "signature": "constructor(config: DemeterProviderConfig) {\n\t\tconst baseURL = `https://${config.authToken}.cardano-${config.network}.blockfrost-m1.demeter.run/api/v${config.apiVersion ?? 0}`\n\t\tsuper({\n\t\t\tapiKey: config.authToken,\n\t\t\tnetwork: config.network,\n\t\t\tbaseURL,\n\t\t\tcachingOptions: config.cachingOptions\n\t\t})\n\t}"
+        }
+      ],
+      "methods": []
+    }
+  ],
+  "core\\src\\utils\\providers\\blockfrost.provider.ts": [
     {
       "kind": "class",
       "name": "BlockfrostProvider",
@@ -3016,7 +3379,7 @@
               "hasDefault": false
             }
           ],
-          "signature": "constructor(config: BlockfrostProviderConfig) {\n\t\tsuper()\n\n\t\tthis._network = config.network\n\t\tthis._projectId = config.apiKey\n\t\tif (config.apiKey === '') {\n\t\t\tthrow new Error('Blockfrost API key is required')\n\t\t}\n\n\t\tthis._cachingOptions = { ...this._cachingOptions, ...config.cachingOptions }\n\n\t\tthis._axiosInstance = axios.create({\n\t\t\tbaseURL: `https://cardano-${this._network}.blockfrost.io/api/v${config.apiVersion ?? 0}`,\n\t\t\theaders: {\n\t\t\t\tproject_id: this._projectId\n\t\t\t},\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = this.buildFetcher()\n\t\tthis.submitter = this.buildSubmitter()\n\t}"
+          "signature": "constructor(config: BlockfrostProviderConfig) {\n\t\tsuper()\n\n\t\tthis._network = config.network\n\t\tthis._projectId = config.apiKey\n\t\tif (config.apiKey === '') {\n\t\t\tthrow new Error('Blockfrost API key is required')\n\t\t}\n\n\t\tthis._cachingOptions = { ...this._cachingOptions, ...config.cachingOptions }\n\n\t\tthis._axiosInstance = axios.create({\n\t\t\tbaseURL: config.baseURL ?? `https://cardano-${this._network}.blockfrost.io/api/v${config.apiVersion ?? 0}`,\n\t\t\theaders: {\n\t\t\t\tproject_id: this._projectId\n\t\t\t},\n\t\t\ttimeout: 10000\n\t\t})\n\n\t\tthis.fetcher = this.buildFetcher()\n\t\tthis.submitter = this.buildSubmitter()\n\t}"
         }
       ],
       "methods": [
@@ -3054,7 +3417,7 @@
       ]
     }
   ],
-  "core/src/utils/providers/base.ts": [
+  "core\\src\\utils\\providers\\base.ts": [
     {
       "kind": "class",
       "name": "BaseWalletProvider",
@@ -3065,7 +3428,7 @@
       "methods": []
     }
   ],
-  "core/src/utils/cardano-wasm/serializer.ts": [
+  "core\\src\\utils\\cardano-wasm\\serializer.ts": [
     {
       "kind": "function",
       "name": "serializeAssetUnit",
@@ -3089,7 +3452,7 @@
       "returnType": "string"
     }
   ],
-  "core/src/utils/cardano-wasm/resolver.ts": [
+  "core\\src\\utils\\cardano-wasm\\resolver.ts": [
     {
       "kind": "function",
       "name": "resolveTxHash",
@@ -3123,7 +3486,7 @@
       "returnType": "TransactionHash"
     }
   ],
-  "core/src/utils/cardano-wasm/deserializer.ts": [
+  "core\\src\\utils\\cardano-wasm\\deserializer.ts": [
     {
       "kind": "function",
       "name": "deserializeTx",
@@ -3235,7 +3598,7 @@
       "returnType": "PlutusData"
     }
   ],
-  "core/src/utils/cardano-wasm/converter.ts": [
+  "core\\src\\utils\\cardano-wasm\\converter.ts": [
     {
       "kind": "function",
       "name": "convertUTxOToUTxOObject",
@@ -3270,6 +3633,29 @@
     },
     {
       "kind": "function",
+      "name": "convertUTxOObjectToUTxOWithOptions",
+      "description": "",
+      "exported": true,
+      "visibility": "public",
+      "params": [
+        {
+          "name": "utxoObject",
+          "type": "UTxOObject",
+          "optional": false,
+          "hasDefault": false
+        },
+        {
+          "name": "options",
+          "type": "ConvertUTxOObjectToUTxOOptions",
+          "optional": true,
+          "hasDefault": true,
+          "defaultValue": "{}"
+        }
+      ],
+      "returnType": "UTxO"
+    },
+    {
+      "kind": "function",
       "name": "convertTxOutputToWasm",
       "description": "",
       "exported": true,
@@ -3285,7 +3671,7 @@
       "returnType": "TransactionOutput"
     }
   ],
-  "core/src/utils/cardano-wasm/build-keys.ts": [
+  "core\\src\\utils\\cardano-wasm\\build-keys.ts": [
     {
       "kind": "function",
       "name": "harden",
@@ -3459,7 +3845,7 @@
       "returnType": "string"
     }
   ],
-  "core/src/types/protocol.ts": [
+  "core\\src\\types\\protocol.ts": [
     {
       "kind": "function",
       "name": "castProtocol",
@@ -3477,7 +3863,7 @@
       "returnType": "Protocol"
     }
   ],
-  "core/src/types/cardano/asset.ts": [
+  "core\\src\\types\\cardano\\asset.ts": [
     {
       "kind": "function",
       "name": "mergeAssets",
@@ -3495,7 +3881,7 @@
       "returnType": "Asset"
     }
   ],
-  "core/src/types/cardano/asset-metadata.ts": [
+  "core\\src\\types\\cardano\\asset-metadata.ts": [
     {
       "kind": "function",
       "name": "metadataToCip68",
@@ -3513,7 +3899,7 @@
       "returnType": "Data"
     }
   ],
-  "core/src/constants/protocol-parameters.ts": [
+  "core\\src\\constants\\protocol-parameters.ts": [
     {
       "kind": "function",
       "name": "resolveTxFees",

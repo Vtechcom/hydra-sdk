@@ -1,0 +1,18 @@
+# Hydra SDK Documentation for AI Agents
+
+This directory contains documentation optimized for LLMs and MCP agents to understand and interact with the Hydra SDK.
+
+## Core Resources
+- [Project Context](project-context.md): High-level architecture, coding standards, and project goals.
+- [API Specifications](api-specs/): Detailed, machine-readable API mappings for each SDK package.
+
+## Package API Specs
+- [Core Package](api-specs/core.md): Wallet management, UTxO types, and utilities.
+- [Hydra Bridge](api-specs/bridge.md): Hydra Head lifecycle and node communication.
+- [Hydra Transaction](api-specs/transaction.md): Low-level TxBuilder API.
+- [Cardano WASM](api-specs/cardano-wasm.md): Environment-aware WASM wrapper.
+
+## Guidelines for Agents
+1. Always check `project-context.md` before proposing architectural changes.
+2. Refer to `api-specs/` for precise function signatures and return types.
+3. Follow the patterns established in the codebase as described in the context.
