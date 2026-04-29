@@ -1,13 +1,5 @@
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
-import {
-	AppWallet,
-	CardanoCliWallet,
-	EmbeddedWallet,
-	KeysUtils,
-	NETWORK_ID,
-	ParserUtils,
-	WalletStaticMethods
-} from '@hydra-sdk/core'
+import { AppWallet, CardanoCliWallet, EmbeddedWallet, KeysUtils, NETWORK_ID, ParserUtils } from '@hydra-sdk/core'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
@@ -40,7 +32,7 @@ async function main() {
 	//
 	const _paymentKey = CardanoWASM.Bip32PrivateKey.from_hex(paymentKey)
 	const _stakeKey = CardanoWASM.Bip32PrivateKey.from_hex(stakeKey)
-	const { baseAddress, enterpriseAddress, rewardAddress } = WalletStaticMethods.getAddresses(
+	const { baseAddress, enterpriseAddress, rewardAddress } = EmbeddedWallet.getAddresses(
 		_paymentKey,
 		_stakeKey,
 		NETWORK_ID.PREPROD
