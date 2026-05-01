@@ -2,6 +2,7 @@ import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { LANGUAGE_VERSIONS } from '../../constants'
 import { LanguageVersion } from '../../types/cardano/plutus-script'
 import { hexToBytes } from '../parser'
+import { Asset } from '../../types/cardano'
 
 export const deserializeTx = (txCborHex: string): CardanoWASM.FixedTransaction => {
 	return CardanoWASM.FixedTransaction.from_bytes(Buffer.from(txCborHex, 'hex'))
@@ -149,4 +150,43 @@ export const deserializePlutusData = (dataCbor: string): CardanoWASM.PlutusData 
 	} catch (error) {
 		throw new Error('Invalid PlutusData cbor')
 	}
+}
+
+/**
+ * Returns all amounts (lovelace + native tokens) across all outputs, merged by unit.
+ * Quantities for the same unit appearing in multiple outputs are summed.
+ * 'lovelace' is always present unless the tx has zero outputs.
+ */
+export function deserializeAmountsFromTx(cborHex: string): Asset[] {
+	const outputs = deserializeTx(cborHex).body().outputs()
+	const unitMap = new Map<string, bigint>()
+
+	for (let i = 0; i < outputs.len(); i++) {
+		const output = outputs.get(i)
+
+		// Accumulate lovelace
+		const coin = BigInt(output.amount().coin().to_str())
+		unitMap.set('lovelace', (unitMap.get('lovelace') ?? 0n) + coin)
+
+		// Accumulate native tokens
+		const ma = output.amount().multiasset()
+		if (ma && ma.len() > 0) {
+			const policyIds = ma.keys()
+			for (let j = 0; j < policyIds.len(); j++) {
+				const policyId = policyIds.get(j)
+				const assets = ma.get(policyId)
+				for (let k = 0; k < assets!.len(); k++) {
+					const assetName = assets!.keys().get(k)
+					const unit = `${policyId.to_hex()}${assetName.to_hex()}`
+					const qty = BigInt(assets!.get(assetName)!.to_str())
+					unitMap.set(unit, (unitMap.get(unit) ?? 0n) + qty)
+				}
+			}
+		}
+	}
+
+	return Array.from(unitMap.entries()).map(([unit, quantity]) => ({
+		unit,
+		quantity: quantity.toString()
+	}))
 }
