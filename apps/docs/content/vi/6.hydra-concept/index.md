@@ -53,6 +53,13 @@ Sử dụng Plutus scripts trong Hydra:
 - Vesting, multi-sig, auction
 - Performance và best practices
 
+### 6. [Thay Đổi Trong Hydra V2](/vi/hydra-concept/hydra-v2-changes)
+
+Những điểm mới trong Hydra V2 protocol:
+- Loại bỏ giai đoạn commit — mở head trực tiếp
+- Event store SQLite, tối ưu snapshot
+- Bảo mật nâng cao, breaking changes
+
 ---
 
 > **Tip**: Bắt đầu với [Tại sao chọn Hydra?](/vi/hydra-concept/why-hydra) để hiểu khi nào nên sử dụng Hydra cho dự án của bạn

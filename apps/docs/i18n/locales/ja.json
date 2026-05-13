@@ -196,7 +196,8 @@
 			"commitToHydra": "Hydraにコミット",
 			"decommitFromHydra": "Hydraからデコミット",
 			"transactionInHydra": "Hydra内のトランザクション",
-			"smartContractsInHydra": "Hydraのスマートコントラクト"
+			"smartContractsInHydra": "Hydraのスマートコントラクト",
+			"hydraV2Changes": "Hydra V2 の変更点"
 		}
 	},
 	"glossary": {

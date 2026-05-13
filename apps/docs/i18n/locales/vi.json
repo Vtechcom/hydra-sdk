@@ -196,7 +196,8 @@
 			"commitToHydra": "Chuyển tiền vào Hydra",
 			"decommitFromHydra": "Rút tiền từ Hydra",
 			"transactionInHydra": "Giao dịch trong Hydra",
-			"smartContractsInHydra": "Smart Contract trong Hydra"
+			"smartContractsInHydra": "Smart Contract trong Hydra",
+			"hydraV2Changes": "Thay Đổi Trong Hydra V2"
 		}
 	},
 	"glossary": {

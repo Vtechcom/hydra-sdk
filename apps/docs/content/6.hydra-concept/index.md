@@ -53,6 +53,13 @@ Using Plutus scripts in Hydra:
 - Vesting, multi-sig, auctions
 - Performance and best practices
 
+### 6. [Hydra V2 Changes](/hydra-concept/hydra-v2-changes)
+
+What's new in Hydra V2 protocol:
+- Removed commit phase — directly open heads
+- SQLite event store, snapshot optimization
+- Security hardening, breaking changes
+
 ---
 
 > **Tip**: Start with [Why Hydra?](/hydra-concept/why-hydra) to understand when to use Hydra for your project

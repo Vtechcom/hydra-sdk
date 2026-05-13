@@ -196,7 +196,8 @@
 			"commitToHydra": "Commit to Hydra",
 			"decommitFromHydra": "Decommit from Hydra",
 			"transactionInHydra": "Transactions in Hydra",
-			"smartContractsInHydra": "Smart Contracts in Hydra"
+			"smartContractsInHydra": "Smart Contracts in Hydra",
+			"hydraV2Changes": "Hydra V2 Changes"
 		}
 	},
 	"glossary": {

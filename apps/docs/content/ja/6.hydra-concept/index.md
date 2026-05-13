@@ -53,10 +53,16 @@ Layer 1 にアセットを引き出す方法：
 ### 5. [Hydra でのスマートコントラクト](/ja/hydra-concept/smart-contracts-in-hydra)
 
 Hydra での Plutus スクリプトの使用：
-
 - アイソモーフィックなスマートコントラクト
 - Vesting、マルチシグ、オークション
 - パフォーマンスとベストプラクティス
+
+### 6. [Hydra V2 の変更点](/ja/hydra-concept/hydra-v2-changes)
+
+Hydra V2 プロトコルの新機能：
+- commit フェーズの削除 — Head を直接オープン
+- SQLite イベントストア、スナップショット最適化
+- セキュリティ強化、breaking changes
 
 ---
 

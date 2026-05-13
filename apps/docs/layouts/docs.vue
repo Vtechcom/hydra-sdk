@@ -259,6 +259,12 @@
 					to: localePath('/hydra-concept/smart-contracts-in-hydra'),
 					icon: 'i-heroicons-cube-transparent',
 					badge: { text: t('common.new'), color: 'green' as any }
+				},
+				{
+					label: t('common.hydraConcept.hydraV2Changes'),
+					to: localePath('/hydra-concept/hydra-v2-changes'),
+					icon: 'i-heroicons-arrow-path',
+					badge: { text: t('common.new'), color: 'green' as any }
 				}
 			]
 		},
