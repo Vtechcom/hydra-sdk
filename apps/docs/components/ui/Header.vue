@@ -20,17 +20,17 @@
 </script>
 
 <template>
-	<header class="sticky top-0 z-50 border-b border-gray-200 bg-white-50 backdrop-blur-sm dark:border-gray-800 dark:bg-black-900 dark:bg-gray-900/80">
-		<div class="mx-auto px-4" :class="props.containerClass">
-			<div class="flex h-16 items-center justify-between">
+	<header class="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-sm bg-white-50 dark:border-gray-800 dark:bg-black-900 dark:bg-gray-900/80">
+		<div class="px-4 mx-auto" :class="props.containerClass">
+			<div class="flex justify-between items-center h-16">
 				<!-- Logo and Title -->
 				<div class="flex items-center space-x-4">
 					<!-- Mobile Sidebar -->
 
-					<NuxtLink :to="localePath('/')" class="group flex items-center space-x-3">
+					<NuxtLink :to="localePath('/')" class="flex items-center space-x-3 group">
 						<img src="/logo.png" alt="SDK Logo" srcset="/logo.png" class="size-8" />
 						<div class="hidden sm:block">
-							<h1 class="dark:text-white text-lg font-semibold text-gray-600 transition-colors group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400">Hydra SDK</h1>
+							<h1 class="text-lg font-semibold text-gray-600 transition-colors dark:text-white group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400">Hydra SDK</h1>
 							<p class="-mt-0.5 text-xs text-gray-600 dark:text-gray-300">Documentation</p>
 						</div>
 					</NuxtLink>
@@ -60,7 +60,7 @@
 
 					<div>
 						<!-- NPM Link -->
-						<UButton icon="i-simple-icons-npm" variant="ghost" size="sm" target="_blank" color="secondary" to="https://www.npmjs.com/package/hydra-sdk" />
+						<UButton icon="i-simple-icons-npm" variant="ghost" size="sm" target="_blank" color="secondary" to="https://www.npmjs.com/search?q=%40hydra-sdk" />
 
 						<!-- Discord Link -->
 						<UButton icon="i-simple-icons-discord" variant="ghost" size="sm" target="_blank" color="secondary" to="https://discord.com/invite/eZKRyQnbea" />
@@ -79,13 +79,13 @@
 
 			<!-- Mobile Navigation -->
 			<transition name="slide-fade">
-				<div v-if="mobileMenuOpen" class="border-t border-gray-200 py-4 lg:hidden dark:border-gray-700">
+				<div v-if="mobileMenuOpen" class="py-4 border-t border-gray-200 lg:hidden dark:border-gray-700">
 					<nav class="flex flex-col space-y-2">
 						<NuxtLink
 							v-for="item in navigation"
 							:key="item.to"
 							:to="item.to"
-							class="rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400"
+							class="px-3 py-2 text-sm font-medium text-gray-600 rounded-md transition-colors hover:bg-gray-100 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400"
 							@click="mobileMenuOpen = false"
 						>
 							{{ item.label }}
