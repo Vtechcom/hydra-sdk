@@ -13,7 +13,8 @@
 		"test:coverage": "jest --coverage",
 		"test:ci": "jest --coverage --ci --reporters=default --reporters=jest-junit",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-		"update:snapshot": "vitest -u"
+		"update:snapshot": "vitest -u",
+		"test:memory-leak": "node --expose-gc --import tsx src/test-memory-leak.ts"
 	},
 	"engines": {
 		"node": ">=18"
