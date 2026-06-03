@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">90.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>24/28</span>
+                <span class='fraction'>19/21</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/12</span>
+                <span class='fraction'>4/8</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.71% </span>
+                <span class="strong">90.47% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>24/28</span>
+                <span class='fraction'>19/21</span>
             </div>
         
             
@@ -124,7 +124,7 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -138,12 +138,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -151,16 +150,16 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -168,7 +167,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">17x</span>
@@ -181,10 +180,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 &nbsp;
 /**
@@ -203,7 +203,7 @@ export const buildPolicyScriptFromPubkey = (pubkeyScript: { type: 'sig'; keyHash
 	const keyHash = CardanoWASM.Ed25519KeyHash.from_hex(pubkeyScript.keyHash)
 	const scriptPubKey = CardanoWASM.ScriptPubkey.new(keyHash)
 	const script = CardanoWASM.NativeScript.new_script_pubkey(scriptPubKey)
-	return script.as_script_pubkey()?.to_hex(<span class="branch-0 cbranch-no" title="branch not covered" >) || ''</span>
+	return script.as_script_pubkey()?.to_hex() || <span class="branch-1 cbranch-no" title="branch not covered" >''</span>
 }
 &nbsp;
 /**
@@ -214,13 +214,13 @@ export const buildPolicyScriptFromPubkey = (pubkeyScript: { type: 'sig'; keyHash
  */
 export const buildMintingPolicyScriptFromAddress = (addressBech32: string) =&gt; {
 	const addr = CardanoWASM.Address.from_bech32(addressBech32)
-	if (!addr.payment_cred()) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (!addr.payment_cred()) {
 <span class="cstat-no" title="statement not covered" >		throw new Error('Invalid address: ' + addressBech32)</span>
-<span class="cstat-no" title="statement not covered" >	}</span>
+	}
 	const addrKeyHash = addr.payment_cred()?.to_keyhash()
-	if (!addrKeyHash) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+	<span class="missing-if-branch" title="if path not taken" >I</span>if (!addrKeyHash) {
 <span class="cstat-no" title="statement not covered" >		throw new Error('Error when parsing addrKeyHash')</span>
-<span class="cstat-no" title="statement not covered" >	}</span>
+	}
 	return buildMintingPolicyScriptFromKeyHash(addrKeyHash.to_hex())
 }
 &nbsp;
@@ -233,7 +233,7 @@ export const buildMintingPolicyScriptFromKeyHash = (keyHashHex: string) =&gt; {
 	const keyHash = CardanoWASM.Ed25519KeyHash.from_hex(keyHashHex)
 	const scriptPubKey = CardanoWASM.ScriptPubkey.new(keyHash)
 	const script = CardanoWASM.NativeScript.new_script_pubkey(scriptPubKey)
-	return script.as_script_pubkey()?.to_hex(<span class="branch-0 cbranch-no" title="branch not covered" >) || ''</span>
+	return script.as_script_pubkey()?.to_hex() || <span class="branch-1 cbranch-no" title="branch not covered" >''</span>
 }
 &nbsp;
 /**
@@ -253,7 +253,7 @@ export const policyIdFromNativeScript = (script: string) =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-25T11:13:46.499Z
+                at 2026-06-03T04:21:50.379Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
