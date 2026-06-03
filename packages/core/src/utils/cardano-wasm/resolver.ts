@@ -6,7 +6,10 @@ import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
  * @returns Transaction Hash in Hex
  */
 export const resolveTxHash = (cborHex: string) => {
-	return CardanoWASM.FixedTransaction.from_hex(cborHex).transaction_hash().to_hex()
+	const tx = CardanoWASM.FixedTransaction.from_hex(cborHex)
+	const hash = tx.transaction_hash().to_hex()
+	tx.free()
+	return hash
 }
 
 export const resolveTxBodyHash = (txBody: CardanoWASM.TransactionBody) => {

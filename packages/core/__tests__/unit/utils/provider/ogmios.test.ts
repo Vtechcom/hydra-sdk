@@ -271,7 +271,7 @@ describe('OgmiosProvider', () => {
 			const provider = new OgmiosProvider(mockConfig)
 			const result = await provider.fetcher.fetchAddressUTxOs('addr_test')
 
-			expect(result[0].output.scriptRef).toBe('abcd1234')
+			expect(result[0].output.scriptRef).toEqual({ scriptCbor: 'abcd1234', version: 'V2' })
 		})
 
 		it('should handle UTxO with native script reference', async () => {
@@ -294,7 +294,7 @@ describe('OgmiosProvider', () => {
 			const provider = new OgmiosProvider(mockConfig)
 			const result = await provider.fetcher.fetchAddressUTxOs('addr_test')
 
-			expect(result[0].output.scriptRef).toBe('nativecbor')
+			expect(result[0].output.scriptRef).toBeNull()
 		})
 	})
 
