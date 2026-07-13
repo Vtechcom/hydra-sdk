@@ -26,6 +26,7 @@ build
 dist
 
 # .bmad
+.codegraph/*
 
 # misc
 .DS_Store
