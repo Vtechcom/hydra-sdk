@@ -24,9 +24,14 @@ export default eventHandler(async (event) => {
   const path = withLeadingSlash(segments.join('/'))
   const collection = (`docs_${locale}`) as keyof Collections
 
-  let page = await queryCollection(event, collection).path(path).first()
+  // The monorepo resolves two h3 versions; the runtime event (h3 1.15.11) is
+  // structurally compatible with the h3 (1.15.4) that @nuxt/content/server's
+  // types were built against, so cast to the expected event type.
+  const contentEvent = event as Parameters<typeof queryCollection>[0]
+
+  let page = await queryCollection(contentEvent, collection).path(path).first()
   if (!page && locale !== DEFAULT_LOCALE) {
-    page = await queryCollection(event, 'docs_en').path(path).first()
+    page = await queryCollection(contentEvent, 'docs_en').path(path).first()
   }
   if (!page) {
     throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
