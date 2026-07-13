@@ -145,18 +145,110 @@ import { ProviderUtils } from '@hydra-sdk/core'
 
 // Tạo Blockfrost provider
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
-  projectId: process.env.BLOCKFROST_PROJECT_ID || '',
+  apiKey: process.env.BLOCKFROST_PROJECT_ID || '',
   network: 'preprod'
 })
 
 // Tạo Ogmios provider
 const ogmiosProvider = new ProviderUtils.OgmiosProvider({
-  url: 'ws://localhost:1337'
+  network: 'preprod',
+  apiEndpoint: 'http://localhost:1337'
 })
 
-// Sử dụng phương thức provider
-const utxos = await blockfrostProvider.getUtxos(address)
-const protocolParams = await blockfrostProvider.getProtocolParameters()
+// Lấy UTxOs cho một địa chỉ thông qua fetcher của provider
+const utxos = await blockfrostProvider.fetcher.fetchAddressUTxOs(address)
+
+// Lưu ý: providers không cung cấp protocol parameters. Bên trong Hydra Head,
+// hãy đọc chúng từ bridge: await bridge.getProtocolParameters()
+```
+
+## Mới trong v1.4.0
+
+### 7. Xây dựng redeemer (RedeemerUtils)
+
+```typescript
+import { RedeemerUtils, DatumUtils } from '@hydra-sdk/core'
+
+// Bọc PlutusData vào một Redeemer (tag mặc định là 'spend', index là 0)
+const data = DatumUtils.mkConstr(1, [])
+const redeemer = RedeemerUtils.mkRedeemer(data, { tag: 'spend', index: 0 })
+
+// Các helper đã đặt sẵn tag
+const spendRedeemer = RedeemerUtils.mkSpendRedeemer(data)
+const mintRedeemer = RedeemerUtils.mkMintRedeemer(data)
+
+// Unit redeemer "không tham số": Constr(0, [])
+const unitRedeemer = RedeemerUtils.mkUnitRedeemer()
+
+// Execution units (ngân sách tạm — hãy evaluate scripts cho production)
+const exUnits = RedeemerUtils.mkExUnits(RedeemerUtils.DEFAULT_EX_UNITS)
+```
+
+### 8. Các encoder datum mới (DatumUtils)
+
+```typescript
+import { DatumUtils, NETWORK_ID } from '@hydra-sdk/core'
+
+// Danh sách (list)
+const list = DatumUtils.mkList([DatumUtils.mkInt(1), DatumUtils.mkInt(2)])
+const bytesList = DatumUtils.mkBytesList(['deadbeef', 'cafe'])
+const intList = DatumUtils.mkIntList([1, 2, 3])
+
+// Boolean: False = Constr(0, []), True = Constr(1, [])
+const flag = DatumUtils.mkBool(true)
+
+// Option: Some = Constr(0, [v]), None = Constr(1, [])
+const some = DatumUtils.mkOption(DatumUtils.mkInt(42))
+const none = DatumUtils.mkOption()
+
+// Output reference: Constr(0, [Bytes(txHash), Int(index)])
+const outRef = DatumUtils.mkOutputRef({ txHash: 'abc123...', index: 0 })
+
+// Address <-> PlutusData
+const addrDatum = DatumUtils.mkAddress('addr_test1...')
+const bech32 = DatumUtils.parseAddress(addrDatum, NETWORK_ID.PREPROD)
+```
+
+### 9. Tiện ích validation (ValidationUtils / AddressUtils)
+
+```typescript
+import { ValidationUtils, AddressUtils } from '@hydra-sdk/core'
+
+// Kiểm tra cấu trúc của một transaction output
+const okOutput = ValidationUtils.isValidTxOutput({
+  address: 'addr_test1...',
+  amount: [{ unit: 'lovelace', quantity: '2000000' }]
+})
+
+// Kiểm tra một address (type: 'bech32' | 'hex' | 'bytes', mặc định 'bech32')
+const okAddress = AddressUtils.isValidAddress('addr_test1...')
+
+// Trích xuất payment key hash (trả về null nếu không suy ra được)
+const pubKeyHash = AddressUtils.getPubkeyHashFromAddress('addr_test1...')
+```
+
+### 10. Đọc toàn bộ amounts từ một transaction (Deserializer)
+
+```typescript
+import { Deserializer } from '@hydra-sdk/core'
+
+// Cộng amounts của mọi output, gộp theo unit
+const amounts = Deserializer.deserializeAmountsFromTx(signedTxCbor)
+console.log('Total amounts:', amounts)
+```
+
+### 11. Demeter provider (ProviderUtils.DemeterProvider)
+
+```typescript
+import { ProviderUtils } from '@hydra-sdk/core'
+
+// Demeter kế thừa BlockfrostProvider; cùng surface .fetcher / .submitter
+const demeterProvider = new ProviderUtils.DemeterProvider({
+  authToken: process.env.DEMETER_AUTH_TOKEN || '',
+  network: 'preprod'
+})
+
+const utxos = await demeterProvider.fetcher.fetchAddressUTxOs(address)
 ```
 
 ## Các Pattern Nâng Cao

@@ -145,18 +145,110 @@ import { ProviderUtils } from '@hydra-sdk/core'
 
 // Create Blockfrost provider
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
-  projectId: process.env.BLOCKFROST_PROJECT_ID || '',
+  apiKey: process.env.BLOCKFROST_PROJECT_ID || '',
   network: 'preprod'
 })
 
 // Create Ogmios provider
 const ogmiosProvider = new ProviderUtils.OgmiosProvider({
-  url: 'ws://localhost:1337'
+  network: 'preprod',
+  apiEndpoint: 'http://localhost:1337'
 })
 
-// Use provider methods
-const utxos = await blockfrostProvider.getUtxos(address)
-const protocolParams = await blockfrostProvider.getProtocolParameters()
+// Fetch UTxOs for an address through the provider's fetcher
+const utxos = await blockfrostProvider.fetcher.fetchAddressUTxOs(address)
+
+// Note: providers do not expose protocol parameters. Inside a Hydra Head,
+// read them from the bridge instead: await bridge.getProtocolParameters()
+```
+
+## New in v1.4.0
+
+### 7. Redeemer Building (RedeemerUtils)
+
+```typescript
+import { RedeemerUtils, DatumUtils } from '@hydra-sdk/core'
+
+// Wrap PlutusData into a Redeemer (tag defaults to 'spend', index to 0)
+const data = DatumUtils.mkConstr(1, [])
+const redeemer = RedeemerUtils.mkRedeemer(data, { tag: 'spend', index: 0 })
+
+// Tag-preset helpers
+const spendRedeemer = RedeemerUtils.mkSpendRedeemer(data)
+const mintRedeemer = RedeemerUtils.mkMintRedeemer(data)
+
+// The "no argument" Unit redeemer: Constr(0, [])
+const unitRedeemer = RedeemerUtils.mkUnitRedeemer()
+
+// Execution units (placeholder budget — evaluate scripts for production)
+const exUnits = RedeemerUtils.mkExUnits(RedeemerUtils.DEFAULT_EX_UNITS)
+```
+
+### 8. New Datum Encoders (DatumUtils)
+
+```typescript
+import { DatumUtils, NETWORK_ID } from '@hydra-sdk/core'
+
+// Lists
+const list = DatumUtils.mkList([DatumUtils.mkInt(1), DatumUtils.mkInt(2)])
+const bytesList = DatumUtils.mkBytesList(['deadbeef', 'cafe'])
+const intList = DatumUtils.mkIntList([1, 2, 3])
+
+// Booleans: False = Constr(0, []), True = Constr(1, [])
+const flag = DatumUtils.mkBool(true)
+
+// Option: Some = Constr(0, [v]), None = Constr(1, [])
+const some = DatumUtils.mkOption(DatumUtils.mkInt(42))
+const none = DatumUtils.mkOption()
+
+// Output reference: Constr(0, [Bytes(txHash), Int(index)])
+const outRef = DatumUtils.mkOutputRef({ txHash: 'abc123...', index: 0 })
+
+// Address <-> PlutusData
+const addrDatum = DatumUtils.mkAddress('addr_test1...')
+const bech32 = DatumUtils.parseAddress(addrDatum, NETWORK_ID.PREPROD)
+```
+
+### 9. Validation Utilities (ValidationUtils / AddressUtils)
+
+```typescript
+import { ValidationUtils, AddressUtils } from '@hydra-sdk/core'
+
+// Validate a transaction output shape
+const okOutput = ValidationUtils.isValidTxOutput({
+  address: 'addr_test1...',
+  amount: [{ unit: 'lovelace', quantity: '2000000' }]
+})
+
+// Validate an address (type: 'bech32' | 'hex' | 'bytes', default 'bech32')
+const okAddress = AddressUtils.isValidAddress('addr_test1...')
+
+// Extract the payment key hash (returns null if not derivable)
+const pubKeyHash = AddressUtils.getPubkeyHashFromAddress('addr_test1...')
+```
+
+### 10. Read All Amounts From a Transaction (Deserializer)
+
+```typescript
+import { Deserializer } from '@hydra-sdk/core'
+
+// Sum every output's amounts, merged by unit
+const amounts = Deserializer.deserializeAmountsFromTx(signedTxCbor)
+console.log('Total amounts:', amounts)
+```
+
+### 11. Demeter Provider (ProviderUtils.DemeterProvider)
+
+```typescript
+import { ProviderUtils } from '@hydra-sdk/core'
+
+// Demeter extends BlockfrostProvider; same .fetcher / .submitter surface
+const demeterProvider = new ProviderUtils.DemeterProvider({
+  authToken: process.env.DEMETER_AUTH_TOKEN || '',
+  network: 'preprod'
+})
+
+const utxos = await demeterProvider.fetcher.fetchAddressUTxOs(address)
 ```
 
 ## Advanced Patterns

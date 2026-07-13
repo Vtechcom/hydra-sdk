@@ -29,11 +29,11 @@ npm install @hydra-sdk/core @hydra-sdk/transaction @hydra-sdk/cardano-wasm
 import {
   AppWallet,
   DatumUtils,
-  deserializeTx,
+  Deserializer,
   NETWORK_ID,
+  ParserUtils,
   PolicyUtils,
-  serializeAssetUnit,
-  stringToHex
+  Serializer
 } from '@hydra-sdk/core'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
@@ -68,7 +68,7 @@ console.log('Địa Chỉ Ví:', walletAddress)
 async function mintToken() {
   // Query các UTxO có sẵn
   console.log('>>> Đang query UTxO...', walletAddress)
-  const utxos = await HexcoreApi.queryAddressUTxO(walletAddress)
+  const utxos = await wallet.queryUTxOs(walletAddress)
   console.log(`>>> Tìm thấy ${utxos.length} UTxO`)
 
   // Tìm UTxO phù hợp làm collateral (>= 5 ADA)
@@ -93,7 +93,7 @@ async function mintToken() {
 // Tạo minting policy từ địa chỉ ví
 const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
 const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
-const assetNameHex = stringToHex('AniaToken')
+const assetNameHex = ParserUtils.stringToHex('AniaToken')
 
 // Định nghĩa metadata token (chuẩn CIP-25)
 const assetMetadata = {
@@ -148,7 +148,7 @@ const tx = await txBuilder
     amount: [
       { unit: 'lovelace', quantity: String(2_000_000) },
       { 
-        unit: serializeAssetUnit(policyId, assetNameHex), 
+        unit: Serializer.serializeAssetUnit(policyId, assetNameHex), 
         quantity: '1000000' 
       }
     ]
@@ -159,7 +159,7 @@ const tx = await txBuilder
 // Ký và gửi giao dịch
 const signedCbor = await wallet.signTx(tx.to_hex())
 console.log('Giao Dịch Đã Ký:', signedCbor)
-console.log('ID Giao Dịch:', deserializeTx(signedCbor).transaction_hash().to_hex())
+console.log('ID Giao Dịch:', Deserializer.deserializeTx(signedCbor).transaction_hash().to_hex())
 ```
 
 ## 🔥 Burn Token
@@ -171,7 +171,7 @@ Burn token sẽ loại bỏ chúng vĩnh viễn khỏi lưu thông. Điều này
 ```typescript
 async function burnToken() {
   // Query UTxO (giống như minting)
-  const utxos = await HexcoreApi.queryAddressUTxO(walletAddress)
+  const utxos = await wallet.queryUTxOs(walletAddress)
   const collateralUTxOs = utxos.filter(u =>
     u.output.amount.find(a => 
       a.unit === 'lovelace' && Number(a.quantity) >= 5_000_000
@@ -187,7 +187,7 @@ async function burnToken() {
   // Cùng policy và chi tiết asset
   const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
   const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
-  const assetNameHex = stringToHex('AniaToken')
+  const assetNameHex = ParserUtils.stringToHex('AniaToken')
   
   const txBuilder = new TxBuilder()
   
@@ -208,7 +208,7 @@ async function burnToken() {
     .complete()
     
   const signedCbor = await wallet.signTx(tx.to_hex())
-  console.log('ID Giao Dịch Burn:', deserializeTx(signedCbor).transaction_hash().to_hex())
+  console.log('ID Giao Dịch Burn:', Deserializer.deserializeTx(signedCbor).transaction_hash().to_hex())
 }
 ```
 
@@ -289,11 +289,11 @@ console.log('Datum (json):', datum.to_json(DatumUtils.DatumSchema.Detailed))
 import {
   AppWallet,
   DatumUtils,
-  deserializeTx,
+  Deserializer,
   NETWORK_ID,
+  ParserUtils,
   PolicyUtils,
-  serializeAssetUnit,
-  stringToHex
+  Serializer
 } from '@hydra-sdk/core'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'

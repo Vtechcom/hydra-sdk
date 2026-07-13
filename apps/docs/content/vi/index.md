@@ -1,4 +1,4 @@
-# Tài Liệu Hydra SDK v1.1.0
+# Tài Liệu Hydra SDK v1.4.0
 
 Chào mừng bạn đến với tài liệu toàn diện cho Hydra SDK - bộ công cụ hoàn chỉnh để xây dựng ứng dụng ví Cardano với tích hợp Hydra Layer 2.
 
@@ -6,7 +6,7 @@ Chào mừng bạn đến với tài liệu toàn diện cho Hydra SDK - bộ c�
 
 Hydra SDK là một bộ phát triển phần mềm toàn diện cung cấp các thư viện và công cụ thiết yếu để tích hợp chức năng ví Cardano và quản lý Hydra Head vào ứng dụng của bạn. Được xây dựng trên kiến trúc monorepo sử dụng Turborepo, nó cung cấp một cách tiếp cận mô-đun, có thể mở rộng cho việc phát triển Cardano.
 
-**Phiên Bản Mới Nhất: v1.1.0** - Được nâng cấp với các utility functions mạnh mẽ và trải nghiệm developer được cải thiện.
+**Bản phát hành mới nhất: v1.4.0** (`@hydra-sdk/core` 1.4.0, `@hydra-sdk/bridge` 1.3.1) - Bổ sung namespace RedeemerUtils, các encoder DatumUtils mới, ValidationUtils, và hỗ trợ Cardano protocol v11.
 
 ## Tính Năng Chính
 

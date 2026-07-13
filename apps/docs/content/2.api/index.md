@@ -12,9 +12,11 @@ The Hydra SDK consists of four main packages and a comprehensive utilities colle
 4. [**@hydra-sdk/cardano-wasm**](/api/cardano-wasm) - Cardano WASM bindings for advanced blockchain operations
 5. [**Utilities**](/api/utilities) - Comprehensive collection of utility functions for Cardano development
 
-## What's New in v1.1.0
+## What's New in v1.4.0
 
-- **Enhanced Utilities**: New utility functions for data parsing, datum handling, policy management, and time calculations
-- **Improved Type Safety**: Better TypeScript definitions and type checking
-- **Provider Abstractions**: Unified provider interfaces for different blockchain data sources
-- **Advanced WASM Operations**: Extended WASM utilities for serialization and deserialization
+- **RedeemerUtils**: New namespace for building Plutus script redeemers (`mkRedeemer`, `mkSpendRedeemer`, `mkMintRedeemer`, `mkUnitRedeemer`)
+- **DatumUtils encoders**: Added `mkList`, `mkBool`, `mkOption`, `mkBytesList`, `mkIntList`, `mkOutputRef`, `mkAddress`, and `parseAddress`
+- **ValidationUtils**: New `isValidTxOutput` helper; `isValidAddress` now lives under `AddressUtils`
+- **Deserializer.deserializeAmountsFromTx**: Extract merged amounts across all transaction outputs
+- **Provider Abstractions**: `ProviderUtils` now includes the Demeter provider alongside Blockfrost and Ogmios
+- **Protocol v11 support**: Updated default protocol parameters and cost models

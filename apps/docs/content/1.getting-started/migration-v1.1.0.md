@@ -181,14 +181,19 @@ class MyProvider {
 import { ProviderUtils } from '@hydra-sdk/core'
 
 const provider = new ProviderUtils.BlockfrostProvider({
-  projectId: 'your-project-id',
+  apiKey: 'your-blockfrost-api-key',
   network: 'preprod'
 })
 
-// Or extend the base provider
-class MyProvider extends ProviderUtils.BaseProvider {
-  async getUtxos(address) {
-    // Your implementation with inherited methods
+// Or extend a built-in provider to customize behavior
+class MyProvider extends ProviderUtils.BlockfrostProvider {
+  constructor() {
+    super({ apiKey: 'your-blockfrost-api-key', network: 'preprod' })
+  }
+
+  // Inherited `.fetcher` / `.submitter` still work
+  async getUtxos(address: string) {
+    return this.fetcher.fetchAddressUTxOs(address)
   }
 }
 ```
@@ -333,12 +338,12 @@ console.log('Data conversion tests passed')
 ### 3. Time Utilities Test
 
 ```typescript
-import { TimeUtils } from '@hydra-sdk/core'
+import { TimeUtils, SLOT_CONFIG_NETWORK } from '@hydra-sdk/core'
 
-const networks = ['mainnet', 'preprod', 'preview'] as const
+const networks = ['MAINNET', 'PREPROD', 'PREVIEW'] as const
 
 networks.forEach(network => {
-  const slot = TimeUtils.unixTimeToEnclosingSlot(Date.now(), network)
+  const slot = TimeUtils.unixTimeToEnclosingSlot(Date.now(), SLOT_CONFIG_NETWORK[network])
   console.assert(typeof slot === 'number' && slot > 0, `Invalid slot for network: ${network}`)
 })
 

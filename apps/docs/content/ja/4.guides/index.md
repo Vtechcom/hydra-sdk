@@ -17,10 +17,11 @@ description: Hydra SDK を使った Cardano ウォレットアプリ構築と Hy
 4. **Hydra Head Management** – Hydra Layer 2 への接続と Hydra Head の管理
 5. **Testing Strategies** – アプリケーションのテスト戦略
 
-## v1.1.0 での更新ポイント
+## v1.4.0 での更新ポイント
 
-- **Utilities ガイドの強化** – 新しい Utility 関数を含む包括的な解説
-- **高度なパターン** – 実運用を想定したコード例とベストプラクティス
-- **パフォーマンス最適化** – Cardano / Hydra 開発を効率化するためのヒント
+- **RedeemerUtils** – スクリプトの redeemer を構築するための新しい名前空間（`mkRedeemer`、`mkSpendRedeemer`、`mkMintRedeemer`、`mkUnitRedeemer`）
+- **新しい DatumUtils エンコーダー** – `mkList`、`mkBool`、`mkOption`、`mkBytesList`、`mkIntList`、`mkOutputRef`、`mkAddress`、`parseAddress`
+- **ValidationUtils と AddressUtils** – `ValidationUtils.isValidTxOutput`、および移設された `AddressUtils.isValidAddress` と `getPubkeyHashFromAddress`
+- **Deserializer.deserializeAmountsFromTx** – トランザクションから統合された出力金額を読み取ります。Resolver のメモリリーク修正と protocol v11 のデフォルト値も含みます
 
 > 参照: [はじめに](/ja/getting-started/), [API](/ja/api/), [例](/ja/examples/)

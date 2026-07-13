@@ -237,14 +237,19 @@ class MyProvider {
 import { ProviderUtils } from '@hydra-sdk/core'
 
 const provider = new ProviderUtils.BlockfrostProvider({
-  projectId: 'your-project-id',
+  apiKey: 'your-blockfrost-api-key',
   network: 'preprod',
 })
 
-// ✅ 必要に応じて BaseProvider を継承
-class MyProvider extends ProviderUtils.BaseProvider {
+// ✅ 組み込み Provider を継承して挙動をカスタマイズ
+class MyProvider extends ProviderUtils.BlockfrostProvider {
+  constructor() {
+    super({ apiKey: 'your-blockfrost-api-key', network: 'preprod' })
+  }
+
+  // 継承した `.fetcher` / `.submitter` はそのまま利用可能
   async getUtxos(address: string) {
-    // BaseProvider のメソッドを活用した実装
+    return this.fetcher.fetchAddressUTxOs(address)
   }
 }
 ```
@@ -403,12 +408,12 @@ console.log('Data conversion tests passed')
 ### 3. Time Utilities テスト
 
 ```ts
-import { TimeUtils } from '@hydra-sdk/core'
+import { TimeUtils, SLOT_CONFIG_NETWORK } from '@hydra-sdk/core'
 
-const networks = ['mainnet', 'preprod', 'preview'] as const
+const networks = ['MAINNET', 'PREPROD', 'PREVIEW'] as const
 
 networks.forEach((network) => {
-  const slot = TimeUtils.unixTimeToEnclosingSlot(Date.now(), network)
+  const slot = TimeUtils.unixTimeToEnclosingSlot(Date.now(), SLOT_CONFIG_NETWORK[network])
   console.assert(
     typeof slot === 'number' && slot > 0,
     `Invalid slot for network: ${network}`,

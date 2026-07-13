@@ -91,8 +91,7 @@ console.log('Tx hash:', txHash)
 ```typescript
 import { HydraBridge, HexcoreConnector } from '@hydra-sdk/bridge'
 
-const hexcoreConnector = new HexcoreConnector({
-  socketIoUrl: 'wss://example.hexcore.io.vn/hydra',
+const hexcoreConnector = new HexcoreConnector('wss://example.hexcore.io.vn/hydra', {
   socketIoOptions: {
     auth: { token: 'your_auth_token' }
   }

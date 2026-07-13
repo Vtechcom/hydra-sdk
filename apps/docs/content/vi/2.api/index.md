@@ -17,9 +17,11 @@ Hydra SDK gồm 4 package chính và bộ sưu tập utilities toàn diện:
 4. [**@hydra-sdk/cardano-wasm**](/vi/api/cardano-wasm) - Binding WASM (WebAssembly) cho các thao tác Cardano nâng cao
 5. [**Utilities**](/vi/api/utilities) - Bộ sưu tập toàn diện các utility functions cho phát triển Cardano
 
-## Có Gì Mới trong v1.1.0
+## Có gì mới trong v1.4.0
 
-- **Enhanced Utilities**: Các utility functions mới cho data parsing, datum handling, policy management, và time calculations
-- **Improved Type Safety**: Định nghĩa TypeScript tốt hơn và type checking
-- **Provider Abstractions**: Unified provider interfaces cho các nguồn dữ liệu blockchain khác nhau
-- **Advanced WASM Operations**: Extended WASM utilities cho serialization và deserialization
+- **RedeemerUtils**: Namespace mới để xây dựng redeemer cho Plutus script (`mkRedeemer`, `mkSpendRedeemer`, `mkMintRedeemer`, `mkUnitRedeemer`)
+- **DatumUtils encoders**: Thêm `mkList`, `mkBool`, `mkOption`, `mkBytesList`, `mkIntList`, `mkOutputRef`, `mkAddress`, và `parseAddress`
+- **ValidationUtils**: Helper `isValidTxOutput` mới; `isValidAddress` giờ nằm trong `AddressUtils`
+- **Deserializer.deserializeAmountsFromTx**: Trích xuất các khoản đã gộp trên tất cả output của giao dịch
+- **Provider Abstractions**: `ProviderUtils` giờ bao gồm provider Demeter bên cạnh Blockfrost và Ogmios
+- **Hỗ trợ protocol v11**: Cập nhật protocol parameters và cost models mặc định
