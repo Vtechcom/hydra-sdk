@@ -6,18 +6,20 @@ const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 const { header } = useAppConfig()
 
-const { locale, locales } = useI18n()
-const switchLocalePath = useSwitchLocalePath()
+const { locale, locales, setLocale } = useI18n()
 
 const currentLocaleName = computed(() =>
   locales.value.find(l => l.code === locale.value)?.name ?? locale.value
 )
 
+// Switch programmatically via setLocale rather than a `to` link: Nuxt UI
+// re-localizes link targets against the active locale, which broke switching
+// back to the default locale from a prefixed (/vi, /ja) route.
 const localeItems = computed<DropdownMenuItem[]>(() =>
   locales.value.map(l => ({
     label: l.name ?? l.code,
-    to: switchLocalePath(l.code),
-    icon: l.code === locale.value ? 'i-lucide-check' : undefined
+    icon: l.code === locale.value ? 'i-lucide-check' : undefined,
+    onSelect: () => setLocale(l.code)
   }))
 )
 </script>
