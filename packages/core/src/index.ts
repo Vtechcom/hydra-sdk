@@ -23,6 +23,8 @@ import * as DatumUtils from './utils/datum'
 import * as PolicyUtils from './utils/policy'
 import * as ProviderUtils from './utils/providers'
 import * as ParserUtils from './utils/parser'
+import * as ValidationUtils from './utils/validation'
+/** @deprecated Use `AddressUtils.isValidAddress` / `ValidationUtils.isValidTxOutput` instead. */
 import * as ValidatorUtils from './utils/validator.util'
 import * as MetadataUtils from './utils/metadata'
 import * as KeysUtils from './utils/keys.util'
@@ -44,6 +46,8 @@ export {
 	DatumUtils,
 	PolicyUtils,
 	ProviderUtils,
+	ValidationUtils,
+	// @deprecated kept for backward compatibility — prefer AddressUtils.isValidAddress / ValidationUtils.isValidTxOutput
 	ValidatorUtils,
 	MetadataUtils,
 	KeysUtils,

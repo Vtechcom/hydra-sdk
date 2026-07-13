@@ -1,7 +1,7 @@
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { Asset, TxHash, TxOutput, UTxO, UTxOObject, UTxOObjectValue } from '../../types/cardano'
 import { deserializeAssetUnit } from './deserializer'
-import { isValidAddress } from '../validator.util'
+import { isValidAddress } from '../address'
 import { Deserializer, ParserUtils } from '../..'
 
 type ConvertUTxOObjectToUTxOOptions = {

@@ -5,7 +5,7 @@ import { Converter } from '../../../../src'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock dependencies
-vi.mock('../../../../src/utils/validator.util', () => ({
+vi.mock('../../../../src/utils/address', () => ({
 	isValidAddress: vi.fn(addr => addr && addr.startsWith('addr_test'))
 }))
 

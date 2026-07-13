@@ -1,5 +1,52 @@
 # @hydra-sdk/core
 
+## 1.4.0
+
+### Minor Changes
+
+#### Protocol parameters upgraded to v11 (`constants/protocol-parameters.ts`)
+
+- **`DEFAULT_PROTOCOL_PARAMETERS.minPoolCost`** lowered from `340000000` (340 ADA) to `170000000` (170 ADA), matching the Cardano v11 protocol parameter update. All other default parameters are unchanged.
+
+#### Cost models synced with the v11 on-chain cost models (`constants/cost-models.ts`)
+
+- **`DEFAULT_V1_COST_MODEL_LIST`** and **`DEFAULT_V2_COST_MODEL_LIST`** extended with the additional Plutus builtin cost entries introduced in the current on-chain cost models — the lists now cover the full set of operations expected by protocol v11 evaluators (previously they stopped short of the newer builtins).
+- **`DEFAULT_V3_COST_MODEL_LIST`** coefficients updated to the v11 values (e.g. the `byteStringToInteger` group `1716, 549, 57` → `1716, 960, 57`, and the `24548, 29498, 38` group → `30623, 28755, 75`).
+
+> These are the default cost models used when a provider does not supply its own. Consumers building or evaluating Plutus transactions offline are now costed against the v11 parameters. Applications that pin their own protocol parameters / cost models are unaffected.
+
+#### `deserializer.ts` — New `deserializeAmountsFromTx` helper
+
+- **`Deserializer.deserializeAmountsFromTx(cborHex)`** (new): decodes a transaction CBOR and returns every amount (lovelace + native tokens) across **all** outputs, merged by `unit` with quantities summed. `'lovelace'` is always present unless the transaction has zero outputs. Returns `Asset[]` (`{ unit, quantity }`), so it plugs directly into the existing asset helpers such as `mergeAssets`.
+
+  ```ts
+  const amounts = Deserializer.deserializeAmountsFromTx(txCborHex)
+  // [{ unit: 'lovelace', quantity: '2000000' }, { unit: '<policy><assetName>', quantity: '5' }]
+  ```
+
+#### `DatumUtils` — New Plutus-data encoders
+
+- **`mkBool`** — encode an Aiken `Bool` (`False = Constr(0, [])`, `True = Constr(1, [])`).
+- **`mkOption`** — encode an `Option`/`Maybe` (`Some = Constr(0, [v])`, `None = Constr(1, [])`).
+- **`mkBytesList`** / **`mkIntList`** — encode `List<ByteArray>` / `List<Int>` (accepting hex strings or raw bytes, and `string | number | bigint` respectively).
+- **`mkOutputRef`** — encode a Plutus `OutputReference` (`Constr(0, [Bytes(txHash), Int(index)])`).
+- **`mkAddress`** / **`parseAddress`** — convert a bech32 address to/from Plutus `Address` data. Handles key & script credentials and enterprise (no-stake) addresses; `parseAddress` rebuilds a bech32 address for a given network id.
+
+#### `RedeemerUtils` — New namespace
+
+- **`RedeemerUtils.mkRedeemer(data, options?)`** (new): wraps any `PlutusData` (e.g. built with `DatumUtils`) into a `Redeemer` with configurable `tag` / `index` / `exUnits`, ready to attach to the `@hydra-sdk/transaction` TxBuilder. Convenience helpers **`mkSpendRedeemer`**, **`mkMintRedeemer`**, **`mkUnitRedeemer`**, plus low-level **`mkRedeemerTag`**, **`mkExUnits`** and **`DEFAULT_EX_UNITS`** are included.
+
+#### Address validation reorganised out of `validator.util`
+
+- **`AddressUtils.isValidAddress`** and new **`ValidationUtils.isValidTxOutput`** now hold these validation helpers, which previously lived in `validator.util` — a name easily confused with Plutus **validator scripts** (`plutus-script.util`).
+- **`ValidatorUtils`** is retained as a **deprecated** re-export for backward compatibility, so existing `ValidatorUtils.isValidAddress` / `ValidatorUtils.isValidTxOutput` calls keep working.
+
+### Patch Changes
+
+#### `resolver.ts` — Fix WASM memory leak in `resolveTxHash`
+
+- **`Resolver.resolveTxHash`** now calls `.free()` on the intermediate `FixedTransaction` WASM object before returning. Previously the object was left un-freed on every call, leaking WASM heap memory in long-running processes that hash many transactions (surfaced by the new memory-leak test suite).
+
 ## 1.3.2
 
 ### Patch Changes

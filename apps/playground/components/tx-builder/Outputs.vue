@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 	import type { CardanoWASM } from '@hydra-sdk/cardano-wasm'
-	import { Deserializer, ParserUtils, ValidatorUtils, type TxOutput } from '@hydra-sdk/core'
+	import { Deserializer, ParserUtils, ValidationUtils, type TxOutput } from '@hydra-sdk/core'
 	import type { TxOutputJson } from './interface'
 
 	const outputs = defineModel<TxOutputJson[]>('outputs', {
@@ -55,7 +55,7 @@
 						jsonParseError.value = 'Invalid datum format: at output index ' + index
 					}
 				}
-				const isValid = ValidatorUtils.isValidTxOutput({ ...output, inlineDatum, datum })
+				const isValid = ValidationUtils.isValidTxOutput({ ...output, inlineDatum, datum })
 				if (!isValid) {
 					jsonValid.value = false
 					jsonParseError.value = 'Invalid output structure: at output index ' + index

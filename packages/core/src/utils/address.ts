@@ -1,5 +1,35 @@
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
-import { isValidAddress } from './validator.util'
+
+/**
+ * Check whether a value is a valid (non-malformed) Cardano address.
+ * @param address The address as a bech32 string, hex string, or raw bytes
+ * @param type How to interpret a string `address` (default `bech32`)
+ * @returns `true` if the address parses and is not malformed
+ */
+export const isValidAddress = (address: string | Uint8Array, type: 'bech32' | 'hex' | 'bytes' = 'bech32'): boolean => {
+	try {
+		let wasmAddr: CardanoWASM.Address | null = null
+		if (typeof address === 'string') {
+			if (address.length === 0) return false
+			if (type === 'bech32') {
+				wasmAddr = CardanoWASM.Address.from_bech32(address)
+			} else if (type === 'hex') {
+				wasmAddr = CardanoWASM.Address.from_hex(address)
+			} else {
+				return false
+			}
+		} else if (address instanceof Uint8Array) {
+			if (address.length === 0) return false
+			wasmAddr = CardanoWASM.Address.from_bytes(address)
+		} else {
+			return false
+		}
+		if (!wasmAddr) return false
+		return wasmAddr.is_malformed() === false
+	} catch (e) {
+		return false
+	}
+}
 
 /**
  * Get the public key hash from a bech32 Cardano address

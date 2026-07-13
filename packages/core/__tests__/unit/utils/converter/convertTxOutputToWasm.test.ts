@@ -5,7 +5,7 @@ import { mockData } from '../../../mocks/converter'
 import { TxOutput } from '../../../../src/types/cardano'
 
 // Mock dependencies
-vi.mock('../../../../src/utils/validator.util', () => ({
+vi.mock('../../../../src/utils/address', () => ({
 	isValidAddress: vi.fn(addr => addr && addr.startsWith('addr_test'))
 }))
 
