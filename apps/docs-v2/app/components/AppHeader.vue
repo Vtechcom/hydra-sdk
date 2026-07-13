@@ -49,7 +49,7 @@ const localeItems = computed<DropdownMenuItem[]>(() =>
         v-if="header?.title"
         class="flex flex-col leading-tight"
       >
-        <span class="text-lg font-semibold text-highlighted">{{ header.title }}</span>
+        <span class="font-display text-lg font-bold tracking-tight text-highlighted">{{ header.title }}</span>
         <span class="text-xs text-muted">Documentation</span>
       </span>
     </template>

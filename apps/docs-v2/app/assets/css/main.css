@@ -36,18 +36,19 @@
  */
 body {
   background-image: radial-gradient(
-    115% 70% at 50% -8%,
-    color-mix(in oklab, var(--color-green-400) 7%, transparent),
-    transparent 55%
+    120% 75% at 50% -10%,
+    color-mix(in oklab, var(--color-green-400) 10%, transparent),
+    transparent 58%
   );
   background-attachment: fixed;
 }
 
 .dark body {
   background-image: radial-gradient(
-    120% 72% at 50% -8%,
-    color-mix(in oklab, var(--color-green-400) 15%, transparent),
-    transparent 56%
+    130% 82% at 50% -12%,
+    color-mix(in oklab, var(--color-green-400) 24%, transparent) 0%,
+    color-mix(in oklab, var(--color-green-400) 8%, transparent) 30%,
+    transparent 60%
   );
 }
 
