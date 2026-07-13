@@ -115,5 +115,13 @@ export default defineNuxtConfig({
 
   ogImage: {
     zeroRuntime: true
+  },
+
+  // Pre-bundle animejs (dynamically imported for the header brand animation)
+  // so dev doesn't trigger a page reload on first use.
+  vite: {
+    optimizeDeps: {
+      include: ['animejs']
+    }
   }
 })
