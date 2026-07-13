@@ -28,6 +28,7 @@ import * as MetadataUtils from './utils/metadata'
 import * as KeysUtils from './utils/keys.util'
 import * as PlutusUtils from './utils/plutus-script.util'
 import * as AddressUtils from './utils/address'
+import * as RedeemerUtils from './utils/redeemer'
 
 export {
 	// CardanoWASM Utilities
@@ -47,5 +48,6 @@ export {
 	MetadataUtils,
 	KeysUtils,
 	PlutusUtils,
-	AddressUtils
+	AddressUtils,
+	RedeemerUtils
 }
