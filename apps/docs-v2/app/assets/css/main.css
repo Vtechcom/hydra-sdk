@@ -6,6 +6,10 @@
 @theme static {
   --container-8xl: 90rem;
   --font-sans: 'Public Sans', sans-serif;
+  /* Geometric, technical display face for headings — a nod to the L2 / protocol
+     subject, and deliberately distinct from the Public Sans body. Auto-provisioned
+     by @nuxt/fonts. */
+  --font-display: 'Space Grotesk', 'Public Sans', sans-serif;
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
@@ -22,4 +26,41 @@
 
 :root {
   --ui-container: var(--container-8xl);
+}
+
+/*
+ * Signature background — a soft aurora of the brand green bleeding down from
+ * the top edge (a nod to Hydra / the sea), fixed so it stays put while the
+ * docs scroll. Inspired by strikefinance's green-tinted dark canvas, but a
+ * top-anchored glow rather than a flat diagonal wash.
+ */
+body {
+  background-image: radial-gradient(
+    115% 70% at 50% -8%,
+    color-mix(in oklab, var(--color-green-400) 7%, transparent),
+    transparent 55%
+  );
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image: radial-gradient(
+    120% 72% at 50% -8%,
+    color-mix(in oklab, var(--color-green-400) 15%, transparent),
+    transparent 56%
+  );
+}
+
+/* Headings wear the display face, with a touch of negative tracking so the
+   geometric letterforms sit tight. Prose bodies keep Public Sans. */
+h1,
+h2,
+h3,
+h4,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }

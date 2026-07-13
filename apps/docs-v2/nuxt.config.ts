@@ -34,6 +34,11 @@ export default defineNuxtConfig({
     port: 3003
   },
 
+  // Dark-first, matching the strikefinance-inspired canvas (toggle still works)
+  colorMode: {
+    preference: 'dark'
+  },
+
   css: ['~/assets/css/main.css'],
 
   content: {

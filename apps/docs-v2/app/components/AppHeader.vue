@@ -42,11 +42,15 @@ const localeItems = computed<DropdownMenuItem[]>(() =>
         :light="header?.logo?.light!"
         :dark="header?.logo?.dark!"
         :alt="header?.logo?.alt"
-        class="h-6 w-auto shrink-0"
+        class="size-8 shrink-0 rounded-lg"
       />
 
-      <span v-else-if="header?.title">
-        {{ header.title }}
+      <span
+        v-if="header?.title"
+        class="flex flex-col leading-tight"
+      >
+        <span class="text-lg font-semibold text-highlighted">{{ header.title }}</span>
+        <span class="text-xs text-muted">Documentation</span>
       </span>
     </template>
 

@@ -2,7 +2,7 @@ export default defineAppConfig({
   ui: {
     colors: {
       primary: 'green',
-      neutral: 'slate'
+      neutral: 'neutral'
     },
     footer: {
       slots: {
@@ -12,15 +12,15 @@ export default defineAppConfig({
     }
   },
   seo: {
-    siteName: 'Nuxt Docs Template'
+    siteName: 'Hydra SDK'
   },
   header: {
-    title: '',
+    title: 'Hydra SDK',
     to: '/',
     logo: {
-      alt: '',
-      light: '',
-      dark: ''
+      alt: 'Hydra SDK',
+      light: '/logo.png',
+      dark: '/logo.png'
     },
     search: true,
     colorMode: true,
