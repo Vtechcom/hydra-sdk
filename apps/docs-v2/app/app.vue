@@ -1,12 +1,21 @@
 <script setup lang="ts">
+import type { Collections } from '@nuxt/content'
+
+const { locale } = useI18n()
 const { seo } = useAppConfig()
 
-const { data: navigation } = await useAsyncData('navigation', () => queryCollectionNavigation('docs'))
-const { data: files } = useLazyAsyncData('search', () => queryCollectionSearchSections('docs'), {
-  server: false
-})
+const { data: navigation } = await useAsyncData(
+  'navigation',
+  () => queryCollectionNavigation(('docs_' + locale.value) as keyof Collections),
+  { watch: [locale] }
+)
+const { data: files } = useLazyAsyncData(
+  'search',
+  () => queryCollectionSearchSections(('docs_' + locale.value) as keyof Collections),
+  { server: false, watch: [locale] }
+)
 
-useHead({
+useHead(() => ({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
   ],
@@ -14,9 +23,9 @@ useHead({
     { rel: 'icon', href: '/favicon.ico' }
   ],
   htmlAttrs: {
-    lang: 'en'
+    lang: locale.value
   }
-})
+}))
 
 useSeoMeta({
   titleTemplate: `%s - ${seo?.siteName}`,

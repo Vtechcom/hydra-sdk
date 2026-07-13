@@ -1,25 +1,54 @@
 <script setup lang="ts">
+import { withLeadingSlash } from 'ufo'
 import type { ContentNavigationItem } from '@nuxt/content'
 import { findPageHeadline } from '@nuxt/content/utils'
+
+// Narrow to the per-locale docs collections (all share the same schema, incl.
+// `links`), so `page` isn't widened to the union of every collection.
+type DocsCollection = 'docs_en' | 'docs_vi' | 'docs_ja'
 
 definePageMeta({
   layout: 'docs'
 })
 
 const route = useRoute()
+const { locale } = useI18n()
 const { toc } = useAppConfig()
 const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
-const { data: page } = await useAsyncData(route.path, () => queryCollection('docs').path(route.path).first())
+// `route.params.slug` excludes the i18n locale prefix, so the same slug maps
+// across every `docs_<locale>` collection (whose paths are locale-stripped).
+const slug = computed(() => withLeadingSlash(
+  Array.isArray(route.params.slug) ? route.params.slug.join('/') : String(route.params.slug ?? '')
+))
+
+const { data: page } = await useAsyncData(
+  () => `page-${locale.value}-${slug.value}`,
+  async () => {
+    const collection = ('docs_' + locale.value) as DocsCollection
+    const content = await queryCollection(collection).path(slug.value).first()
+    // Fall back to English when a page has not been translated yet.
+    if (!content && locale.value !== 'en') {
+      return queryCollection('docs_en').path(slug.value).first()
+    }
+    return content
+  },
+  { watch: [locale] }
+)
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
 }
 
-const { data: surround } = await useAsyncData(`${route.path}-surround`, () => {
-  return queryCollectionItemSurroundings('docs', route.path, {
-    fields: ['description']
-  })
-})
+const { data: surround } = await useAsyncData(
+  () => `surround-${locale.value}-${slug.value}`,
+  () => {
+    const collection = ('docs_' + locale.value) as DocsCollection
+    return queryCollectionItemSurroundings(collection, slug.value, {
+      fields: ['description']
+    })
+  },
+  { watch: [locale] }
+)
 
 const title = page.value.seo?.title || page.value.title
 const description = page.value.seo?.description || page.value.description

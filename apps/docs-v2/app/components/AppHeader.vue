@@ -1,9 +1,25 @@
 <script setup lang="ts">
 import type { ContentNavigationItem } from '@nuxt/content'
+import type { DropdownMenuItem } from '@nuxt/ui'
 
 const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 const { header } = useAppConfig()
+
+const { locale, locales } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
+
+const currentLocaleName = computed(() =>
+  locales.value.find(l => l.code === locale.value)?.name ?? locale.value
+)
+
+const localeItems = computed<DropdownMenuItem[]>(() =>
+  locales.value.map(l => ({
+    label: l.name ?? l.code,
+    to: switchLocalePath(l.code),
+    icon: l.code === locale.value ? 'i-lucide-check' : undefined
+  }))
+)
 </script>
 
 <template>
@@ -50,6 +66,21 @@ const { header } = useAppConfig()
         v-if="header?.search"
         class="lg:hidden"
       />
+
+      <UDropdownMenu
+        :items="localeItems"
+        :content="{ align: 'end' }"
+      >
+        <UButton
+          icon="i-lucide-languages"
+          color="neutral"
+          variant="ghost"
+          trailing-icon="i-lucide-chevron-down"
+          :label="currentLocaleName"
+          :ui="{ label: 'hidden sm:inline-block' }"
+          :aria-label="`Language: ${currentLocaleName}`"
+        />
+      </UDropdownMenu>
 
       <UColorModeButton v-if="header?.colorMode" />
 

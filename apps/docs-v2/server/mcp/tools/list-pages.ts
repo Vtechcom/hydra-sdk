@@ -26,7 +26,7 @@ OUTPUT: Returns a structured list with:
     const siteUrl = import.meta.dev ? `${url.protocol}//${url.hostname}:${url.port}` : url.origin
 
     try {
-      const pages = await queryCollection(event, 'docs')
+      const pages = await queryCollection(event, 'docs_en')
         .select('title', 'path', 'description')
         .all()
 
