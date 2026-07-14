@@ -55,11 +55,11 @@
 			"title": "Hydra SDKで構築されたアプリ",
 			"subtitle": "すでに本番環境でSDKを使用している強力なアプリケーションを発見",
 			"apps": {
-				"hydraWallet": {
-					"name": "Hydra Wallet",
-					"category": "Cardanoウォレット",
-					"description": "Hydra Layer 2対応で即座のトランザクションとDeFi操作が可能な、最新で安全なCardanoウォレット。",
-					"visitButton": "Hydra Walletを訪問"
+				"hydraHub": {
+					"name": "Hydra Hub",
+					"category": "インフラストラクチャ",
+					"description": "分散型Hydra Node管理、Hydra Head接続、およびCardano DApps構築のためのLayer-2 APIを提供します。",
+					"visitButton": "Hydra Hubを訪問"
 				},
 				"hydraPlayground": {
 					"name": "Hydra SDKプレイグラウンド",
@@ -67,23 +67,29 @@
 					"description": "Hydra SDK機能を実験してDAppsを構築するためのインタラクティブプレイグラウンド。",
 					"visitButton": "Hydraプレイグラウンドを訪問"
 				},
-				"hydraFlappy": {
-					"name": "Hydra Flappy Bird",
+				"hydraFly": {
+					"name": "Hydra Fly",
 					"category": "GameFi",
-					"description": "ブロックチェーン統合、NFT報酬、Hydra駆動のマイクロトランザクションで再想像された古典的Flappy Birdゲーム。",
-					"visitButton": "Hydra Flappy Birdを訪問"
+					"description": "Cardano Hydra L2上で動作し、リーダーボードのトッププレイヤーに報酬が与えられるGameFiトーナメントゲーム。",
+					"visitButton": "Hydra Flyをプレイ"
 				},
-				"hydraFastpay": {
-					"name": "Hydra Fastpay",
-					"category": "支払いソリューション",
-					"description": "Hydra Layer 2を使用した高速支払い処理で、Cardanoでの即座で低コストのトランザクションを実現。",
-					"visitButton": "Hydra Fastpayを訪問"
-				},
-				"hydraRockPaperScissors": {
-					"name": "Hydra Rock Paper Scissors",
+				"riverCross": {
+					"name": "River Cross",
 					"category": "GameFi",
-					"description": "NFT報酬とHydra Layer 2スケーラビリティを備えた分散型Rock Paper Scissorsゲーム。",
-					"visitButton": "Hydra Rock Paper Scissorsを訪問"
+					"description": "Cardano Hydra L2上のサバイバルGameFiゲーム。プレイヤーはtADAを賭けて川を渡ります。",
+					"visitButton": "River Crossをプレイ"
+				},
+				"hydraGacha": {
+					"name": "Hydra Gacha",
+					"category": "ロト",
+					"description": "Cardano Hydra L2上で動作する、NFTチケットを使用したオンチェーンロトゲーム。",
+					"visitButton": "Hydra Gachaをプレイ"
+				},
+				"knight": {
+					"name": "Knight",
+					"category": "GameFi",
+					"description": "Cardano Hydra L2上のダンジョンサバイバルGameFiゲーム。tADAを賭けて敵を倒します。",
+					"visitButton": "Knightをプレイ"
 				}
 			}
 		},

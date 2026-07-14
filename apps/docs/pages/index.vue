@@ -1,10 +1,10 @@
 <template>
 	<div>
-		<!-- <div v-if="showSupportBanner" class="relative bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-			<div class="container mx-auto px-4 py-3">
-				<div class="flex items-center justify-center text-center">
+		<!-- <div v-if="showSupportBanner" class="relative text-white bg-gradient-to-r from-blue-500 to-purple-500">
+			<div class="container px-4 py-3 mx-auto">
+				<div class="flex justify-center items-center text-center">
 					<div class="flex items-center space-x-2">
-						<UIcon name="i-heroicons-heart" class="h-4 w-4 text-pink-300" />
+						<UIcon name="i-heroicons-heart" class="w-4 h-4 text-pink-300" />
 						<span class="text-sm font-medium">
 							{{ t('home.supportBanner.text') }}
 							<a href="https://fund14.hydrawallet.app/" target="_blank" class="underline hover:text-blue-200">
@@ -15,20 +15,20 @@
 				</div>
 				<button
 					@click="closeSupportBanner"
-					class="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center text-white/70 transition-colors hover:text-white"
+					class="flex absolute right-4 top-1/2 justify-center items-center transition-colors -translate-y-1/2 text-white/70 hover:text-white"
 					aria-label="Close support banner"
 				>
-					<UIcon name="i-heroicons-x-mark" class="h-5 w-5" />
+					<UIcon name="i-heroicons-x-mark" class="w-5 h-5" />
 				</button>
 			</div>
 		</div> -->
 
 		<!-- Hero Section -->
-		<section class="bg-gradient-to-br from-blue-50 to-purple-50 py-20 dark:from-gray-900 dark:to-gray-800">
-			<div class="container mx-auto px-4 text-center">
+		<section class="py-20 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+			<div class="container px-4 mx-auto text-center">
 				<div class="mx-auto max-w-4xl">
 					<!-- Logo and Title -->
-					<div class="mb-8 flex justify-center">
+					<div class="flex justify-center mb-8">
 						<img src="/images/logo-1024x1024.png" alt="SDK Logo" srcset="/images/logo-1024x1024.png" class="size-20" width="80" height="80" />
 					</div>
 
@@ -42,7 +42,7 @@
 					</p>
 
 					<!-- CTA Buttons -->
-					<div class="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+					<div class="flex flex-col gap-4 justify-center items-center mb-12 sm:flex-row">
 						<UButton :to="localePath('/getting-started')" size="lg" icon="i-heroicons-rocket-launch" class="px-8"> {{ t('home.getStarted') }} </UButton>
 
 						<UButton :to="localePath('/api')" variant="outline" size="lg" icon="i-heroicons-book-open" class="px-8"> {{ t('home.apiReference') }} </UButton>
@@ -51,9 +51,9 @@
 					</div>
 
 					<!-- Stats -->
-					<div class="mx-auto grid max-w-2xl grid-cols-2 gap-6 md:flex md:items-center md:justify-center">
+					<div class="grid grid-cols-2 gap-6 mx-auto max-w-2xl md:flex md:items-center md:justify-center">
 						<div v-for="stat in stats" :key="stat.label" class="text-center md:flex-1">
-							<div class="whitespace-nowrap text-2xl font-bold text-blue-600 md:text-3xl dark:text-blue-400">{{ stat.value }}</div>
+							<div class="text-2xl font-bold text-blue-600 whitespace-nowrap md:text-3xl dark:text-blue-400">{{ stat.value }}</div>
 							<div class="text-sm text-gray-600 dark:text-gray-200">{{ stat.label }}</div>
 						</div>
 					</div>
@@ -62,8 +62,8 @@
 		</section>
 
 		<!-- Features Section -->
-		<section class="bg-white py-20 dark:bg-gray-900">
-			<div class="container mx-auto px-4">
+		<section class="py-20 bg-white dark:bg-gray-900">
+			<div class="container px-4 mx-auto">
 				<div class="mb-16 text-center">
 					<h2 class="mb-4 text-3xl font-bold text-gray-600 md:text-4xl dark:text-gray-300">{{ t('home.features.title') }}</h2>
 					<p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-200">{{ t('home.features.subtitle') }}</p>
@@ -74,8 +74,8 @@
 						<UCard class="h-full transition-shadow duration-300 hover:shadow-lg">
 							<template #header>
 								<div class="flex items-center space-x-3">
-									<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 transition-transform group-hover:scale-110 dark:bg-blue-900">
-										<UIcon :name="feature.icon" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+									<div class="flex justify-center items-center w-10 h-10 bg-blue-100 rounded-lg transition-transform group-hover:scale-110 dark:bg-blue-900">
+										<UIcon :name="feature.icon" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
 									</div>
 									<h3 class="text-lg font-semibold text-gray-600 dark:text-gray-300">{{ feature.title }}</h3>
 								</div>
@@ -95,8 +95,8 @@
 		</section>
 
 		<!-- Apps Showcase Section -->
-		<section class="bg-gradient-to-br from-purple-50 to-blue-50 py-20 dark:from-gray-800 dark:to-gray-900">
-			<div class="container mx-auto px-4">
+		<section class="py-20 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900">
+			<div class="container px-4 mx-auto">
 				<div class="mb-16 text-center">
 					<h2 class="mb-4 text-3xl font-bold text-gray-600 md:text-4xl dark:text-gray-300">{{ t('home.showcase.title') }}</h2>
 					<p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-200">{{ t('home.showcase.subtitle') }}</p>
@@ -110,7 +110,7 @@
 									<div
 										class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-purple-500 p-[2px] shadow-sm dark:from-blue-500/80 dark:to-purple-600/80"
 									>
-										<!-- <UIcon :name="app.icon" class="h-8 w-8 text-white" /> -->
+										<!-- <UIcon :name="app.icon" class="w-8 h-8 text-white" /> -->
 										<img :src="app.icon" alt="" width="60" height="60" class="text-white h-full w-full rounded-[14px] object-contain" />
 									</div>
 									<h3 class="text-xl font-bold text-gray-600 dark:text-gray-300">{{ app.name }}</h3>
@@ -121,7 +121,7 @@
 							<div class="text-center">
 								<p class="mb-6 text-gray-600 dark:text-gray-200">{{ app.description }}</p>
 
-								<div class="mb-6 flex flex-wrap justify-center gap-2">
+								<div class="flex flex-wrap gap-2 justify-center mb-6">
 									<UBadge v-for="feature in app.features" :key="feature" variant="soft" size="sm">
 										{{ feature }}
 									</UBadge>
@@ -136,19 +136,19 @@
 		</section>
 
 		<!-- Sponsor Section -->
-		<section class="bg-white-100 py-16 dark:bg-gray-900">
-			<div class="container mx-auto px-4">
+		<section class="py-16 bg-white-100 dark:bg-gray-900">
+			<div class="container px-4 mx-auto">
 				<div class="rounded-2xl border border-gray-200 bg-gradient-to-br from-blue-50 to-[#CDEECC] p-8 dark:border-gray-700 dark:from-gray-800 dark:to-[#2d3c2d]">
 					<div class="text-center">
 						<div class="mb-4">
-							<span class="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"> {{ t('home.sponsor.badge') }} </span>
+							<span class="inline-block px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-200"> {{ t('home.sponsor.badge') }} </span>
 						</div>
 
-						<div class="mb-6 flex justify-center">
-							<div class="bg-white flex h-20 w-20 items-center justify-center rounded-2xl shadow-lg dark:bg-gray-200">
+						<div class="flex justify-center mb-6">
+							<div class="flex justify-center items-center w-20 h-20 bg-white rounded-2xl shadow-lg dark:bg-gray-200">
 								<!-- Vtechcom Logo placeholder - replace with actual logo -->
-								<!-- <div class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl font-bold text-transparent">VTC</div> -->
-								<img src="/images/vtechcom-logo.png" alt="Vtechcom Logo" class="h-16 w-16 object-contain" />
+								<!-- <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">VTC</div> -->
+								<img src="/images/vtechcom-logo.png" alt="Vtechcom Logo" class="object-contain w-16 h-16" />
 							</div>
 						</div>
 
@@ -158,7 +158,7 @@
 							{{ t('home.sponsor.description') }}
 						</p>
 
-						<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
+						<div class="flex flex-col gap-4 justify-center items-center sm:flex-row">
 							<UButton to="https://vtechcom.org/" target="_blank" size="lg" icon="i-heroicons-globe-alt" class="px-6"> {{ t('home.sponsor.visitButton') }} </UButton>
 
 							<UButton to="mailto:contact@vtechcom.org" variant="outline" size="lg" icon="i-heroicons-envelope" class="px-6"> {{ t('home.sponsor.partnershipButton') }} </UButton>
@@ -169,23 +169,23 @@
 		</section>
 
 		<!-- Architecture Section -->
-		<section class="bg-gray-50 py-20 dark:bg-gray-800" v-if="false">
-			<div class="container mx-auto px-4">
+		<section class="py-20 bg-gray-50 dark:bg-gray-800" v-if="false">
+			<div class="container px-4 mx-auto">
 				<div class="mb-16 text-center">
 					<h2 class="mb-4 text-3xl font-bold text-gray-600 md:text-4xl dark:text-gray-200">Monorepo Architecture</h2>
 					<p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-200">Built with Turborepo for optimal development experience and performance</p>
 				</div>
 
-				<div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+				<div class="grid grid-cols-1 gap-12 items-center lg:grid-cols-2">
 					<div class="order-2 lg:order-1">
 						<UCard>
 							<div class="p-6">
 								<h3 class="mb-6 text-xl font-semibold text-gray-600 dark:text-gray-200">Package Structure</h3>
 								<div class="space-y-4">
-									<div v-for="pkg in packages" :key="pkg.name" class="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+									<div v-for="pkg in packages" :key="pkg.name" class="flex justify-between items-center p-4 rounded-lg border border-gray-200 dark:border-gray-700">
 										<div class="flex items-center space-x-3">
-											<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-												<UIcon :name="pkg.icon" class="text-white h-4 w-4" />
+											<div class="flex justify-center items-center w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+												<UIcon :name="pkg.icon" class="w-4 h-4 text-white" />
 											</div>
 											<div>
 												<div class="font-medium text-gray-600 dark:text-gray-200">{{ pkg.name }}</div>
@@ -205,8 +205,8 @@
 						<h3 class="mb-6 text-2xl font-semibold text-gray-600 dark:text-gray-200">Benefits</h3>
 						<div class="space-y-4">
 							<div v-for="benefit in benefits" :key="benefit.title" class="flex items-start space-x-3">
-								<div class="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-									<UIcon name="i-heroicons-check" class="h-4 w-4 text-green-600 dark:text-green-400" />
+								<div class="flex flex-shrink-0 justify-center items-center mt-1 w-6 h-6 bg-green-100 rounded-full dark:bg-green-900">
+									<UIcon name="i-heroicons-check" class="w-4 h-4 text-green-600 dark:text-green-400" />
 								</div>
 								<div>
 									<h4 class="font-medium text-gray-600 dark:text-gray-200">{{ benefit.title }}</h4>
@@ -220,14 +220,14 @@
 		</section>
 
 		<!-- Quick Start Section -->
-		<section class="bg-gray-50 py-20 dark:bg-gray-800">
-			<div class="container mx-auto px-4">
+		<section class="py-20 bg-gray-50 dark:bg-gray-800">
+			<div class="container px-4 mx-auto">
 				<div class="mb-16 text-center">
 					<h2 class="mb-4 text-3xl font-bold text-gray-600 md:text-4xl dark:text-gray-200">{{ t('home.quickStart.title') }}</h2>
 					<p class="text-lg text-gray-600 dark:text-gray-200">{{ t('home.quickStart.subtitle') }}</p>
 				</div>
 
-				<div class="grid grid-cols-1 items-start gap-12 lg:grid-cols-2">
+				<div class="grid grid-cols-1 gap-12 items-start lg:grid-cols-2">
 					<!-- Installation -->
 					<div>
 						<h3 class="mb-4 text-xl font-semibold text-gray-600 dark:text-gray-200">{{ t('home.quickStart.installation') }}</h3>
@@ -250,19 +250,19 @@
 							<div v-for="step in nextSteps" :key="step.title" class="group">
 								<NuxtLink
 									:to="step.to"
-									class="block rounded-lg border border-gray-200 p-4 transition-all duration-300 hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:hover:border-blue-600"
+									class="block p-4 rounded-lg border border-gray-200 transition-all duration-300 hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:hover:border-blue-600"
 								>
-									<div class="flex items-center justify-between">
+									<div class="flex justify-between items-center">
 										<div class="flex items-center space-x-3">
-											<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 transition-transform group-hover:scale-110 dark:bg-blue-900">
-												<UIcon :name="step.icon" class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+											<div class="flex justify-center items-center w-8 h-8 bg-blue-100 rounded-lg transition-transform group-hover:scale-110 dark:bg-blue-900">
+												<UIcon :name="step.icon" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
 											</div>
 											<div>
 												<h4 class="font-medium text-gray-600 transition-colors group-hover:text-blue-600 dark:text-gray-200 dark:group-hover:text-blue-400">{{ step.title }}</h4>
 												<p class="text-sm text-gray-600 dark:text-gray-400">{{ step.description }}</p>
 											</div>
 										</div>
-										<UIcon name="i-heroicons-arrow-right" class="h-4 w-4 text-gray-400 transition-colors group-hover:text-blue-500" />
+										<UIcon name="i-heroicons-arrow-right" class="w-4 h-4 text-gray-400 transition-colors group-hover:text-blue-500" />
 									</div>
 								</NuxtLink>
 							</div>
@@ -273,8 +273,8 @@
 		</section>
 
 		<!-- Community & Support Section -->
-		<section class="bg-white-50 py-20 dark:bg-gray-900">
-			<div class="container mx-auto px-4">
+		<section class="py-20 bg-white-50 dark:bg-gray-900">
+			<div class="container px-4 mx-auto">
 				<div class="mb-16 text-center">
 					<h2 class="mb-4 text-3xl font-bold text-gray-600 md:text-4xl dark:text-gray-200">{{ t('home.community.title') }}</h2>
 					<p class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-200">{{ t('home.community.subtitle') }}</p>
@@ -284,8 +284,8 @@
 					<div v-for="community in communityLinks" :key="community.name" class="group">
 						<UCard class="h-full text-center transition-all duration-300 hover:scale-105 hover:shadow-lg">
 							<div class="flex flex-col items-center p-6">
-								<div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600">
-									<UIcon :name="community.icon" class="h-8 w-8 text-gray-200" />
+								<div class="flex justify-center items-center mb-4 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl">
+									<UIcon :name="community.icon" class="w-8 h-8 text-gray-200" />
 								</div>
 								<h3 class="mb-3 text-xl font-semibold text-gray-600 dark:text-gray-200">{{ community.name }}</h3>
 								<p class="mb-6 max-w-xs text-gray-600 dark:text-gray-200">{{ community.description }}</p>
@@ -379,13 +379,13 @@
 
 	const showcaseApps = computed(() => [
 		{
-			name: t('home.showcase.apps.hydraWallet.name'),
-			category: t('home.showcase.apps.hydraWallet.category'),
-			description: t('home.showcase.apps.hydraWallet.description'),
-			icon: '/images/hydra-wallet-logo.png',
-			features: ['HD Wallet', 'Hydra Layer 2', 'DeFi', 'Staking', 'NFTs'],
-			url: 'https://alpha.hydrawallet.app',
-			visitButton: t('home.showcase.apps.hydraWallet.visitButton')
+			name: t('home.showcase.apps.hydraHub.name'),
+			category: t('home.showcase.apps.hydraHub.category'),
+			description: t('home.showcase.apps.hydraHub.description'),
+			icon: '/images/hydra-hub.png',
+			features: ['Node Management', 'Head Connectivity', 'Layer-2 APIs', 'Infrastructure'],
+			url: 'https://dev.hydrahub.io.vn',
+			visitButton: t('home.showcase.apps.hydraHub.visitButton')
 		},
 		{
 			name: t('home.showcase.apps.hydraPlayground.name'),
@@ -397,31 +397,40 @@
 			visitButton: t('home.showcase.apps.hydraPlayground.visitButton')
 		},
 		{
-			name: t('home.showcase.apps.hydraFlappy.name'),
-			category: t('home.showcase.apps.hydraFlappy.category'),
-			description: t('home.showcase.apps.hydraFlappy.description'),
-			icon: '/images/hydra-flappy-logo.png',
-			features: ['GameFi', 'NFT Rewards', 'Leaderboard', 'Micro-payments'],
-			url: 'https://play-flappy.hydrawallet.app',
-			visitButton: t('home.showcase.apps.hydraFlappy.visitButton')
+			name: t('home.showcase.apps.hydraFly.name'),
+			category: t('home.showcase.apps.hydraFly.category'),
+			description: t('home.showcase.apps.hydraFly.description'),
+			icon: '/images/fly.webp',
+			features: ['GameFi', 'Leaderboard', 'Tournaments', 'Cardano Hydra'],
+			url: 'https://alpha.hydraone.app/games/hydra-fly/play',
+			visitButton: t('home.showcase.apps.hydraFly.visitButton')
 		},
 		{
-			name: t('home.showcase.apps.hydraFastpay.name'),
-			category: t('home.showcase.apps.hydraFastpay.category'),
-			description: t('home.showcase.apps.hydraFastpay.description'),
-			icon: '/images/hydra-fastpay-logo.png',
-			features: ['Instant Payments', 'Low Fees', 'QR Codes', 'Merchant Tools'],
-			url: 'https://alpha.hydrawallet.app/dapps/hydra-fastpay',
-			visitButton: t('home.showcase.apps.hydraFastpay.visitButton')
+			name: t('home.showcase.apps.riverCross.name'),
+			category: t('home.showcase.apps.riverCross.category'),
+			description: t('home.showcase.apps.riverCross.description'),
+			icon: '/images/river-cross.webp',
+			features: ['GameFi', 'Provably Fair', 'Multipliers', 'Survival Game'],
+			url: 'https://alpha.hydraone.app/games/river-cross/play',
+			visitButton: t('home.showcase.apps.riverCross.visitButton')
 		},
 		{
-			name: t('home.showcase.apps.hydraRockPaperScissors.name'),
-			category: t('home.showcase.apps.hydraRockPaperScissors.category'),
-			description: t('home.showcase.apps.hydraRockPaperScissors.description'),
-			icon: '/images/hydra-rock-paper-scissors-logo.png',
-			features: ['GameFi', 'NFT Rewards', 'Hydra Layer 2', 'Low Fees'],
-			url: 'https://alpha.hydrawallet.app/games/rock-paper-scissors',
-			visitButton: t('home.showcase.apps.hydraRockPaperScissors.visitButton')
+			name: t('home.showcase.apps.hydraGacha.name'),
+			category: t('home.showcase.apps.hydraGacha.category'),
+			description: t('home.showcase.apps.hydraGacha.description'),
+			icon: '/images/gacha.webp',
+			features: ['On-chain Lottery', 'NFT Tickets', 'Prize Pool', 'Layer 2'],
+			url: 'https://alpha.hydraone.app/games/hydra-gacha',
+			visitButton: t('home.showcase.apps.hydraGacha.visitButton')
+		},
+		{
+			name: t('home.showcase.apps.knight.name'),
+			category: t('home.showcase.apps.knight.category'),
+			description: t('home.showcase.apps.knight.description'),
+			icon: '/images/knight.webp',
+			features: ['GameFi', 'Provably Fair', 'Multipliers', 'Dungeon Survival'],
+			url: 'https://alpha.hydraone.app/games/knight/play',
+			visitButton: t('home.showcase.apps.knight.visitButton')
 		}
 	])
 
