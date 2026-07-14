@@ -176,14 +176,19 @@ class MyProvider {
 import { ProviderUtils } from '@hydra-sdk/core'
 
 const provider = new ProviderUtils.BlockfrostProvider({
-  projectId: 'your-project-id',
+  apiKey: 'your-blockfrost-api-key',
   network: 'preprod'
 })
 
-// Hoặc kế thừa base provider
-class MyProvider extends ProviderUtils.BaseProvider {
-  async getUtxos(address) {
-    // Implementation của bạn với các method được thừa kế
+// Hoặc kế thừa một provider có sẵn để tùy chỉnh hành vi
+class MyProvider extends ProviderUtils.BlockfrostProvider {
+  constructor() {
+    super({ apiKey: 'your-blockfrost-api-key', network: 'preprod' })
+  }
+
+  // Các `.fetcher` / `.submitter` được thừa kế vẫn hoạt động
+  async getUtxos(address: string) {
+    return this.fetcher.fetchAddressUTxOs(address)
   }
 }
 ```
@@ -331,10 +336,10 @@ console.log('Test chuyển đổi dữ liệu thành công')
 ```typescript
 import { TimeUtils, SLOT_CONFIG_NETWORK } from '@hydra-sdk/core'
 
-const networks = ['mainnet', 'preprod', 'preview'] as const
+const networks = ['MAINNET', 'PREPROD', 'PREVIEW'] as const
 
 networks.forEach(network => {
-  const slot = TimeUtils.unixTimeToEnclosingSlot(Date.now(), SLOT_CONFIG_NETWORK[network.toUpperCase()])
+  const slot = TimeUtils.unixTimeToEnclosingSlot(Date.now(), SLOT_CONFIG_NETWORK[network])
   console.assert(typeof slot === 'number' && slot > 0, `Slot không hợp lệ cho network: ${network}`)
 })
 

@@ -1,0 +1,44 @@
+{
+  "name": "@hydra-sdk/docs-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.114",
+    "@iconify-json/simple-icons": "^1.2.87",
+    "@iconify-json/vscode-icons": "^1.2.62",
+    "@nuxt/content": "^3.14.0",
+    "@nuxt/image": "^2.0.0",
+    "@nuxt/ui": "^4.9.0",
+    "@nuxtjs/i18n": "^10.4.1",
+    "@nuxtjs/mcp-toolkit": "^0.17.2",
+    "@nuxtjs/mdc": "^0.22.0",
+    "@takumi-rs/core": "^1.8.7",
+    "@vueuse/core": "^14.3.0",
+    "animejs": "^4.5.0",
+    "minimark": "^0.2.0",
+    "nuxt": "^4.4.8",
+    "nuxt-llms": "0.2.0",
+    "nuxt-og-image": "^6.7.0",
+    "tailwindcss": "^4.3.1",
+    "ufo": "^1.6.4",
+    "unist-util-visit": "^5.1.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.16.0",
+    "@nuxt/schema": "^4.4.8",
+    "eslint": "^10.6.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.5"
+  }
+}

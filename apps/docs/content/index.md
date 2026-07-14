@@ -1,4 +1,4 @@
-# Hydra SDK Documentation v1.1.0
+# Hydra SDK Documentation v1.4.0
 
 Welcome to the comprehensive documentation for Hydra SDK - a complete toolkit for building Cardano wallet applications with Hydra Layer 2 integration.
 
@@ -6,7 +6,7 @@ Welcome to the comprehensive documentation for Hydra SDK - a complete toolkit fo
 
 Hydra SDK is a comprehensive software development kit that provides essential libraries and tools to integrate Cardano wallet functionality and Hydra Head management into your applications. Built on a monorepo architecture using Turborepo, it offers a modular, extensible approach to Cardano development.
 
-**Latest Release: v1.1.0** - Enhanced with powerful utility functions and improved developer experience.
+**Latest Release: v1.4.0** (`@hydra-sdk/core` 1.4.0, `@hydra-sdk/bridge` 1.3.1) - Adds the RedeemerUtils namespace, new DatumUtils encoders, ValidationUtils, and Cardano protocol v11 support.
 
 ## Key Features
 

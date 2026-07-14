@@ -148,16 +148,109 @@ console.log('Readable time:', new Date(readableTime))
 import { ProviderUtils } from '@hydra-sdk/core'
 
 const blockfrostProvider = new ProviderUtils.BlockfrostProvider({
-	projectId: process.env.BLOCKFROST_PROJECT_ID || '',
+	apiKey: process.env.BLOCKFROST_PROJECT_ID || '',
 	network: 'preprod'
 })
 
 const ogmiosProvider = new ProviderUtils.OgmiosProvider({
-	url: 'ws://localhost:1337'
+	network: 'preprod',
+	apiEndpoint: 'http://localhost:1337'
 })
 
-const utxos = await blockfrostProvider.getUtxos(address)
-const protocolParams = await blockfrostProvider.getProtocolParameters()
+// provider の fetcher を通じてアドレスの UTxO を取得
+const utxos = await blockfrostProvider.fetcher.fetchAddressUTxOs(address)
+
+// 注意: provider は protocol parameters を公開していません。Hydra Head 内では
+// 代わりに bridge から読み取ってください: await bridge.getProtocolParameters()
+```
+
+## v1.4.0 の新機能
+
+### 7. Redeemer の構築（RedeemerUtils）
+
+```typescript
+import { RedeemerUtils, DatumUtils } from '@hydra-sdk/core'
+
+// PlutusData を Redeemer にラップする（tag はデフォルトで 'spend'、index は 0）
+const data = DatumUtils.mkConstr(1, [])
+const redeemer = RedeemerUtils.mkRedeemer(data, { tag: 'spend', index: 0 })
+
+// tag をあらかじめ設定したヘルパー
+const spendRedeemer = RedeemerUtils.mkSpendRedeemer(data)
+const mintRedeemer = RedeemerUtils.mkMintRedeemer(data)
+
+// 「引数なし」の Unit redeemer: Constr(0, [])
+const unitRedeemer = RedeemerUtils.mkUnitRedeemer()
+
+// 実行ユニット（プレースホルダーの予算 — 本番ではスクリプトを評価してください）
+const exUnits = RedeemerUtils.mkExUnits(RedeemerUtils.DEFAULT_EX_UNITS)
+```
+
+### 8. 新しい Datum エンコーダー（DatumUtils）
+
+```typescript
+import { DatumUtils, NETWORK_ID } from '@hydra-sdk/core'
+
+// リスト
+const list = DatumUtils.mkList([DatumUtils.mkInt(1), DatumUtils.mkInt(2)])
+const bytesList = DatumUtils.mkBytesList(['deadbeef', 'cafe'])
+const intList = DatumUtils.mkIntList([1, 2, 3])
+
+// 真偽値: False = Constr(0, [])、True = Constr(1, [])
+const flag = DatumUtils.mkBool(true)
+
+// Option: Some = Constr(0, [v])、None = Constr(1, [])
+const some = DatumUtils.mkOption(DatumUtils.mkInt(42))
+const none = DatumUtils.mkOption()
+
+// Output reference: Constr(0, [Bytes(txHash), Int(index)])
+const outRef = DatumUtils.mkOutputRef({ txHash: 'abc123...', index: 0 })
+
+// Address <-> PlutusData
+const addrDatum = DatumUtils.mkAddress('addr_test1...')
+const bech32 = DatumUtils.parseAddress(addrDatum, NETWORK_ID.PREPROD)
+```
+
+### 9. 検証 Utilities（ValidationUtils / AddressUtils）
+
+```typescript
+import { ValidationUtils, AddressUtils } from '@hydra-sdk/core'
+
+// トランザクション出力の形式を検証
+const okOutput = ValidationUtils.isValidTxOutput({
+	address: 'addr_test1...',
+	amount: [{ unit: 'lovelace', quantity: '2000000' }]
+})
+
+// アドレスを検証（type: 'bech32' | 'hex' | 'bytes'、デフォルトは 'bech32'）
+const okAddress = AddressUtils.isValidAddress('addr_test1...')
+
+// payment key hash を抽出（導出できない場合は null を返す）
+const pubKeyHash = AddressUtils.getPubkeyHashFromAddress('addr_test1...')
+```
+
+### 10. トランザクションからすべての金額を読み取る（Deserializer）
+
+```typescript
+import { Deserializer } from '@hydra-sdk/core'
+
+// すべての出力の金額を unit ごとに統合して合計
+const amounts = Deserializer.deserializeAmountsFromTx(signedTxCbor)
+console.log('Total amounts:', amounts)
+```
+
+### 11. Demeter Provider（ProviderUtils.DemeterProvider）
+
+```typescript
+import { ProviderUtils } from '@hydra-sdk/core'
+
+// Demeter は BlockfrostProvider を継承し、同じ .fetcher / .submitter を持ちます
+const demeterProvider = new ProviderUtils.DemeterProvider({
+	authToken: process.env.DEMETER_AUTH_TOKEN || '',
+	network: 'preprod'
+})
+
+const utxos = await demeterProvider.fetcher.fetchAddressUTxOs(address)
 ```
 
 ## データ変換パイプライン

@@ -32,7 +32,9 @@ import {
 	TxBuilderOptions,
 	ScriptRef,
 	COIN_SELECTION_STRATEGY,
-	PolicyScript
+	PolicyScript,
+	IEvaluator,
+	EvalAction
 } from '../types'
 import { metadataObjToMetadatum } from '../utils/metadata'
 import { safeStringify } from '../utils/bigint.utils'
@@ -40,9 +42,11 @@ import { emptyRedeemer } from '../utils/redeemer-builder'
 
 export class TxBuilder {
 	protected _protocolParams: Protocol = DEFAULT_PROTOCOL_PARAMETERS
-	protected _txBuilder: CardanoWASM.TransactionBuilder
+	protected _txBuilder!: CardanoWASM.TransactionBuilder
 	protected _fetcher?: IFetcher
 	protected _submitter?: ISubmitter
+	protected _evaluator?: IEvaluator
+	protected _txEvaluationMultiplier: number = 1
 	protected _isHydra: boolean = false
 	protected _verbose: boolean = false
 	protected _errorLogger: boolean = false
@@ -63,32 +67,65 @@ export class TxBuilder {
 	protected _changeConfig: CardanoWASM.ChangeConfig | null = null
 	protected _totalCollateral?: string
 	protected _collateralReturn?: TxOutput
-	protected _scriptDataHash?: string
 	protected _auxiliaryDataHash?: string
 
 	protected _selectionStrategy: CoinSelectionStrategy = 'LargestFirstMultiAsset'
 
 	// Script context
 	protected _plutusScripts: CardanoWASM.PlutusScripts | null = null
-	protected _nativeScripts: Map<string, string> = new Map()
+
+	/**
+	 * Transient WASM objects allocated during a single build (complete()).
+	 * CSL objects live in WASM linear memory and are NOT reclaimed by the JS GC
+	 * in a timely manner (FinalizationRegistry is non-deterministic and lags far
+	 * behind under load). We track every internal allocation here and free them
+	 * deterministically after build_tx() returns — see _freeScratch().
+	 *
+	 * IMPORTANT: only objects that TxBuilder itself allocates go here. Objects
+	 * supplied by the caller (datum/redeemer/script) are owned by the caller and
+	 * must never be freed by the builder.
+	 */
+	protected _scratch: Array<{ free(): void }> = []
+	protected _disposed = false
 
 	constructor(options: TxBuilderOptions = {}) {
-		const { params, fetcher, submitter, isHydra = false, verbose = false, errorLogger = false } = options
+		const {
+			params,
+			fetcher,
+			submitter,
+			evaluator,
+			txEvaluationMultiplier = 1,
+			isHydra = false,
+			verbose = false,
+			errorLogger = false
+		} = options
 
 		this._fetcher = fetcher
 		this._submitter = submitter
+		this._evaluator = evaluator
+		this._txEvaluationMultiplier = txEvaluationMultiplier
 		this._isHydra = isHydra
 		this._verbose = verbose
 		this._errorLogger = errorLogger
 
 		if (params) {
+			// updateProtocolParams() already builds this._txBuilder from the merged
+			// params. Building it again here would orphan (leak) the first one.
 			this.updateProtocolParams(params)
+		} else {
+			this._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)
 		}
-		this._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)
 	}
 
 	updateProtocolParams(params: Partial<Protocol>) {
 		this._protocolParams = { ...this._protocolParams, ...params }
+		// Free the previous TransactionBuilder before replacing it, otherwise it
+		// lingers in WASM memory until a non-deterministic GC pass.
+		try {
+			this._txBuilder?.free()
+		} catch {
+			/* ignore */
+		}
 		this._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)
 		return this
 	}
@@ -317,17 +354,18 @@ export class TxBuilder {
 				throw new Error('UTxO inputs Insufficient')
 			}
 			// this._verbose && console.log('[🛠️][TxBuilder] [simpleUTxOs]: ', safeStringify(simpleUTxOs, 2))
-			const wasmUtxos = CardanoWASM.TransactionUnspentOutputs.new()
+			const wasmUtxos = this._track(CardanoWASM.TransactionUnspentOutputs.new())
 			simpleUTxOs.forEach(utxo => {
 				const { txInput, txOutput } = this.buildSimpleUtxo(utxo)
 
 				if (utxo.output.datum) {
-					const txHash = CardanoWASM.hash_plutus_data(utxo.output.datum)
+					// utxo.output.datum is caller-owned — the derived hash is tracked
+					const txHash = this._track(CardanoWASM.hash_plutus_data(utxo.output.datum))
 					txOutput.set_data_hash(txHash)
 				}
 
 				// NOTE: Nếu input chứa inlineDatum thì không cần set data hash
-				const transactionUnspendOutput = CardanoWASM.TransactionUnspentOutput.new(txInput, txOutput)
+				const transactionUnspendOutput = this._track(CardanoWASM.TransactionUnspentOutput.new(txInput, txOutput))
 				wasmUtxos.add(transactionUnspendOutput)
 			})
 			this._verbose && console.log('[🛠️][TxBuilder] [wasmUtxos]: ', wasmUtxos.to_json())
@@ -345,10 +383,18 @@ export class TxBuilder {
 			if (this._collaterals.length && this._collateralReturn) {
 				try {
 					this._txBuilder.set_collateral_return(
-						CardanoWASM.TransactionOutput.new(
-							CardanoWASM.Address.from_bech32(this._collateralReturn.address),
-							CardanoWASM.Value.new(
-								CardanoWASM.BigNum.from_str(this._collateralReturn.amount.find(a => a.unit === 'lovelace')?.quantity || '0')
+						this._track(
+							CardanoWASM.TransactionOutput.new(
+								this._track(CardanoWASM.Address.from_bech32(this._collateralReturn.address)),
+								this._track(
+									CardanoWASM.Value.new(
+										this._track(
+											CardanoWASM.BigNum.from_str(
+												this._collateralReturn.amount.find(a => a.unit === 'lovelace')?.quantity || '0'
+											)
+										)
+									)
+								)
 							)
 						)
 					)
@@ -357,7 +403,7 @@ export class TxBuilder {
 							wasmUtxos,
 							COIN_SELECTION_STRATEGY[strategy],
 							this._changeConfig,
-							CardanoWASM.BigNum.from_str(String(this._protocolParams.collateralPercent || 150))
+							this._track(CardanoWASM.BigNum.from_str(String(this._protocolParams.collateralPercent || 150)))
 						)
 					}
 				} catch (error) {
@@ -430,28 +476,33 @@ export class TxBuilder {
 			multiAsset[policyId] = { ...multiAsset[policyId], ...assets }
 		}
 
-		const txOutMultiAsset = CardanoWASM.MultiAsset.new()
+		const txOutMultiAsset = this._track(CardanoWASM.MultiAsset.new())
 		for (const policyId in multiAsset) {
-			const assets = CardanoWASM.Assets.new()
+			const assets = this._track(CardanoWASM.Assets.new())
 			for (const assetName in multiAsset[policyId]) {
 				assets.insert(
-					CardanoWASM.AssetName.new(ParserUtils.hexToBytes(assetName)),
-					CardanoWASM.BigNum.from_str(multiAsset[policyId][assetName])
+					this._track(CardanoWASM.AssetName.new(ParserUtils.hexToBytes(assetName))),
+					this._track(CardanoWASM.BigNum.from_str(multiAsset[policyId][assetName]))
 				)
 			}
-			txOutMultiAsset.insert(CardanoWASM.ScriptHash.from_hex(policyId), assets)
+			txOutMultiAsset.insert(this._track(CardanoWASM.ScriptHash.from_hex(policyId)), assets)
 		}
 
-		const txOutValue = CardanoWASM.Value.new(CardanoWASM.BigNum.from_str(lovelace))
+		const txOutValue = this._track(CardanoWASM.Value.new(this._track(CardanoWASM.BigNum.from_str(lovelace))))
 		withAssets.length && txOutValue.set_multiasset(txOutMultiAsset)
-		const txOutput = CardanoWASM.TransactionOutput.new(CardanoWASM.Address.from_bech32(utxo.output.address), txOutValue)
-		const txInput = CardanoWASM.TransactionInput.new(
-			CardanoWASM.TransactionHash.from_hex(utxo.input.txHash),
-			utxo.input.outputIndex
+		const txOutput = this._track(
+			CardanoWASM.TransactionOutput.new(this._track(CardanoWASM.Address.from_bech32(utxo.output.address)), txOutValue)
+		)
+		const txInput = this._track(
+			CardanoWASM.TransactionInput.new(
+				this._track(CardanoWASM.TransactionHash.from_hex(utxo.input.txHash)),
+				utxo.input.outputIndex
+			)
 		)
 		if (options.withDatum && utxo.output.datum) {
-			const datumHash = CardanoWASM.hash_plutus_data(utxo.output.datum).to_hex()
-			txOutput.set_data_hash(CardanoWASM.DataHash.from_hex(datumHash))
+			// utxo.output.datum is caller-owned — only derived hash objects are tracked
+			const datumHash = this._track(CardanoWASM.hash_plutus_data(utxo.output.datum)).to_hex()
+			txOutput.set_data_hash(this._track(CardanoWASM.DataHash.from_hex(datumHash)))
 		}
 		return {
 			txInput,
@@ -520,11 +571,12 @@ export class TxBuilder {
 	// ============================================================================
 
 	/**
-	 * Mint assets with native script
+	 * Reserved for setting the Plutus script version context of the next mint
+	 * operation. Currently a no-op kept for API/chaining compatibility — the mint
+	 * script version is derived from the policy script passed to mintingScript().
 	 */
 	mintPlutusScript(version: LanguageVersion): TxBuilder {
-		// This sets the context for the next mint operation
-		console.log('mintPlutusScript: ', version)
+		this._verbose && console.log('[🛠️][TxBuilder] [mintPlutusScript]: ', version)
 		return this
 	}
 
@@ -631,8 +683,8 @@ export class TxBuilder {
 	 */
 	metadataValue(label: number | bigint | string | CardanoWASM.BigNum, value: string | object | number): TxBuilder {
 		try {
-			const _label = CardanoWASM.BigNum.from_str(label.toString())
-			const _value = metadataObjToMetadatum(value)
+			const _label = this._track(CardanoWASM.BigNum.from_str(label.toString()))
+			const _value = this._track(metadataObjToMetadatum(value))
 			this._metadata.insert(_label, _value)
 		} catch (error: any) {
 			this._verbose && console.error('[🛠️][TxBuilder] [metadataValue] Error: ', error)
@@ -698,32 +750,23 @@ export class TxBuilder {
 	 */
 	changeAddress(address: string): TxBuilder {
 		this._changeAddress = address
-		this._changeConfig = CardanoWASM.ChangeConfig.new(CardanoWASM.Address.from_bech32(address))
+		// Free a previously-set change config to avoid leaking it on re-assignment.
+		try {
+			this._changeConfig?.free()
+		} catch {
+			/* ignore */
+		}
+		this._changeConfig = CardanoWASM.ChangeConfig.new(this._track(CardanoWASM.Address.from_bech32(address)))
 		return this
 	}
 
 	/**
-	 * Calculate minimum fee
+	 * Placeholder that returns zero. The real minimum fee is computed by CSL
+	 * during complete()/build_tx() from the fully-assembled transaction, so
+	 * standalone pre-build fee estimation is not implemented here. Kept for API
+	 * compatibility.
 	 */
 	calculateFee(): CardanoWASM.BigNum {
-		// Build a temporary transaction to get accurate fee calculation
-
-		// const tempBuilder = this._txBuilder
-
-		// console.log('>>> / this._txBuilder.min_fee():', this._txBuilder.min_fee().to_str())
-
-		// // this.txBuilder.set_fee(CardanoWASM.BigNum.from_str('1000000')) // Set a temporary fee
-		// const tx = this.prepare()
-		// const linearFee = CardanoWASM.LinearFee.new(
-		// 	CardanoWASM.BigNum.from_str(this._protocolParams.minFeeA.toString()),
-		// 	CardanoWASM.BigNum.from_str(this._protocolParams.minFeeB.toString())
-		// )
-		// console.log('fee', tx.body().fee().to_str())
-		// const minFee = CardanoWASM.min_fee(tx, linearFee)
-		// console.log('>>> / minFee:', minFee.to_str())
-
-		//
-		// this._txBuilder = tempBuilder
 		return CardanoWASM.BigNum.zero()
 	}
 
@@ -837,9 +880,138 @@ export class TxBuilder {
 	// ============================================================================
 
 	/**
-	 * Build and complete the transaction
+	 * Build and complete the transaction.
+	 *
+	 * When a transaction `evaluator` was supplied and the transaction contains
+	 * Plutus redeemers, this runs a second build pass: the draft transaction is
+	 * evaluated to obtain the real script execution units, those are written back
+	 * into the redeemers, and the transaction is rebuilt so the fee is accurate.
+	 * Without an evaluator (e.g. for Hydra), the single-pass build is returned
+	 * unchanged.
 	 */
 	async complete(): Promise<CardanoWASM.Transaction> {
+		let tx = await this._assembleAndBuild()
+
+		if (this._evaluator && this._hasRedeemers()) {
+			const txHex = tx.to_hex()
+			let evals: EvalAction[]
+			try {
+				evals = await this._evaluator.evaluateTx(txHex)
+			} catch (error) {
+				this._errorLogger && console.error('[error][TxBuilder][evaluateTx]: ', error)
+				throw error
+			}
+			const changed = this._applyEvaluatedExUnits(tx, evals)
+			if (changed) {
+				// Rebuild with the evaluated exUnits so CSL computes the correct fee.
+				try {
+					tx.free()
+				} catch {
+					/* ignore */
+				}
+				this._resetTxBuilderForRebuild()
+				tx = await this._assembleAndBuild()
+			} else {
+				// Free the transient WASM objects _applyEvaluatedExUnits allocated.
+				this._freeScratch()
+			}
+		}
+
+		return tx
+	}
+
+	/** True if any staged input or mint carries a Plutus redeemer to evaluate. */
+	private _hasRedeemers(): boolean {
+		return this._inputs.some(i => i.redeemer) || this._mints.some(m => m.redeemer)
+	}
+
+	/**
+	 * Map evaluated execution budgets back onto the staged redeemers, keyed by the
+	 * redeemer pointer (SPEND → input by txHash#index, MINT → policy id). Returns
+	 * true if any redeemer's exUnits changed. CERT/REWARD/VOTE/PROPOSE evaluation
+	 * results are not remapped yet.
+	 */
+	private _applyEvaluatedExUnits(tx: CardanoWASM.Transaction, evals: EvalAction[]): boolean {
+		if (!evals.length) return false
+		const body = this._track(tx.body())
+		const inputs = this._track(body.inputs())
+
+		// Build the canonical mint policy-id ordering (redeemer MINT index → policy).
+		const mintPolicyIds: string[] = []
+		const mint = body.mint()
+		if (mint) {
+			this._track(mint)
+			const keys = this._track(mint.keys())
+			for (let i = 0; i < keys.len(); i++) {
+				mintPolicyIds.push(this._track(keys.get(i)).to_hex())
+			}
+		}
+
+		let changed = false
+		for (const action of evals) {
+			const budget = {
+				mem: Math.floor(action.budget.mem * this._txEvaluationMultiplier),
+				steps: Math.floor(action.budget.steps * this._txEvaluationMultiplier)
+			}
+			if (action.tag === 'SPEND') {
+				if (action.index < 0 || action.index >= inputs.len()) continue
+				const txIn = this._track(inputs.get(action.index))
+				const txHash = this._track(txIn.transaction_id()).to_hex()
+				const outputIndex = txIn.index()
+				const target = this._inputs.find(i => i.txHash === txHash && i.outputIndex === outputIndex && i.redeemer)
+				if (target?.redeemer) {
+					target.redeemer = this._redeemerWithExUnits(target.redeemer, budget)
+					changed = true
+				}
+			} else if (action.tag === 'MINT') {
+				const policyId = mintPolicyIds[action.index]
+				if (!policyId) continue
+				for (const m of this._mints) {
+					if (m.policyId === policyId && m.redeemer) {
+						m.redeemer = this._redeemerWithExUnits(m.redeemer, budget)
+						changed = true
+					}
+				}
+			}
+			// CERT / REWARD / VOTE / PROPOSE: evaluated but not remapped yet.
+		}
+		return changed
+	}
+
+	/** Clone a redeemer, replacing only its execution units. */
+	private _redeemerWithExUnits(redeemer: CardanoWASM.Redeemer, budget: { mem: number; steps: number }): CardanoWASM.Redeemer {
+		const tag = this._track(redeemer.tag())
+		const index = this._track(redeemer.index())
+		const data = this._track(redeemer.data())
+		const exUnits = this._track(
+			CardanoWASM.ExUnits.new(
+				this._track(CardanoWASM.BigNum.from_str(String(budget.mem))),
+				this._track(CardanoWASM.BigNum.from_str(String(budget.steps)))
+			)
+		)
+		return CardanoWASM.Redeemer.new(tag, index, data, exUnits)
+	}
+
+	/**
+	 * Discard the current TransactionBuilder and start a fresh one for the rebuild
+	 * pass, keeping all staged descriptors (inputs/outputs/mints/metadata/scripts).
+	 */
+	private _resetTxBuilderForRebuild(): void {
+		this._freeScratch()
+		try {
+			this._txBuilder?.free()
+		} catch {
+			/* ignore */
+		}
+		this._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)
+	}
+
+	/**
+	 * Assemble the staged transaction parts into the CardanoWASM builder and build
+	 * the transaction. Freeing of transient WASM objects happens here (see
+	 * _freeScratch in the finally block).
+	 */
+	private async _assembleAndBuild(): Promise<CardanoWASM.Transaction> {
 		// Add all outputs to the transaction builder
 		for (const output of this._outputs) {
 			this._addOutputToBuilder(output)
@@ -848,6 +1020,11 @@ export class TxBuilder {
 		// Add collaterals
 		for (const collateral of this._collaterals) {
 			this._addCollateralToBuilder(collateral)
+		}
+
+		// Apply explicit total collateral, if provided
+		if (this._totalCollateral) {
+			this._txBuilder.set_total_collateral(this._track(CardanoWASM.BigNum.from_str(this._totalCollateral)))
 		}
 
 		// Add mints
@@ -860,9 +1037,7 @@ export class TxBuilder {
 		}
 
 		// Add certificates
-		for (const cert of this._certificates) {
-			this._addCertificateToBuilder(cert)
-		}
+		this._addCertificatesToBuilder()
 
 		// Add withdrawals
 		for (const withdrawal of this._withdrawals) {
@@ -884,22 +1059,13 @@ export class TxBuilder {
 			this._addMetadata()
 		}
 
-		// Add auxiliary data if present
+		// Add auxiliary data if present. The auxiliary-data hash is derived by CSL
+		// from the auxiliary data itself when set_auxiliary_data() is called.
 		let auxiliaryData: CardanoWASM.AuxiliaryData | undefined
 		if (this._metadata.len() || this._auxiliaryDataHash) {
-			auxiliaryData = CardanoWASM.AuxiliaryData.new()
-			// TODO: Add metadata and auxiliary data handling
+			auxiliaryData = this._track(CardanoWASM.AuxiliaryData.new())
 			this._metadata.len() && auxiliaryData.set_metadata(this._metadata)
 		}
-
-		// const txWitnessSet = CardanoWASM.TransactionWitnessSet.new()
-		// if (this._plutusScripts && this._plutusScripts.len()) {
-		// 	this._verbose && console.log('[🛠️][TxBuilder] [txWitnessSet PlutusScripts]: ', this._plutusScripts.to_js_value())
-		// 	txWitnessSet.set_plutus_scripts(this._plutusScripts)
-
-		// 	auxiliaryData = auxiliaryData || CardanoWASM.AuxiliaryData.new()
-		// 	auxiliaryData.set_plutus_scripts(this._plutusScripts)
-		// }
 
 		// Set auxiliary data
 		if (auxiliaryData) {
@@ -938,6 +1104,31 @@ export class TxBuilder {
 		} catch (error) {
 			this._errorLogger && console.error('[error][TxBuilder][build_tx]: ', error)
 			throw error
+		} finally {
+			// Deterministically free every transient WASM object allocated during
+			// this build. build_tx() has already consumed them, and the returned
+			// Transaction is an independent Rust struct, so this is always safe.
+			this._freeScratch()
+		}
+	}
+
+	/**
+	 * Build the transaction and return its CBOR hex, freeing the intermediate
+	 * Transaction object immediately. This is the leak-free path for high-volume
+	 * workloads where you only need the serialized bytes — prefer it over
+	 * `complete()` + `.to_hex()`, which leaves the caller responsible for calling
+	 * `.free()` on the returned Transaction.
+	 */
+	async completeCbor(): Promise<string> {
+		const tx = await this.complete()
+		try {
+			return tx.to_hex()
+		} finally {
+			try {
+				tx.free()
+			} catch {
+				/* ignore */
+			}
 		}
 	}
 
@@ -968,15 +1159,28 @@ export class TxBuilder {
 		this._certificates = []
 		this._withdrawals = []
 		this._requiredSigners = []
-		this._metadata.free()
+		// Free every WASM object held from the previous build before dropping the
+		// references, then recreate the ones we still need.
+		const freeSafe = (o?: { free(): void } | null) => {
+			try {
+				o?.free()
+			} catch {
+				/* ignore */
+			}
+		}
+		this._freeScratch()
+		freeSafe(this._metadata)
+		freeSafe(this._plutusScripts)
+		freeSafe(this._changeConfig)
+		freeSafe(this._txBuilder)
+		this._metadata = CardanoWASM.GeneralTransactionMetadata.new()
 		this._validityRange = undefined
 		this._changeAddress = undefined
+		this._changeConfig = null
 		this._totalCollateral = undefined
 		this._collateralReturn = undefined
-		this._scriptDataHash = undefined
 		this._auxiliaryDataHash = undefined
 		this._plutusScripts = null
-		this._nativeScripts.clear()
 
 		// Recreate the transaction builder
 		this._txBuilder = TxBuilder.getTxBuilder(this._protocolParams)
@@ -992,15 +1196,15 @@ export class TxBuilder {
 	 * Add output to the CardanoWASM transaction builder
 	 */
 	private _addOutputToBuilder(output: TxOutput): void {
-		const shelleyOutputAddress = CardanoWASM.Address.from_bech32(output.address)
+		const shelleyOutputAddress = this._track(CardanoWASM.Address.from_bech32(output.address))
 		const lovelaceSend = output.amount.find(el => el.unit === 'lovelace')?.quantity || '0'
-		const lovelaceBigNum = CardanoWASM.BigNum.from_str(lovelaceSend)
+		const lovelaceBigNum = this._track(CardanoWASM.BigNum.from_str(lovelaceSend))
 
 		const withAssets = output.amount.filter(el => el.unit !== 'lovelace')
 
 		let txOutput: CardanoWASM.TransactionOutput
 		if (withAssets.length > 0) {
-			const multiAsset = CardanoWASM.MultiAsset.new()
+			const multiAsset = this._track(CardanoWASM.MultiAsset.new())
 			const policyIds = new Map<string, Map<string, bigint>>()
 			for (const asset of withAssets) {
 				const { policyId, assetName } = Deserializer.deserializeAssetUnit(asset.unit)
@@ -1014,122 +1218,64 @@ export class TxBuilder {
 				policyIds.get(policyId)!.set(assetName, currentQty + BigInt(asset.quantity))
 			}
 			policyIds.forEach((assetNames, policyId) => {
-				const outputPolicyId = CardanoWASM.ScriptHash.from_hex(policyId)
-				const outputAssets = CardanoWASM.Assets.new()
+				const outputPolicyId = this._track(CardanoWASM.ScriptHash.from_hex(policyId))
+				const outputAssets = this._track(CardanoWASM.Assets.new())
 
 				assetNames.forEach((quantity, assetName) => {
-					const outputAssetName = CardanoWASM.AssetName.new(ParserUtils.hexToBytes(assetName))
-					outputAssets.insert(outputAssetName, CardanoWASM.BigNum.from_str(quantity.toString()))
+					const outputAssetName = this._track(CardanoWASM.AssetName.new(ParserUtils.hexToBytes(assetName)))
+					outputAssets.insert(outputAssetName, this._track(CardanoWASM.BigNum.from_str(quantity.toString())))
 				})
 				multiAsset.insert(outputPolicyId, outputAssets)
 			})
-			txOutput = CardanoWASM.TransactionOutput.new(
-				shelleyOutputAddress,
-				CardanoWASM.Value.new_with_assets(lovelaceBigNum, multiAsset)
+			txOutput = this._track(
+				CardanoWASM.TransactionOutput.new(
+					shelleyOutputAddress,
+					this._track(CardanoWASM.Value.new_with_assets(lovelaceBigNum, multiAsset))
+				)
 			)
 		} else {
-			txOutput = CardanoWASM.TransactionOutput.new(shelleyOutputAddress, CardanoWASM.Value.new(lovelaceBigNum))
+			txOutput = this._track(
+				CardanoWASM.TransactionOutput.new(shelleyOutputAddress, this._track(CardanoWASM.Value.new(lovelaceBigNum)))
+			)
 		}
 		// Add datum if present
 		if (output?.inlineDatum && output?.datum) {
-			console.error('Cannot use both inlineDatum and datumHash. Trace: ', output)
+			this._errorLogger && console.error('Cannot use both inlineDatum and datumHash. Trace: ', output)
 			throw new Error('Cannot use both inlineDatum and datumHash')
 		}
 		if (output?.inlineDatum) {
 			this._verbose && console.log('[🛠️][TxBuilder] [Output inlineDatum]: ', output.inlineDatum)
+			// output.inlineDatum is caller-owned — do NOT free it
 			txOutput.set_plutus_data(output.inlineDatum)
 		}
 		if (output?.datum) {
-			const datumHash = CardanoWASM.hash_plutus_data(output.datum).to_hex()
-			txOutput.set_data_hash(CardanoWASM.DataHash.from_hex(datumHash))
+			// output.datum is caller-owned — only the hash objects we derive are tracked
+			const datumHash = this._track(CardanoWASM.hash_plutus_data(output.datum)).to_hex()
+			txOutput.set_data_hash(this._track(CardanoWASM.DataHash.from_hex(datumHash)))
 		}
 		// Add script reference if present
 		if (output?.scriptRef) {
 			// txOutput.set_script_ref(CardanoWASM.ScriptRef.from_json(''))
 			let plutusVersion: CardanoWASM.Language
 			if (output.scriptRef.version === 'V2') {
-				plutusVersion = CardanoWASM.Language.new_plutus_v2()
+				plutusVersion = this._track(CardanoWASM.Language.new_plutus_v2())
 			} else if (output.scriptRef.version === 'V3') {
-				plutusVersion = CardanoWASM.Language.new_plutus_v3()
+				plutusVersion = this._track(CardanoWASM.Language.new_plutus_v3())
 			} else if (output.scriptRef.version === 'V1') {
-				plutusVersion = CardanoWASM.Language.new_plutus_v1()
+				plutusVersion = this._track(CardanoWASM.Language.new_plutus_v1())
 			} else {
 				throw new Error(`Unsupported Plutus version: ${output.scriptRef.version}`)
 			}
 			this._verbose && console.log('[🛠️][TxBuilder] [Output scriptRef]: ', output.scriptRef)
-			const plutusScript = CardanoWASM.PlutusScript.from_hex_with_version(output.scriptRef.scriptCbor, plutusVersion)
-			const scriptRef = CardanoWASM.ScriptRef.new_plutus_script(plutusScript)
+			const plutusScript = this._track(
+				CardanoWASM.PlutusScript.from_hex_with_version(output.scriptRef.scriptCbor, plutusVersion)
+			)
+			const scriptRef = this._track(CardanoWASM.ScriptRef.new_plutus_script(plutusScript))
 			txOutput.set_script_ref(scriptRef)
 			this._verbose && console.log('[🛠️][TxBuilder] [Output has scriptRef]: ', txOutput.has_script_ref())
 		}
 		this._txBuilder.add_output(txOutput)
 		this._verbose && console.log('[🛠️][TxBuilder] [Output]: ', txOutput.to_json())
-	}
-
-	private _outputAmountToValue(amount: Asset[]): CardanoWASM.Value {
-		const lovelace = amount.find(el => el.unit === 'lovelace')?.quantity || '0'
-		const value = CardanoWASM.Value.new(CardanoWASM.BigNum.from_str(lovelace))
-		const withAssets = amount.filter(el => el.unit !== 'lovelace')
-		if (withAssets.length > 0) {
-			const multiAsset = CardanoWASM.MultiAsset.new()
-			for (const asset of withAssets) {
-				const { policyId, assetName } = Deserializer.deserializeAssetUnit(asset.unit)
-
-				const outputAssets = CardanoWASM.Assets.new()
-				const outputAssetName = CardanoWASM.AssetName.new(ParserUtils.hexToBytes(assetName))
-				const outputPolicyId = CardanoWASM.ScriptHash.from_hex(policyId)
-				outputAssets.insert(outputAssetName, CardanoWASM.BigNum.from_str(asset.quantity))
-				multiAsset.insert(outputPolicyId, outputAssets)
-			}
-			value.set_multiasset(multiAsset)
-		}
-		return value
-	}
-
-	/**
-	 * Add input to the CardanoWASM transaction builder
-	 * @deprecated
-	 * @description it did not work correctly
-	 */
-	private _addInputToBuilder(input: TxIn): void {
-		const txInput = CardanoWASM.TransactionInput.new(
-			CardanoWASM.TransactionHash.from_hex(input.txHash),
-			input.outputIndex
-		)
-
-		if (input.amount && input.address) {
-			// Create value for the input
-			const lovelace = input.amount.find(el => el.unit === 'lovelace')?.quantity || '0'
-			const value = CardanoWASM.Value.new(CardanoWASM.BigNum.from_str(lovelace))
-
-			// Add assets if present
-			const withAssets = input.amount.filter(el => el.unit !== 'lovelace')
-			if (withAssets.length > 0) {
-				const multiAsset = CardanoWASM.MultiAsset.new()
-				for (const asset of withAssets) {
-					const _policyId = asset.unit.substring(0, 56)
-					const _assetName = asset.unit.substring(56)
-
-					const inputAssets = CardanoWASM.Assets.new()
-					const inputAssetName = CardanoWASM.AssetName.new(ParserUtils.hexToBytes(_assetName))
-					const inputPolicyId = CardanoWASM.ScriptHash.from_hex(_policyId)
-					inputAssets.insert(inputAssetName, CardanoWASM.BigNum.from_str(asset.quantity))
-					multiAsset.insert(inputPolicyId, inputAssets)
-				}
-				value.set_multiasset(multiAsset)
-			}
-
-			// Add the input with value
-			this._txBuilder.add_key_input(
-				CardanoWASM.Ed25519KeyHash.from_hex(input.address.substring(2, 58)), // Extract key hash from address
-				txInput,
-				value
-			)
-		} else {
-			// Simple input without explicit value - use add_key_input with dummy values
-			const dummyKeyHash = CardanoWASM.Ed25519KeyHash.from_hex('0'.repeat(56))
-			this._txBuilder.add_key_input(dummyKeyHash, txInput, CardanoWASM.Value.new(CardanoWASM.BigNum.from_str('0')))
-		}
 	}
 
 	private _addInputsToBuilder(inputs: TxIn[], strategy: CoinSelectionStrategy = 'LargestFirstMultiAsset'): void {
@@ -1164,30 +1310,28 @@ export class TxBuilder {
 
 			// NOTE: Nếu input chứa inlineDatum thì không cần set data hash
 			if (scriptInput.datum) {
-				const datumHash = CardanoWASM.hash_plutus_data(scriptInput.datum)
+				// scriptInput.datum is caller-owned — the derived hash is tracked
+				const datumHash = this._track(CardanoWASM.hash_plutus_data(scriptInput.datum))
 				txOutput.set_data_hash(datumHash)
 			}
 
+			// PlutusScripts.get() returns a fresh clone — track it. Caller-supplied
+			// datum/redeemer are NOT tracked; the fallback emptyRedeemer() is.
+			const witnessScript = this._track(this._plutusScripts?.get(index)!)
+			const redeemer = scriptInput.redeemer || this._track(emptyRedeemer({ type: 'constr' }))
 			let plutusWitness: CardanoWASM.PlutusWitness | null = null
 			if (scriptInput.datum) {
 				const datum = scriptInput.datum
-				plutusWitness = CardanoWASM.PlutusWitness.new(
-					this._plutusScripts?.get(index)!,
-					datum!,
-					scriptInput.redeemer || emptyRedeemer({ type: 'constr' })
-				)
+				plutusWitness = this._track(CardanoWASM.PlutusWitness.new(witnessScript, datum!, redeemer))
 				this._verbose && console.log('[🛠️][TxBuilder] [PlutusWitness] [with datum]: ', datum.to_hex())
 			} else {
 				/**
 				 * NOTE: Nếu dùng inlineDatum thì cũng không cần inject datum vào witness
 				 */
-				plutusWitness = CardanoWASM.PlutusWitness.new_without_datum(
-					this._plutusScripts?.get(index)!,
-					scriptInput.redeemer || emptyRedeemer({ type: 'constr' })
-				)
+				plutusWitness = this._track(CardanoWASM.PlutusWitness.new_without_datum(witnessScript, redeemer))
 				this._verbose && console.log('[🛠️][TxBuilder] [PlutusWitness] [without datum]: ', plutusWitness)
 			}
-			this._txBuilder.add_plutus_script_input(plutusWitness, txInput, txOutput.amount())
+			this._txBuilder.add_plutus_script_input(plutusWitness, txInput, this._track(txOutput.amount()))
 		})
 		// Recalculate script data hash if there are script inputs
 		const recalculateScriptDataHash = scriptInputs.length > 0 || this._mints.length > 0
@@ -1201,9 +1345,11 @@ export class TxBuilder {
 
 	private _addReferenceInputsToBuilder(referenceInputs: TxIn[]): void {
 		referenceInputs.forEach(refInput => {
-			const txInput = CardanoWASM.TransactionInput.new(
-				CardanoWASM.TransactionHash.from_hex(refInput.txHash),
-				refInput.outputIndex
+			const txInput = this._track(
+				CardanoWASM.TransactionInput.new(
+					this._track(CardanoWASM.TransactionHash.from_hex(refInput.txHash)),
+					refInput.outputIndex
+				)
 			)
 			this._txBuilder.add_reference_input(txInput)
 		})
@@ -1216,23 +1362,27 @@ export class TxBuilder {
 		if (this._verbose) {
 			console.log('Adding collateral:', collateral.txHash, collateral.outputIndex)
 		}
-		const collateralTxIn = CardanoWASM.TransactionInput.new(
-			CardanoWASM.TransactionHash.from_hex(collateral.txHash),
-			collateral.outputIndex
+		const collateralTxIn = this._track(
+			CardanoWASM.TransactionInput.new(
+				this._track(CardanoWASM.TransactionHash.from_hex(collateral.txHash)),
+				collateral.outputIndex
+			)
 		)
 		// Reject collateral if it has assets
 		if (collateral.amount.length > 1 || (collateral.amount.length === 1 && collateral.amount[0].unit !== 'lovelace')) {
 			throw new Error('Collateral UTxO must contain only lovelace')
 		}
 		const lovelace = collateral.amount.find(el => el.unit === 'lovelace')?.quantity || '0'
-		const collateralValue = CardanoWASM.Value.new(CardanoWASM.BigNum.from_str(String(lovelace)))
-		const collateralAddress = CardanoWASM.Address.from_bech32(collateral.address)
-		const collateralUTxO = CardanoWASM.TransactionUnspentOutput.new(
-			collateralTxIn,
-			CardanoWASM.TransactionOutput.new(collateralAddress, collateralValue)
+		const collateralValue = this._track(CardanoWASM.Value.new(this._track(CardanoWASM.BigNum.from_str(String(lovelace)))))
+		const collateralAddress = this._track(CardanoWASM.Address.from_bech32(collateral.address))
+		const collateralUTxO = this._track(
+			CardanoWASM.TransactionUnspentOutput.new(
+				collateralTxIn,
+				this._track(CardanoWASM.TransactionOutput.new(collateralAddress, collateralValue))
+			)
 		)
 
-		const collateralOutput = CardanoWASM.TxInputsBuilder.new()
+		const collateralOutput = this._track(CardanoWASM.TxInputsBuilder.new())
 		collateralOutput.add_regular_utxo(collateralUTxO)
 		this._txBuilder.set_collateral(collateralOutput)
 	}
@@ -1252,38 +1402,41 @@ export class TxBuilder {
 				throw new Error('Mint policy script is required')
 			}
 			if (_mint.policyScript?.type === 'PlutusV1') {
-				mintPolicyScript = CardanoWASM.PlutusScript.from_bytes(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex))
+				mintPolicyScript = this._track(CardanoWASM.PlutusScript.from_bytes(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex)))
 			} else if (_mint.policyScript?.type === 'PlutusV2') {
-				mintPolicyScript = CardanoWASM.PlutusScript.from_bytes_v2(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex))
+				mintPolicyScript = this._track(CardanoWASM.PlutusScript.from_bytes_v2(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex)))
 			} else if (_mint.policyScript?.type === 'PlutusV3') {
-				mintPolicyScript = CardanoWASM.PlutusScript.from_bytes_v3(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex))
+				mintPolicyScript = this._track(CardanoWASM.PlutusScript.from_bytes_v3(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex)))
 			} else if (_mint.policyScript?.type === 'Native') {
-				mintPolicyScript = CardanoWASM.NativeScript.from_hex(_mint.policyScript.scriptCborHex)
+				mintPolicyScript = this._track(CardanoWASM.NativeScript.from_hex(_mint.policyScript.scriptCborHex))
 			} else {
 				throw new Error('Unsupported mint policy script version')
 			}
-			const scriptHash = mintPolicyScript.hash().to_hex()
+			const scriptHash = this._track(mintPolicyScript.hash()).to_hex()
 			if (scriptHash !== _mint.policyId) {
 				throw new Error(`Mint policy ID does not match script hash. Expected ${_mint.policyId}, got ${scriptHash}`)
 			}
 
+			// _mint.redeemer is caller-owned — the fallback emptyRedeemer() is tracked
 			let mintWitness: CardanoWASM.MintWitness
 			if (mintPolicyScript instanceof CardanoWASM.PlutusScript) {
-				mintWitness = CardanoWASM.MintWitness.new_plutus_script(
-					CardanoWASM.PlutusScriptSource.new(mintPolicyScript),
-					_mint.redeemer || emptyRedeemer({ type: 'constr', tag: 'MINT' })
+				mintWitness = this._track(
+					CardanoWASM.MintWitness.new_plutus_script(
+						this._track(CardanoWASM.PlutusScriptSource.new(mintPolicyScript)),
+						_mint.redeemer || this._track(emptyRedeemer({ type: 'constr', tag: 'MINT' }))
+					)
 				)
 			} else if (mintPolicyScript instanceof CardanoWASM.NativeScript) {
-				const scriptSrc = CardanoWASM.NativeScriptSource.new(mintPolicyScript)
-				mintWitness = CardanoWASM.MintWitness.new_native_script(scriptSrc)
+				const scriptSrc = this._track(CardanoWASM.NativeScriptSource.new(mintPolicyScript))
+				mintWitness = this._track(CardanoWASM.MintWitness.new_native_script(scriptSrc))
 			} else {
 				throw new Error('Unsupported mint policy script type')
 			}
 
 			mintBuilder.add_asset(
 				mintWitness,
-				CardanoWASM.AssetName.new(ParserUtils.toBytes(_mint.assetName)),
-				CardanoWASM.Int.from_str(_mint.quantity.toString())
+				this._track(CardanoWASM.AssetName.new(ParserUtils.toBytes(_mint.assetName))),
+				this._track(CardanoWASM.Int.from_str(_mint.quantity.toString()))
 			)
 			this._txBuilder.set_mint_builder(mintBuilder)
 		} catch (error) {
@@ -1295,11 +1448,64 @@ export class TxBuilder {
 	}
 
 	/**
-	 * Add certificate to the CardanoWASM transaction builder
+	 * Build all staged certificates into a single Certificates set and attach it to
+	 * the transaction builder. Called once during complete().
 	 */
-	private _addCertificateToBuilder(_cert: Certificate): void {
-		// TODO: Implement certificate handling
-		// This would involve creating appropriate certificate types based on cert.type
+	private _addCertificatesToBuilder(): void {
+		if (!this._certificates.length) return
+		const certs = this._track(CardanoWASM.Certificates.new())
+		for (const cert of this._certificates) {
+			certs.add(this._buildCertificate(cert))
+		}
+		if (certs.len() > 0) {
+			this._txBuilder.set_certs(certs)
+		}
+	}
+
+	/**
+	 * Convert a staged Certificate descriptor into a CardanoWASM Certificate.
+	 * The stake credential is resolved from the bech32 reward (stake) address.
+	 */
+	private _buildCertificate(cert: Certificate): CardanoWASM.Certificate {
+		const resolveCredential = (rewardAddress?: string): CardanoWASM.Credential => {
+			if (!rewardAddress) {
+				throw new Error(`Certificate ${cert.type} requires a rewardAddress`)
+			}
+			const address = this._track(CardanoWASM.Address.from_bech32(rewardAddress))
+			const reward = CardanoWASM.RewardAddress.from_address(address)
+			if (!reward) {
+				throw new Error(`Invalid reward address for ${cert.type}: ${rewardAddress}`)
+			}
+			this._track(reward)
+			return this._track(reward.payment_cred())
+		}
+
+		switch (cert.type) {
+			case 'StakeRegistration': {
+				const credential = resolveCredential(cert.rewardAddress)
+				const registration = this._track(CardanoWASM.StakeRegistration.new(credential))
+				return this._track(CardanoWASM.Certificate.new_stake_registration(registration))
+			}
+			case 'StakeDeregistration': {
+				const credential = resolveCredential(cert.rewardAddress)
+				const deregistration = this._track(CardanoWASM.StakeDeregistration.new(credential))
+				return this._track(CardanoWASM.Certificate.new_stake_deregistration(deregistration))
+			}
+			case 'StakeDelegation': {
+				if (!cert.poolKeyHash) {
+					throw new Error('StakeDelegation requires a poolKeyHash')
+				}
+				const credential = resolveCredential(cert.rewardAddress)
+				const poolKeyHash = this._track(CardanoWASM.Ed25519KeyHash.from_hex(cert.poolKeyHash))
+				const delegation = this._track(CardanoWASM.StakeDelegation.new(credential, poolKeyHash))
+				return this._track(CardanoWASM.Certificate.new_stake_delegation(delegation))
+			}
+			case 'PoolRegistration':
+			case 'PoolRetirement':
+				throw new Error(`Certificate type not supported yet: ${cert.type}`)
+			default:
+				throw new Error(`Unknown certificate type: ${(cert as Certificate).type}`)
+		}
 	}
 
 	/**
@@ -1308,13 +1514,14 @@ export class TxBuilder {
 	private _addWithdrawalToBuilder(withdrawal: Withdrawal): void {
 		try {
 			const rewardAddress = CardanoWASM.RewardAddress.from_address(
-				CardanoWASM.Address.from_bech32(withdrawal.rewardAddress)
+				this._track(CardanoWASM.Address.from_bech32(withdrawal.rewardAddress))
 			)
-			const amount = CardanoWASM.BigNum.from_str(withdrawal.amount)
+			const amount = this._track(CardanoWASM.BigNum.from_str(withdrawal.amount))
 
 			if (rewardAddress) {
+				this._track(rewardAddress)
 				// Use the correct method name for withdrawals
-				const withdrawals = CardanoWASM.Withdrawals.new()
+				const withdrawals = this._track(CardanoWASM.Withdrawals.new())
 				withdrawals.insert(rewardAddress, amount)
 				this._txBuilder.set_withdrawals(withdrawals)
 			}
@@ -1331,12 +1538,12 @@ export class TxBuilder {
 	private _setValidityRange(): void {
 		if (this._validityRange?.invalidBefore) {
 			this._txBuilder.set_validity_start_interval_bignum(
-				CardanoWASM.BigNum.from_str(this._validityRange.invalidBefore.toString())
+				this._track(CardanoWASM.BigNum.from_str(this._validityRange.invalidBefore.toString()))
 			)
 		}
 		if (this._validityRange?.invalidAfter) {
 			this._txBuilder.set_ttl_bignum(
-				CardanoWASM.BigNum.from_str(this._validityRange.invalidAfter.toString()) //
+				this._track(CardanoWASM.BigNum.from_str(this._validityRange.invalidAfter.toString())) //
 			)
 		}
 	}
@@ -1345,7 +1552,7 @@ export class TxBuilder {
 	 * Add required signer to the transaction builder
 	 */
 	private _addRequiredSigner(pubKeyHash: string): void {
-		const keyHash = CardanoWASM.Ed25519KeyHash.from_hex(pubKeyHash)
+		const keyHash = this._track(CardanoWASM.Ed25519KeyHash.from_hex(pubKeyHash))
 		this._txBuilder.add_required_signer(keyHash)
 	}
 
@@ -1354,64 +1561,141 @@ export class TxBuilder {
 	 */
 	private _addMetadata(): void {
 		if (!this._metadata) return
-
-		// TODO: Implement proper metadata handling
-		// This would involve converting the metadata object to CardanoWASM format
 		this._txBuilder.set_metadata(this._metadata)
 	}
 
 	private _buildCostModels() {
+		// NOTE: defaultCostModels is a shared module-level singleton — must NOT be
+		// tracked/freed here, otherwise later builds would hit a freed pointer.
 		return CostModels.defaultCostModels
+	}
+
+	// ============================================================================
+	// WASM memory management
+	// ============================================================================
+
+	/**
+	 * Register a transient WASM object allocated internally during a build so it
+	 * can be freed deterministically once build_tx() has consumed it. Returns the
+	 * same object for convenient inline wrapping.
+	 */
+	private _track<T extends { free(): void }>(obj: T): T {
+		this._scratch.push(obj)
+		return obj
+	}
+
+	/**
+	 * Free every tracked transient WASM object. Safe to call multiple times and
+	 * safe against objects already consumed/freed by CSL (their pointer is 0, so
+	 * free() is a no-op). Freed in reverse allocation order.
+	 */
+	private _freeScratch(): void {
+		for (let i = this._scratch.length - 1; i >= 0; i--) {
+			try {
+				this._scratch[i].free()
+			} catch {
+				// already freed or consumed by a CSL ownership-taking call — ignore
+			}
+		}
+		this._scratch = []
+	}
+
+	/**
+	 * Release all WASM memory held by this builder (the underlying
+	 * TransactionBuilder plus builder-lifetime state: metadata, plutus scripts,
+	 * change config). Call this once you are done with the builder — especially in
+	 * high-volume/spike workloads — instead of relying on the GC/FinalizationRegistry.
+	 *
+	 * After dispose() the builder must not be used again.
+	 */
+	dispose(): void {
+		if (this._disposed) return
+		this._freeScratch()
+		const freeSafe = (o?: { free(): void } | null) => {
+			try {
+				o?.free()
+			} catch {
+				/* ignore */
+			}
+		}
+		freeSafe(this._txBuilder)
+		freeSafe(this._metadata)
+		freeSafe(this._plutusScripts)
+		freeSafe(this._changeConfig)
+		this._plutusScripts = null
+		this._changeConfig = null
+		this._disposed = true
+	}
+
+	/** Allow `using tx = new TxBuilder(...)` (TS 5.2+/Node 20+ explicit resource management). */
+	[Symbol.dispose](): void {
+		this.dispose()
 	}
 
 	static getTxBuilder(pp: Protocol) {
 		// config tx builder
-		const linearFee = CardanoWASM.LinearFee.new(
-			CardanoWASM.BigNum.from_str(pp.minFeeA.toString()),
-			CardanoWASM.BigNum.from_str(pp.minFeeB.toString())
-		)
-		// config cost for script
-		/**
-		 * 
-			"executionUnitPrices": {
-				"priceMemory": 0,
-				"priceSteps": 0
-			}
-			"maxTxExecutionUnits": {
-				"memory": 14000000,
-				"steps": 10000000000
-			},
-			"maxBlockExecutionUnits": {
-				"memory": 62000000,
-				"steps": 20000000000
-			},
-		*/
-		const exUnitPrices = CardanoWASM.ExUnitPrices.from_json(
-			JSON.stringify({
-				mem_price: {
-					numerator: '0',
-					denominator: '1'
-				},
-				step_price: {
-					numerator: '0',
-					denominator: '1'
-				}
-			})
-		)
-		const txBuilderCfg = CardanoWASM.TransactionBuilderConfigBuilder.new()
-			.fee_algo(linearFee)
-			.pool_deposit(CardanoWASM.BigNum.from_str(pp.poolDeposit.toString())) // stakePoolDeposit
-			.key_deposit(CardanoWASM.BigNum.from_str(pp.keyDeposit.toString())) // stakeAddressDeposit
-			.max_value_size(pp.maxValSize) // maxValueSize
-			.max_tx_size(pp.maxTxSize) // maxTxSize
-			.ex_unit_prices(exUnitPrices)
-			.coins_per_utxo_byte(CardanoWASM.BigNum.from_str(pp.coinsPerUtxoSize.toString()))
-			.ref_script_coins_per_byte(
-				CardanoWASM.UnitInterval.new(CardanoWASM.BigNum.from_str('15'), CardanoWASM.BigNum.from_str('1'))
+		const scratch: Array<{ free(): void }> = []
+		const keep = <T extends { free(): void }>(o: T): T => (scratch.push(o), o)
+		const linearFee = keep(
+			CardanoWASM.LinearFee.new(
+				keep(CardanoWASM.BigNum.from_str(pp.minFeeA.toString())),
+				keep(CardanoWASM.BigNum.from_str(pp.minFeeB.toString()))
 			)
-			.build()
-		const txBuilder = CardanoWASM.TransactionBuilder.new(txBuilderCfg)
-		return txBuilder
+		)
+		// Script execution unit prices — sourced from protocol params, NOT hardcoded
+		// to zero. With zero prices CSL omits the script-execution component of the
+		// fee (priceMem·exMem + priceStep·exSteps), under-funding every script tx.
+		// Cardano prices are decimals (e.g. priceMem 0.0577, priceStep 0.0000721);
+		// convert to the exact rational CSL expects. Denominator 1e9 covers the
+		// precision of real protocol values without loss.
+		const priceToRational = (value: number) => {
+			const denominator = 1_000_000_000
+			return { numerator: Math.round(value * denominator).toString(), denominator: denominator.toString() }
+		}
+		const exUnitPrices = keep(
+			CardanoWASM.ExUnitPrices.from_json(
+				JSON.stringify({
+					mem_price: priceToRational(pp.priceMem),
+					step_price: priceToRational(pp.priceStep)
+				})
+			)
+		)
+		// NOTE: The config-builder is immutable — every chained call returns a NEW
+		// TransactionBuilderConfigBuilder and orphans the previous one, and each
+		// value passed in (LinearFee/BigNum/…) is cloned by CSL. Un-chain the calls
+		// so we can capture and free every intermediate; only the returned
+		// TransactionBuilder survives (it clones the config, so `cfg` is freed too).
+		try {
+			const cb0 = keep(CardanoWASM.TransactionBuilderConfigBuilder.new())
+			const cb1 = keep(cb0.fee_algo(linearFee))
+			const cb2 = keep(cb1.pool_deposit(keep(CardanoWASM.BigNum.from_str(pp.poolDeposit.toString())))) // stakePoolDeposit
+			const cb3 = keep(cb2.key_deposit(keep(CardanoWASM.BigNum.from_str(pp.keyDeposit.toString())))) // stakeAddressDeposit
+			const cb4 = keep(cb3.max_value_size(pp.maxValSize)) // maxValueSize
+			const cb5 = keep(cb4.max_tx_size(pp.maxTxSize)) // maxTxSize
+			const cb6 = keep(cb5.ex_unit_prices(exUnitPrices))
+			const cb7 = keep(cb6.coins_per_utxo_byte(keep(CardanoWASM.BigNum.from_str(pp.coinsPerUtxoSize.toString()))))
+			const cb8 = keep(
+				cb7.ref_script_coins_per_byte(
+					keep(
+						CardanoWASM.UnitInterval.new(
+							keep(CardanoWASM.BigNum.from_str(pp.minFeeRefScriptCostPerByte.toString())),
+							keep(CardanoWASM.BigNum.from_str('1'))
+						)
+					)
+				)
+			)
+			const txBuilderCfg = keep(cb8.build())
+			const txBuilder = CardanoWASM.TransactionBuilder.new(txBuilderCfg)
+			return txBuilder
+		} finally {
+			for (let i = scratch.length - 1; i >= 0; i--) {
+				try {
+					scratch[i].free()
+				} catch {
+					/* ignore */
+				}
+			}
+		}
 	}
 }
 

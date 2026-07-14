@@ -87,7 +87,7 @@ Entry: `packages/hydra-bridge/src/index.ts`
 
 ### `@hydra-sdk/cardano-wasm`
 
-Auto-detects environment at runtime and loads the correct build of `@emurgo/cardano-serialization-lib` (browser WASM, browser asm.js, or Node.js). All other packages import through this package — never import `@emurgo/cardano-serialization-lib` directly.
+Selects the correct build of `@emurgo/cardano-serialization-lib` via package.json `exports` conditions: the `browser` condition resolves the browser WASM build and the `node` condition resolves the Node.js build (chosen by the consumer's bundler/runtime, not at runtime). The browser asm.js fallback build is opt-in via the `@hydra-sdk/cardano-wasm/asmjs` subpath. All other packages import through this package — never import `@emurgo/cardano-serialization-lib` directly.
 
 ### Build system
 

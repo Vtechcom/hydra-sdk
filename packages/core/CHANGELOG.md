@@ -1,5 +1,12 @@
 # @hydra-sdk/core
 
+## 1.4.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/cardano-wasm@1.0.0
+
 ## 1.4.0
 
 ### Minor Changes
@@ -61,15 +68,17 @@
 #### `providers/` — New `DemeterProvider`
 
 - **`DemeterProvider`** (new): Blockfrost-compatible provider for [Demeter](https://demeter.run) hosted endpoints. Extends `BlockfrostProvider` and builds the authenticated endpoint URL automatically from the `authToken` and `network` fields:
+
   ```
   https://{authToken}.cardano-{network}.blockfrost-m1.demeter.run/api/v{version}
   ```
+
   All fetching, submission, and caching behaviour is inherited from `BlockfrostProvider` with no duplication.
 
   ```ts
   const provider = new DemeterProvider({
-    authToken: 'blockfrost102lx3ckhzvkjjh7677g',
-    network: 'mainnet', // 'mainnet' | 'preprod' | 'preview'
+  	authToken: 'blockfrost102lx3ckhzvkjjh7677g',
+  	network: 'mainnet' // 'mainnet' | 'preprod' | 'preview'
   })
   ```
 

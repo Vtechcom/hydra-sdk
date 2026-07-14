@@ -1,0 +1,232 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@source "../../../content/**/*";
+
+@theme static {
+  --container-8xl: 90rem;
+  --font-sans: 'Public Sans', sans-serif;
+  /* Geometric, technical display face for headings — a nod to the L2 / protocol
+     subject, and deliberately distinct from the Public Sans body. Auto-provisioned
+     by @nuxt/fonts. */
+  --font-display: 'Space Grotesk', 'Public Sans', sans-serif;
+
+  --color-green-50: #EFFDF5;
+  --color-green-100: #D9FBE8;
+  --color-green-200: #B3F5D1;
+  --color-green-300: #75EDAE;
+  --color-green-400: #00DC82;
+  --color-green-500: #00C16A;
+  --color-green-600: #00A155;
+  --color-green-700: #007F45;
+  --color-green-800: #016538;
+  --color-green-900: #0A5331;
+  --color-green-950: #052E16;
+}
+
+:root {
+  --ui-container: var(--container-8xl);
+}
+
+/*
+ * Signature background — a soft aurora of the brand green bleeding down from
+ * the top edge (a nod to Hydra / the sea), fixed so it stays put while the
+ * docs scroll. Inspired by strikefinance's green-tinted dark canvas, but a
+ * top-anchored glow rather than a flat diagonal wash.
+ */
+body {
+  background-image: radial-gradient(
+    120% 75% at 50% -10%,
+    color-mix(in oklab, var(--color-green-400) 10%, transparent),
+    transparent 58%
+  );
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image: radial-gradient(
+    130% 82% at 50% -12%,
+    color-mix(in oklab, var(--color-green-400) 24%, transparent) 0%,
+    color-mix(in oklab, var(--color-green-400) 8%, transparent) 30%,
+    transparent 60%
+  );
+}
+
+/* Headings wear the display face, with a touch of negative tracking so the
+   geometric letterforms sit tight. Prose bodies keep Public Sans. */
+h1,
+h2,
+h3,
+h4,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* ------------------------------------------------------------------ *
+ * Landing motion + surface system
+ *
+ * One disciplined motion language for the marketing page: a scroll-reveal
+ * that rises content as it enters, a shared hover-glow for every card so
+ * the grid reads as one system, and a slow aurora "breath" as ambient
+ * signature. Everything below is additive and fully gated behind
+ * prefers-reduced-motion — with motion off, content is simply present.
+ * ------------------------------------------------------------------ */
+
+/* Eyebrow: a small display-face label that gives every section a header
+   rhythm and encodes what the section is, not decoration. */
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ui-primary);
+}
+
+/* Unified card surface — applied to every u-page-card on the landing so
+   features, apps, docs links, and community all share one hover behavior:
+   lift + a green glow bleeding from the brand aurora. */
+.hcard {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hcard:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.hcard:hover {
+  border-color: color-mix(in oklab, var(--color-green-400) 45%, transparent);
+  box-shadow:
+    0 14px 44px -20px color-mix(in oklab, var(--color-green-400) 70%, transparent),
+    inset 0 1px 0 0 color-mix(in oklab, var(--color-green-400) 12%, transparent);
+}
+
+/* Scroll reveal. `.reveal` is only a marker; the animation is added by the
+   client plugin via `.reveal-in`, so no-JS / SSR content is always visible
+   (never hidden by default) and there is no first-paint flash. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-in {
+    animation: landing-rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  /* Staggered container: direct children rise in sequence once the
+     container enters the viewport. */
+  .reveal-stagger.reveal-in > * {
+    animation: landing-rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .reveal-stagger.reveal-in > *:nth-child(1) { animation-delay: 0ms; }
+  .reveal-stagger.reveal-in > *:nth-child(2) { animation-delay: 70ms; }
+  .reveal-stagger.reveal-in > *:nth-child(3) { animation-delay: 140ms; }
+  .reveal-stagger.reveal-in > *:nth-child(4) { animation-delay: 210ms; }
+  .reveal-stagger.reveal-in > *:nth-child(5) { animation-delay: 280ms; }
+  .reveal-stagger.reveal-in > *:nth-child(6) { animation-delay: 350ms; }
+  .reveal-stagger.reveal-in > *:nth-child(7) { animation-delay: 420ms; }
+  .reveal-stagger.reveal-in > *:nth-child(8) { animation-delay: 490ms; }
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Ambient signature: the top-anchored aurora breathes slowly, so the dark
+   canvas is never fully static without ever competing with content. */
+@media (prefers-reduced-motion: no-preference) {
+  .dark body {
+    animation: aurora-breath 14s ease-in-out infinite;
+  }
+}
+
+@keyframes aurora-breath {
+  0%, 100% { background-size: 100% 100%; }
+  50% { background-size: 118% 116%; }
+}
+
+/* Section rhythm. Nuxt UI's page-section container ships very tall vertical
+   padding (~128px at lg); on a marketing page that stacks into cavernous
+   gaps. Tighten it uniformly here — one place, every section.
+   Scoped to `:not(.hcard)` so it only touches SECTION/HERO containers and
+   never the identically-named container inside every u-page-card. */
+.landing-content [data-slot="root"]:not(.hcard) > [data-slot="container"] {
+  padding-block: 3.5rem;
+}
+@media (min-width: 640px) {
+  .landing-content [data-slot="root"]:not(.hcard) > [data-slot="container"] {
+    padding-block: 4.5rem;
+  }
+}
+/* Pull the stats band up snug beneath the hero. */
+.landing-content .section-tight-top [data-slot="root"] > [data-slot="container"] {
+  padding-top: 0;
+}
+/* Alternating surface so the dark canvas has rhythm rather than one flat
+   sheet: even sections sit a hair lighter than the page. */
+.landing-content .section-alt {
+  background-color: color-mix(in oklab, var(--ui-bg-elevated) 35%, transparent);
+}
+
+/* Section eyebrow. Nuxt UI renders the `#headline` slot as plain body text,
+   which reads as an orphaned gray line above the title. Give it a real
+   eyebrow treatment — brand green, uppercase, tracked — and snug it up to
+   the title so the two read as one unit. */
+.landing-content section[data-slot="root"] > [data-slot="container"] [data-slot="headline"] {
+  /* `section` scopes this to page-section eyebrows only — the hero root is a
+     <div>, so its badge keeps its own styling.
+     centered to sit with the (centered) section title, not orphaned at the
+     left edge; fit-content + auto margins centers regardless of flex/block. */
+  width: fit-content;
+  margin-inline: auto;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ui-primary);
+}
+
+/* Hero logo — the brand mark crowning the hero, lifted off the dark canvas
+   with a soft green halo that echoes the aurora. */
+.landing-content .hero-logo {
+  filter: drop-shadow(0 0 30px color-mix(in oklab, var(--color-green-400) 40%, transparent));
+}
+
+/* Card interior. After scoping the section padding off the cards, tighten
+   what remains and scale the content up so each card reads as substantial
+   rather than a small label floating in a large box. */
+.landing-content .hcard > [data-slot="container"] {
+  padding: 1.25rem 1.375rem;
+}
+/* Leading ICON from the `icon` prop sits larger (the showcase <img> logos
+   live in a custom #leading slot, so they are untouched). */
+.landing-content .hcard [data-slot="leadingIcon"] {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.landing-content .hcard [data-slot="title"] {
+  font-size: 1.0625rem;
+  line-height: 1.35;
+}
+.landing-content .hcard [data-slot="description"] {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}

@@ -1,5 +1,5 @@
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
-import { Asset, Datum, IFetcher, ISubmitter, Protocol, Redeemer, ScriptRef } from '@hydra-sdk/core'
+import { Asset, Datum, IFetcher, ISubmitter, Protocol, Redeemer, ScriptRef, UTxO } from '@hydra-sdk/core'
 
 /**
  * Export for compatibility with 1.1.6 version
@@ -8,9 +8,49 @@ import { Asset, Datum, IFetcher, ISubmitter, Protocol, Redeemer, ScriptRef } fro
 export type { Redeemer, ScriptRef, Datum } from '@hydra-sdk/core'
 export type { LanguageVersion as PlutusVersion } from '@hydra-sdk/core'
 
+/** Script execution budget returned by an evaluator. */
+export interface Budget {
+	mem: number
+	steps: number
+}
+
+/** Redeemer pointer categories a transaction evaluator can report. */
+export type EvalRedeemerTag = 'SPEND' | 'MINT' | 'CERT' | 'REWARD' | 'VOTE' | 'PROPOSE'
+
+/** One evaluated redeemer: which script slot it is and its real execution budget. */
+export interface EvalAction {
+	tag: EvalRedeemerTag
+	index: number
+	budget: Budget
+}
+
+/**
+ * Evaluates the Plutus scripts in a transaction and returns the real execution
+ * units per redeemer. Implemented by providers (Blockfrost, Ogmios, Demeter, …)
+ * or an offline UPLC evaluator. Shape matches MeshJS's IEvaluator for
+ * interoperability. CSL itself cannot evaluate scripts, so this is optional and
+ * only used when a provider is supplied.
+ */
+export interface IEvaluator {
+	evaluateTx(txHex: string, additionalUtxos?: UTxO[], additionalTxs?: string[]): Promise<EvalAction[]>
+}
+
 export interface TxBuilderOptions {
 	fetcher?: IFetcher
 	submitter?: ISubmitter
+	/**
+	 * Optional transaction evaluator used to compute real script execution units
+	 * (exUnits) for Plutus redeemers. When provided, complete() runs a second
+	 * build pass with the evaluated budgets so the fee is correct. When omitted,
+	 * the placeholder exUnits are kept unchanged (e.g. for Hydra, which has no
+	 * on-chain script evaluation).
+	 */
+	evaluator?: IEvaluator
+	/**
+	 * Safety multiplier applied to evaluated exUnits before writing them back
+	 * (e.g. 1.1 to over-provision by 10%). Default: 1.
+	 */
+	txEvaluationMultiplier?: number
 	isHydra?: boolean
 	params?: Partial<Protocol>
 	verbose?: boolean

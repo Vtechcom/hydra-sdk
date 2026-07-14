@@ -1,4 +1,4 @@
-# Hydra SDK ドキュメント v1.1.0
+# Hydra SDK ドキュメント v1.4.0
 
 Hydra SDKの包括的なドキュメントへようこそ。Hydra Layer 2統合を備えた完全なCardano ウォレットアプリケーション開発ツールキットです。
 
@@ -6,7 +6,7 @@ Hydra SDKの包括的なドキュメントへようこそ。Hydra Layer 2統合�
 
 Hydra SDKは、Cardanoウォレット機能とHydra Head管理をアプリケーションに統合するための重要なライブラリとツールを提供する包括的なソフトウェア開発キットです。Turborepoを使用したモノレポアーキテクチャで構築され、Cardano開発への モジュール化した拡張可能なアプローチを提供します。
 
-**最新リリース: v1.1.0** - 強力なユーティリティ関数と改善された開発者体験で強化されています。
+**最新リリース: v1.4.0**（`@hydra-sdk/core` 1.4.0、`@hydra-sdk/bridge` 1.3.1）- RedeemerUtils namespace、新しい DatumUtils エンコーダー、ValidationUtils、および Cardano protocol v11 サポートを追加しました。
 
 ## 主な機能
 

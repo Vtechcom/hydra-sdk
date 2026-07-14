@@ -17,10 +17,11 @@ Các hướng dẫn được tổ chức thành nhiều danh mục:
 4. **Quản Lý Hydra Head** - Kết nối với Hydra Layer 2 và quản lý Hydra Heads
 5. **Chiến Lược Kiểm Thử** - Kiểm thử ứng dụng của bạn
 
-## Có Gì Mới trong v1.1.0
+## Có gì mới trong v1.4.0
 
-- **Hướng Dẫn Enhanced Utilities** - Bao quát toàn diện các utility functions mới
-- **Advanced Patterns** - Các ví dụ thực tế và best practices
-- **Tối Ưu Hiệu Năng** - Tips để phát triển Cardano hiệu quả
+- **RedeemerUtils** - Namespace mới để xây dựng script redeemers (`mkRedeemer`, `mkSpendRedeemer`, `mkMintRedeemer`, `mkUnitRedeemer`)
+- **Các encoder DatumUtils mới** - `mkList`, `mkBool`, `mkOption`, `mkBytesList`, `mkIntList`, `mkOutputRef`, `mkAddress`, `parseAddress`
+- **ValidationUtils & AddressUtils** - `ValidationUtils.isValidTxOutput`, cùng với `AddressUtils.isValidAddress` và `getPubkeyHashFromAddress` được chuyển vị trí
+- **Deserializer.deserializeAmountsFromTx** - Đọc các amount đầu ra đã gộp từ một transaction; bao gồm bản vá memory-leak của Resolver và các giá trị mặc định protocol v11
 
 > Xem thêm: [Bắt đầu](/vi/getting-started/), [API](/vi/api/), [Ví dụ](/vi/examples/)

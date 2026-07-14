@@ -77,7 +77,7 @@ Luôn cập nhật về các cải tiến mới nhất của Hydra protocol:
 - **Smart Contract Support** - Khả năng tương thích Plutus được mở rộng
 - **Performance Improvements** - Throughput và latency được tối ưu
 
-### Cập Nhật Hydra SDK (v1.1.0)
+### Cập Nhật Hydra SDK (v1.4.0)
 
 Các bổ sung gần đây cho Hydra SDK:
 

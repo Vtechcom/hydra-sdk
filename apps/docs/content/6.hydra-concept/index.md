@@ -75,7 +75,7 @@ Stay up to date with the latest Hydra protocol improvements:
 - **Smart Contract Support** - Extended Plutus compatibility
 - **Performance Improvements** - Optimized throughput and latency
 
-### Hydra SDK Updates (v1.1.0)
+### Hydra SDK Updates (v1.4.0)
 
 Recent additions to Hydra SDK:
 

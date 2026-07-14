@@ -1,5 +1,16 @@
 # nodejs-playground
 
+## 1.0.22
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @hydra-sdk/cardano-wasm@1.0.0
+  - @hydra-sdk/transaction@1.1.9
+  - @hydra-sdk/bridge@1.3.2
+  - @hydra-sdk/core@1.4.1
+
 ## 1.0.21
 
 ### Patch Changes

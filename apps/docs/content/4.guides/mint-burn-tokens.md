@@ -29,11 +29,11 @@ npm install @hydra-sdk/core @hydra-sdk/transaction @hydra-sdk/cardano-wasm
 import {
   AppWallet,
   DatumUtils,
-  deserializeTx,
+  Deserializer,
   NETWORK_ID,
+  ParserUtils,
   PolicyUtils,
-  serializeAssetUnit,
-  stringToHex
+  Serializer
 } from '@hydra-sdk/core'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
@@ -68,7 +68,7 @@ console.log('Wallet Address:', walletAddress)
 async function mintToken() {
   // Query available UTxOs
   console.log('>>> Querying UTxO...', walletAddress)
-  const utxos = await HexcoreApi.queryAddressUTxO(walletAddress)
+  const utxos = await wallet.queryUTxOs(walletAddress)
   console.log(`>>> Found ${utxos.length} UTxOs`)
 
   // Find suitable collateral UTxO (>= 5 ADA)
@@ -93,7 +93,7 @@ async function mintToken() {
 // Create minting policy from wallet address
 const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
 const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
-const assetNameHex = stringToHex('AniaToken')
+const assetNameHex = ParserUtils.stringToHex('AniaToken')
 
 // Define token metadata (CIP-25 standard)
 const assetMetadata = {
@@ -148,7 +148,7 @@ const tx = await txBuilder
     amount: [
       { unit: 'lovelace', quantity: String(2_000_000) },
       { 
-        unit: serializeAssetUnit(policyId, assetNameHex), 
+        unit: Serializer.serializeAssetUnit(policyId, assetNameHex), 
         quantity: '1000000' 
       }
     ]
@@ -159,7 +159,7 @@ const tx = await txBuilder
 // Sign and submit transaction
 const signedCbor = await wallet.signTx(tx.to_hex())
 console.log('Signed Transaction:', signedCbor)
-console.log('Transaction ID:', deserializeTx(signedCbor).transaction_hash().to_hex())
+console.log('Transaction ID:', Deserializer.deserializeTx(signedCbor).transaction_hash().to_hex())
 ```
 
 ## 🔥 Burning Tokens
@@ -171,7 +171,7 @@ Burning tokens permanently removes them from circulation. This is useful for def
 ```typescript
 async function burnToken() {
   // Query UTxOs (same as minting)
-  const utxos = await HexcoreApi.queryAddressUTxO(walletAddress)
+  const utxos = await wallet.queryUTxOs(walletAddress)
   const collateralUTxOs = utxos.filter(u =>
     u.output.amount.find(a => 
       a.unit === 'lovelace' && Number(a.quantity) >= 5_000_000
@@ -187,7 +187,7 @@ async function burnToken() {
   // Same policy and asset details
   const scriptCborHex = PolicyUtils.buildMintingPolicyScriptFromAddress(walletAddress)
   const policyId = PolicyUtils.policyIdFromNativeScript(scriptCborHex)
-  const assetNameHex = stringToHex('AniaToken')
+  const assetNameHex = ParserUtils.stringToHex('AniaToken')
   
   const txBuilder = new TxBuilder()
   
@@ -208,7 +208,7 @@ async function burnToken() {
     .complete()
     
   const signedCbor = await wallet.signTx(tx.to_hex())
-  console.log('Burn Transaction ID:', deserializeTx(signedCbor).transaction_hash().to_hex())
+  console.log('Burn Transaction ID:', Deserializer.deserializeTx(signedCbor).transaction_hash().to_hex())
 }
 ```
 
@@ -289,11 +289,11 @@ Here's the complete working example:
 import {
   AppWallet,
   DatumUtils,
-  deserializeTx,
+  Deserializer,
   NETWORK_ID,
+  ParserUtils,
   PolicyUtils,
-  serializeAssetUnit,
-  stringToHex
+  Serializer
 } from '@hydra-sdk/core'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'

@@ -1,5 +1,11 @@
 # @hydra-sdk/cardano-wasm
 
+## 1.0.0
+
+### Major Changes
+
+- First stable release (v1.0.0). The environment-detecting WASM wrapper (browser / asm.js / Node.js) is now considered stable and follows semver from 1.0.0 onward.
+
 ## 0.0.7
 
 ### Patch Changes

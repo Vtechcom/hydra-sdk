@@ -3,6 +3,12 @@ packages:
   - 'packages/routing-sdk/**'
   - 'apps/*'
 
+# tsup 6.7.0 injects the deprecated `baseUrl` into its dts build, which is a hard
+# error under TypeScript 6.0 (pulled in by apps/docs-v2). Pin the build tool's
+# TypeScript to 5.7.3 so `build:packages` stays green regardless of TS 6 elsewhere.
+overrides:
+  'tsup>typescript': '5.7.3'
+
 catalog:
   next: 14.2.14
   wrangler: 3.81.0
