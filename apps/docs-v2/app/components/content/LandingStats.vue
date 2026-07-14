@@ -5,18 +5,22 @@ defineProps<{
 </script>
 
 <template>
-  <div class="mx-auto grid max-w-3xl grid-cols-2 gap-6 sm:grid-cols-3 md:flex md:items-center md:justify-center md:gap-10">
-    <div
-      v-for="item in items"
-      :key="item.label"
-      class="text-center md:flex-1"
+  <div class="reveal mx-auto max-w-5xl">
+    <dl
+      class="reveal-stagger grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-[var(--ui-border)] ring-1 ring-default sm:grid-cols-3 lg:grid-cols-5"
     >
-      <div class="whitespace-nowrap text-2xl font-bold text-primary md:text-3xl">
-        {{ item.value }}
+      <div
+        v-for="item in items"
+        :key="item.label"
+        class="flex flex-col items-center justify-center gap-1.5 bg-default px-3 py-7 text-center transition-colors duration-300 hover:bg-elevated"
+      >
+        <dt class="font-display text-2xl font-bold whitespace-nowrap text-primary md:text-3xl">
+          {{ item.value }}
+        </dt>
+        <dd class="text-xs font-medium uppercase tracking-wider text-muted">
+          {{ item.label }}
+        </dd>
       </div>
-      <div class="text-sm text-muted">
-        {{ item.label }}
-      </div>
-    </div>
+    </dl>
   </div>
 </template>
