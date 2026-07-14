@@ -55,11 +55,11 @@
 			"title": "Apps Built with Hydra SDK",
 			"subtitle": "Discover powerful applications already using our SDK in production",
 			"apps": {
-				"hydraWallet": {
-					"name": "Hydra Wallet",
-					"category": "Cardano Wallet",
-					"description": "A modern, secure Cardano wallet with Hydra Layer 2 support for instant transactions and DeFi operations.",
-					"visitButton": "Visit Hydra Wallet"
+				"hydraHub": {
+					"name": "Hydra Hub",
+					"category": "Infrastructure",
+					"description": "Provides decentralized Hydra Node management, Hydra Head connectivity, and Layer-2 APIs for building Cardano DApps.",
+					"visitButton": "Visit Hydra Hub"
 				},
 				"hydraPlayground": {
 					"name": "Hydra SDK Playground",
@@ -67,23 +67,29 @@
 					"description": "An interactive playground for experimenting with Hydra SDK features and building DApps.",
 					"visitButton": "Visit Hydra Playground"
 				},
-				"hydraFlappy": {
-					"name": "Hydra Flappy Bird",
+				"hydraFly": {
+					"name": "Hydra Fly",
 					"category": "GameFi",
-					"description": "Classic Flappy Bird game reimagined with blockchain integration, NFT rewards, and Hydra-powered microtransactions.",
-					"visitButton": "Visit Hydra Flappy Bird"
+					"description": "A GameFi tournament game built on Cardano Hydra L2 where the top leaderboard player wins rewards.",
+					"visitButton": "Play Hydra Fly"
 				},
-				"hydraFastpay": {
-					"name": "Hydra Fastpay",
-					"category": "Payment Solution",
-					"description": "Lightning-fast payment processing using Hydra Layer 2 for instant, low-cost transactions on Cardano.",
-					"visitButton": "Visit Hydra Fastpay"
-				},
-				"hydraRockPaperScissors": {
-					"name": "Hydra Rock Paper Scissors",
+				"riverCross": {
+					"name": "River Cross",
 					"category": "GameFi",
-					"description": "Decentralized game of Rock Paper Scissors with NFT rewards and Hydra Layer 2 scalability.",
-					"visitButton": "Visit Hydra Rock Paper Scissors"
+					"description": "A survival GameFi game on Cardano Hydra L2 where players bet tADA to cross a river.",
+					"visitButton": "Play River Cross"
+				},
+				"hydraGacha": {
+					"name": "Hydra Gacha",
+					"category": "Lottery",
+					"description": "An on-chain lottery game built on Cardano Hydra L2 using NFT tickets.",
+					"visitButton": "Play Hydra Gacha"
+				},
+				"knight": {
+					"name": "Knight",
+					"category": "GameFi",
+					"description": "A dungeon survival GameFi game on Cardano Hydra L2 where players bet tADA to defeat enemies.",
+					"visitButton": "Play Knight"
 				}
 			}
 		},

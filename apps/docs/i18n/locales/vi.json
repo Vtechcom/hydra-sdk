@@ -55,35 +55,41 @@
 			"title": "Ứng dụng được xây dựng bằng Hydra SDK",
 			"subtitle": "Khám phá những ứng dụng mạnh mẽ đang sử dụng SDK của chúng tôi trong thực tế",
 			"apps": {
-				"hydraWallet": {
-					"name": "Hydra Wallet",
-					"category": "Ví Cardano",
-					"description": "Ví Cardano hiện đại, an toàn với hỗ trợ Hydra Layer 2 cho giao dịch tức thì và hoạt động DeFi.",
-					"visitButton": "Truy cập Hydra Wallet"
+				"hydraHub": {
+					"name": "Hydra Hub",
+					"category": "Cơ sở hạ tầng",
+					"description": "Cung cấp giải pháp quản lý Hydra Node phi tập trung, kết nối Hydra Head và cung cấp API Layer-2 để xây dựng dApp trên Cardano.",
+					"visitButton": "Truy cập Hydra Hub"
 				},
 				"hydraPlayground": {
 					"name": "Hydra SDK Playground",
-					"category": "Development",
-					"description": "An interactive playground for experimenting with Hydra SDK features and building DApps.",
-					"visitButton": "Visit Hydra Playground"
+					"category": "Phát triển",
+					"description": "Môi trường tương tác thử nghiệm các tính năng của Hydra SDK và xây dựng ứng dụng phi tập trung (DApp).",
+					"visitButton": "Truy cập Hydra Playground"
 				},
-				"hydraFlappy": {
-					"name": "Hydra Flappy Bird",
+				"hydraFly": {
+					"name": "Hydra Fly",
 					"category": "GameFi",
-					"description": "Game Flappy Bird cổ điển được làm mới với tích hợp blockchain, phần thưởng NFT và microtransaction qua Hydra.",
-					"visitButton": "Truy cập Hydra Flappy Bird"
+					"description": "Trò chơi giải đấu GameFi trên Cardano Hydra L2, trao thưởng cho người đứng đầu bảng xếp hạng.",
+					"visitButton": "Chơi Hydra Fly"
 				},
-				"hydraFastpay": {
-					"name": "Hydra Fastpay",
-					"category": "Giải pháp thanh toán",
-					"description": "Xử lý thanh toán siêu nhanh với Hydra Layer 2 cho giao dịch tức thì và chi phí thấp trên Cardano.",
-					"visitButton": "Truy cập Hydra Fastpay"
-				},
-				"hydraRockPaperScissors": {
-					"name": "Hydra Rock Paper Scissors",
+				"riverCross": {
+					"name": "River Cross",
 					"category": "GameFi",
-					"description": "Trò chơi Kéo Búa Bao phi tập trung với phần thưởng NFT và khả năng mở rộng Hydra Layer 2.",
-					"visitButton": "Truy cập Hydra Rock Paper Scissors"
+					"description": "Trò chơi GameFi sinh tồn trên Cardano Hydra L2, nơi người chơi đặt cược tADA để vượt sông.",
+					"visitButton": "Chơi River Cross"
+				},
+				"hydraGacha": {
+					"name": "Hydra Gacha",
+					"category": "Lottery",
+					"description": "Trò chơi xổ số on-chain trên Cardano Hydra L2 sử dụng vé NFT.",
+					"visitButton": "Chơi Hydra Gacha"
+				},
+				"knight": {
+					"name": "Knight",
+					"category": "GameFi",
+					"description": "Trò chơi GameFi sinh tồn ngục tối trên Cardano Hydra L2, đặt cược tADA để đánh bại kẻ thù.",
+					"visitButton": "Chơi Knight"
 				}
 			}
 		},
