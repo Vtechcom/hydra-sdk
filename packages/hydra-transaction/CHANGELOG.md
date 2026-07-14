@@ -1,5 +1,39 @@
 # @hydra-sdk/transaction
 
+## 1.2.0
+
+### Minor Changes
+
+- Fix WASM memory leak and progressive build slowdown in `TxBuilder` under high-volume workloads (e.g. spike-building thousands of transactions in Node.js).
+
+  Every `@emurgo/cardano-serialization-lib` object lives in WASM linear memory and is only reclaimed by `.free()`. CSL's `FinalizationRegistry` auto-cleanup is non-deterministic and cannot keep up under a tight build loop, so the WASM heap grew unbounded and per-transaction build time degraded steadily. The build path now frees the WASM objects it allocates deterministically. Measured result: flat WASM memory (~0 KB/iter) and steady throughput across 10,000 builds; 280 existing tests unchanged.
+
+  Changes:
+  - Track every internally-allocated CSL object during `complete()` and free them in a `finally` block after `build_tx()` (the returned `Transaction` is an independent struct and is unaffected). Caller-supplied objects (datum/redeemer/script) are never freed.
+  - `getTxBuilder()` now frees the intermediate config-builder objects it creates (the immutable config-builder chain otherwise orphaned each step). The shared `defaultCostModels` singleton is intentionally not freed.
+  - Fix constructor double-allocating the underlying `TransactionBuilder` when `params` is supplied (the first one leaked on every instantiation).
+  - `reset()` now frees the replaced `TransactionBuilder`, plutus scripts and change config, and recreates the metadata container (previously freed but not recreated — a latent use-after-free).
+  - `changeAddress()` / `updateProtocolParams()` free the state object they replace.
+
+- Add `dispose()` (and `[Symbol.dispose]` for `using`) to release all WASM memory held by a builder. Recommended for high-volume/spike workloads instead of relying on the GC.
+
+- Add `completeCbor()`: builds the transaction and returns its CBOR hex, freeing the intermediate `Transaction` immediately — the leak-free path when you only need the serialized bytes. `complete()` still returns a live `Transaction`; callers are responsible for calling `.free()` on it.
+
+- Implement stake certificates in the transaction body. `registerStake()`, `deregisterStake()` and `delegateStake()` previously staged certificates that were silently dropped at build time — they are now applied via `set_certs`, so the built transaction actually contains the certificate(s). The stake credential is resolved from the bech32 reward (stake) address; an invalid reward address now throws instead of being ignored. `PoolRegistration`/`PoolRetirement` throw a clear "not supported yet" error.
+
+- Apply `totalCollateral()` to the built transaction via `set_total_collateral` (previously the value was stored but never written to the transaction).
+
+- Internal cleanup: remove dead/unused code paths (`_addInputToBuilder`, `_outputAmountToValue`, and unused `_nativeScripts`/`_scriptDataHash` state), strip stray `console.log`/`console.error` debug output and commented-out blocks, and gate remaining diagnostics behind the `verbose`/`errorLogger` flags. No public API removed.
+
+- Fix fee configuration for script transactions. The transaction builder config previously hardcoded `ex_unit_prices` to zero and `ref_script_coins_per_byte` to `15/1`, so the script-execution component of the fee (priceMem·exMem + priceStep·exSteps) was omitted and reference-script pricing ignored the protocol params. Both are now sourced from the protocol parameters (`priceMem`, `priceStep`, `minFeeRefScriptCostPerByte`), so CSL computes the full minimum fee. Non-script transfers were already correct (the linear fee is computed by `build_tx()`); this fixes under-funded script transactions.
+
+- Add optional script execution-unit evaluation. `TxBuilder` accepts an `evaluator?: IEvaluator` (plus `txEvaluationMultiplier?` safety margin). When supplied and the transaction contains Plutus redeemers, `complete()` runs a second build pass: the draft transaction is evaluated to obtain real `exUnits`, those are written back into the redeemers (SPEND matched by input `txHash#index`, MINT by policy id), and the transaction is rebuilt so the fee is accurate. CSL cannot evaluate Plutus scripts itself, so this is opt-in — provide an evaluator backed by a provider (Blockfrost / Ogmios / Demeter) or an offline UPLC evaluator. Without an evaluator (e.g. for Hydra, which has no on-chain script evaluation), behaviour is unchanged and the placeholder exUnits are kept. The `IEvaluator`/`EvalAction`/`Budget` types mirror MeshJS for interoperability.
+
+  Known limitations / follow-ups:
+  - Only `SPEND` and `MINT` redeemers are remapped from evaluation results. `CERT` / `REWARD` / `VOTE` / `PROPOSE` budgets are returned by the evaluator but not yet written back.
+  - No bundled offline evaluator yet — you must supply one (provider-backed, or a UPLC evaluator such as `@harmoniclabs/uplc`). A first-class offline evaluator is planned.
+  - The rebuild runs a single extra pass; it does not iterate to a fixed point, so a safety `txEvaluationMultiplier` (e.g. `1.1`) is recommended when exact fees matter.
+
 ## 1.1.9
 
 ### Patch Changes
