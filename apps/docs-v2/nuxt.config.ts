@@ -8,7 +8,8 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     'nuxt-og-image',
     'nuxt-llms',
-    '@nuxtjs/mcp-toolkit'
+    '@nuxtjs/mcp-toolkit',
+    '@vercel/analytics/nuxt'
   ],
 
   // Keep locale codes in sync with the collections in content.config.ts
@@ -50,11 +51,11 @@ export default defineNuxtConfig({
       }
     },
     experimental: {
-      // 'native' (better-sqlite3) is the fastest connector for local dev, but the
-      // native addon is unreliable on Vercel's serverless runtime. Omit the
-      // override on Vercel so @nuxt/content falls back to its default portable
-      // connector; keep native everywhere else.
-      ...(process.env.VERCEL ? {} : { sqliteConnector: 'native' })
+      // 'native' = Node's built-in `node:sqlite` (Node >= 22), NOT the
+      // better-sqlite3 native addon. This avoids pulling in better-sqlite3
+      // (whose absence makes @nuxt/content prompt interactively and fail in CI)
+      // and works on Vercel's Node 22 serverless runtime. Keep it everywhere.
+      sqliteConnector: 'native'
     }
   },
 
