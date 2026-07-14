@@ -17,6 +17,7 @@ allure-report/
 test-results/
 test-results.json
 junit.xml
+.playwright-mcp/**
 
 # build outputs
 .nuxt/
