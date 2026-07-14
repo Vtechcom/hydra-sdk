@@ -28,27 +28,47 @@ export default defineAppConfig({
       'icon': 'i-simple-icons-github',
       'to': 'https://github.com/Vtechcom/hydra-sdk',
       'target': '_blank',
-      'aria-label': 'GitHub'
+      'aria-label': 'Hydra SDK on GitHub'
+    }, {
+      'icon': 'i-simple-icons-discord',
+      'to': 'https://discord.com/invite/eZKRyQnbea',
+      'target': '_blank',
+      'aria-label': 'Hydra SDK on Discord'
+    }, {
+      'icon': 'i-simple-icons-x',
+      'to': 'https://x.com/VtechcomLabs',
+      'target': '_blank',
+      'aria-label': 'Vtechcom Labs on X'
     }]
   },
   footer: {
-    credits: `Built with Nuxt UI • © ${new Date().getFullYear()}`,
+    credits: `© ${new Date().getFullYear()} Hydra SDK • Built by Vtechcom Labs`,
     colorMode: false,
     links: [{
-      'icon': 'i-simple-icons-discord',
-      'to': 'https://go.nuxt.com/discord',
+      'icon': 'i-simple-icons-github',
+      'to': 'https://github.com/Vtechcom/hydra-sdk',
       'target': '_blank',
-      'aria-label': 'Nuxt on Discord'
+      'aria-label': 'Hydra SDK on GitHub'
+    }, {
+      'icon': 'i-simple-icons-npm',
+      'to': 'https://www.npmjs.com/package/@hydra-sdk/core',
+      'target': '_blank',
+      'aria-label': '@hydra-sdk on npm'
+    }, {
+      'icon': 'i-simple-icons-discord',
+      'to': 'https://discord.com/invite/eZKRyQnbea',
+      'target': '_blank',
+      'aria-label': 'Hydra SDK on Discord'
+    }, {
+      'icon': 'i-simple-icons-telegram',
+      'to': 'https://telegram.me/+LeuWUO7YjGYyZmJl',
+      'target': '_blank',
+      'aria-label': 'Hydra SDK on Telegram'
     }, {
       'icon': 'i-simple-icons-x',
-      'to': 'https://go.nuxt.com/x',
+      'to': 'https://x.com/VtechcomLabs',
       'target': '_blank',
-      'aria-label': 'Nuxt on X'
-    }, {
-      'icon': 'i-simple-icons-github',
-      'to': 'https://github.com/nuxt/ui',
-      'target': '_blank',
-      'aria-label': 'Nuxt UI on GitHub'
+      'aria-label': 'Vtechcom Labs on X'
     }]
   },
   toc: {
@@ -59,12 +79,12 @@ export default defineAppConfig({
       links: [{
         icon: 'i-lucide-star',
         label: 'Star on GitHub',
-        to: 'https://github.com/nuxt/ui',
+        to: 'https://github.com/Vtechcom/hydra-sdk',
         target: '_blank'
       }, {
-        icon: 'i-lucide-book-open',
-        label: 'Nuxt UI docs',
-        to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
+        icon: 'i-simple-icons-discord',
+        label: 'Join our Discord',
+        to: 'https://discord.com/invite/eZKRyQnbea',
         target: '_blank'
       }]
     }

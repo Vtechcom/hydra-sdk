@@ -446,7 +446,20 @@ Connect with developers, get support, and stay updated with the latest SDK devel
     title: Telegram
     description: Get quick updates and connect with other developers.
     icon: i-simple-icons-telegram
-    to: https://t.me/+DPJxXA5y9wgzZThl
+    to: https://telegram.me/+LeuWUO7YjGYyZmJl
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard hover:ring-primary/40"
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: X
+    description: Follow us on X for announcements and release updates.
+    icon: i-simple-icons-x
+    to: https://x.com/VtechcomLabs
     target: _blank
     variant: subtle
     spotlight: true

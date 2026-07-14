@@ -446,7 +446,20 @@ Kết nối với các nhà phát triển, nhận hỗ trợ và cập nhật nh
     title: Telegram
     description: Nhận cập nhật nhanh và kết nối với các nhà phát triển khác.
     icon: i-simple-icons-telegram
-    to: https://t.me/+DPJxXA5y9wgzZThl
+    to: https://telegram.me/+LeuWUO7YjGYyZmJl
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard hover:ring-primary/40"
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: X
+    description: Theo dõi chúng tôi trên X để nhận thông báo và cập nhật phiên bản.
+    icon: i-simple-icons-x
+    to: https://x.com/VtechcomLabs
     target: _blank
     variant: subtle
     spotlight: true

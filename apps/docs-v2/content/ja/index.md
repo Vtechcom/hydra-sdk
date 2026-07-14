@@ -446,7 +446,20 @@ Hydra SDK は、私たちのスポンサーと Project Catalyst を通じた Car
     title: Telegram
     description: 最新情報をすばやく入手し、他の開発者とつながりましょう。
     icon: i-simple-icons-telegram
-    to: https://t.me/+DPJxXA5y9wgzZThl
+    to: https://telegram.me/+LeuWUO7YjGYyZmJl
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard hover:ring-primary/40"
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: X
+    description: お知らせやリリース情報は X でフォローしてください。
+    icon: i-simple-icons-x
+    to: https://x.com/VtechcomLabs
     target: _blank
     variant: subtle
     spotlight: true
