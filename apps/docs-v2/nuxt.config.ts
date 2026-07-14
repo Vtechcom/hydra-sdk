@@ -79,7 +79,7 @@ export default defineNuxtConfig({
   },
 
   llms: {
-    domain: 'https://hydrasdk.com/',
+    domain: 'https://hydrasdk.com',
     title: 'Hydra SDK',
     description: 'A TypeScript toolkit for building Cardano wallet applications with Hydra Layer 2 integration.',
     // nuxt-llms ships its own `/raw/**.md` route that is locale-unaware (it
@@ -125,6 +125,13 @@ export default defineNuxtConfig({
         contentCollection: 'docs_en',
         contentFilters: [
           { field: 'path', operator: 'LIKE', value: '/resources%' }
+        ]
+      },
+      {
+        title: 'AI',
+        contentCollection: 'docs_en',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/ai%' }
         ]
       }
     ]
