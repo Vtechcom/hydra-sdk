@@ -26,7 +26,7 @@ export default defineAppConfig({
     colorMode: true,
     links: [{
       'icon': 'i-simple-icons-github',
-      'to': 'https://github.com/nuxt-ui-templates/docs',
+      'to': 'https://github.com/Vtechcom/hydra-sdk',
       'target': '_blank',
       'aria-label': 'GitHub'
     }]
@@ -55,7 +55,7 @@ export default defineAppConfig({
     title: 'Table of Contents',
     bottom: {
       title: 'Community',
-      edit: 'https://github.com/nuxt-ui-templates/docs/edit/main/content',
+      edit: 'https://github.com/Vtechcom/hydra-sdk/edit/master/apps/docs-v2/content',
       links: [{
         icon: 'i-lucide-star',
         label: 'Star on GitHub',

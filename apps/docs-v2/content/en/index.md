@@ -1,30 +1,38 @@
 ---
 seo:
-  title: Nuxt Docs Template
-  description: Create stunning, fast and SEO-optimized documentation sites with Nuxt UI.
+  title: Hydra Wallet SDK - Cardano & Hydra Development Kit by Vtechcom
+  description: Powerful TypeScript SDK for building Cardano and Hydra Layer 2 applications. Complete with wallet connections, transaction building, and Hydra Head management by Vtechcom.
 ---
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-neutral-900 to-neutral-950"}
----
-orientation: horizontal
----
 #top
 :hero-background
 
+#headline
+  :::u-badge
+  ---
+  color: primary
+  variant: subtle
+  size: lg
+  ---
+  Cardano + Hydra Layer 2
+  :::
+
 #title
-Ship Beautiful [Documentation]{.text-primary}.
+Build Cardano DApps with [Hydra SDK]{.text-primary}.
 
 #description
-Build professional documentation with Nuxt UI's powerful components, enhanced typography, and seamless Nuxt Content integration. The same system trusted by the entire [Nuxt ecosystem](https://nuxt.com).
+A comprehensive software development kit for building Cardano DApps and wallet applications with [Hydra Layer 2]{.text-primary font-semibold} integration.
 
 #links
   :::u-button
   ---
   to: /getting-started
   size: xl
+  icon: i-lucide-rocket
   trailing-icon: i-lucide-arrow-right
   ---
-  Get started
+  Get Started
   :::
 
   :::u-button
@@ -33,167 +41,81 @@ Build professional documentation with Nuxt UI's powerful components, enhanced ty
   color: neutral
   variant: outline
   size: xl
-  to: https://github.com/nuxt-ui-templates/docs
+  to: https://github.com/Vtechcom/hydra-sdk
   target: _blank
   ---
-  Use this template
+  View on GitHub
   :::
+::
 
-#default
-  :::prose-pre
+::u-page-section{class="dark:bg-neutral-950 !pt-0"}
+  :::landing-stats
   ---
-  code: |
-    export default defineNuxtConfig({
-      modules: [
-        '@nuxt/ui',
-        '@nuxt/content',
-        'nuxt-og-image',
-        'nuxt-llms'
-      ],
-
-      css: ['~/assets/css/main.css']
-    })
-  filename: nuxt.config.ts
+  items:
+    - value: "3"
+      label: Core Packages
+    - value: "5+"
+      label: Applications
+    - value: "100%"
+      label: TypeScript
+    - value: WASM
+      label: Super Fast
+    - value: Apache-2.0
+      label: License
   ---
-
-  ```ts [nuxt.config.ts]
-  export default defineNuxtConfig({
-    modules: [
-      '@nuxt/ui',
-      '@nuxt/content',
-      'nuxt-og-image',
-      'nuxt-llms'
-    ],
-
-    css: ['~/assets/css/main.css']
-  })
-  ```
   :::
 ::
 
 ::u-page-section{class="dark:bg-neutral-950"}
 #title
-Powered by Nuxt UI components
+Everything you need to build
 
-#links
-  :::u-button
-  ---
-  color: neutral
-  size: lg
-  target: _blank
-  to: https://ui.nuxt.com/docs/getting-started/installation/nuxt
-  trailingIcon: i-lucide-arrow-right
-  variant: subtle
-  ---
-  Explore Nuxt UI
-  :::
+#description
+A complete toolkit with modular packages, TypeScript support, and comprehensive documentation.
 
 #features
   :::u-page-feature
   ---
-  icon: i-lucide-palette
+  icon: i-lucide-wallet
   ---
   #title
-  100+ UI Components
+  Cardano Wallet Management
 
   #description
-  Access the complete Nuxt UI component library. From badges to modals, everything styled and accessible out of the box.
+  Create, restore, and manage Cardano wallets with full HD wallet support and transaction signing.
   :::
 
   :::u-page-feature
   ---
-  icon: i-lucide-type
+  icon: i-lucide-zap
   ---
   #title
-  Beautiful Typography
+  Hydra Layer 2 Integration
 
   #description
-  Pre-styled prose components with perfect visual harmony. No need for @tailwindcss/typography - get precise control over every element.
+  Complete Hydra Head lifecycle management with real-time transaction processing.
   :::
 
   :::u-page-feature
   ---
-  icon: i-lucide-layers
+  icon: i-lucide-settings-2
   ---
   #title
-  Rich Prose Components
+  Transaction Builder
 
   #description
-  Accordions, cards, callouts, tabs, steps, code blocks, and more - all provided by Nuxt UI for interactive documentation.
+  Advanced transaction building utilities with UTxO selection and fee optimization.
   :::
 
   :::u-page-feature
   ---
-  icon: i-lucide-search
+  icon: i-lucide-cpu
   ---
   #title
-  Built-in Search
+  WASM Integration
 
   #description
-  Full-text search with ContentSearch component. No need for Algolia - instant, relevant results with keyboard shortcuts (⌘K).
-  :::
-
-  :::u-page-feature
-  ---
-  icon: i-lucide-navigation
-  ---
-  #title
-  Smart Navigation
-
-  #description
-  Auto-generated navigation with ContentNavigation and ContentToc components. Sticky table of contents and prev/next links.
-  :::
-
-  :::u-page-feature
-  ---
-  icon: i-lucide-moon
-  ---
-  #title
-  Dark Mode Ready
-
-  #description
-  Automatic theme switching with smooth transitions. Respects system preferences and remembers user choice.
-  :::
-::
-
-::u-page-section{class="dark:bg-neutral-950"}
-#title
-Enhanced with Nuxt Content
-
-#links
-  :::u-button
-  ---
-  color: neutral
-  size: lg
-  target: _blank
-  to: https://content.nuxt.com/docs/getting-started/installation
-  trailingIcon: i-lucide-arrow-right
-  variant: subtle
-  ---
-  Explore Nuxt Content
-  :::
-
-#features
-  :::u-page-feature
-  ---
-  icon: i-simple-icons-markdown
-  ---
-  #title
-  MDC Enhanced Markdown
-
-  #description
-  Write in Markdown while embedding Vue components. Seamlessly integrate interactive elements in your content.
-  :::
-
-  :::u-page-feature
-  ---
-  icon: i-lucide-file-text
-  ---
-  #title
-  File-based Routing
-
-  #description
-  Organize content in folders and files. Your documentation structure automatically becomes your navigation.
+  High-performance Cardano serialization with browser-optimized WebAssembly.
   :::
 
   :::u-page-feature
@@ -201,43 +123,272 @@ Enhanced with Nuxt Content
   icon: i-lucide-code
   ---
   #title
-  Syntax Highlighting
+  TypeScript First
 
   #description
-  Beautiful code blocks with language detection, line numbers, and copy buttons. Support for 100+ languages.
+  Full TypeScript support with comprehensive type definitions and IntelliSense.
   :::
 
   :::u-page-feature
   ---
-  icon: i-lucide-database
+  icon: i-lucide-boxes
   ---
   #title
-  Content Database
+  Modular Architecture
 
   #description
-  Query your content with a MongoDB-like API. Filter, sort, and search through your documentation programmatically.
+  Extensible package-based architecture for easy customization and integration.
   :::
+::
 
-  :::u-page-feature
-  ---
-  icon: i-lucide-file-code
-  ---
-  #title
-  Frontmatter Support
+::u-page-section{class="dark:bg-neutral-950"}
+#title
+Apps Built with Hydra SDK
 
-  #description
-  Add metadata to your content files. Define SEO tags, navigation properties, and custom fields.
+#description
+Discover powerful applications already using our SDK in production.
+
+  :::u-page-grid
+    ::::u-page-card
+    ---
+    title: Hydra Wallet
+    description: A modern, secure Cardano wallet with Hydra Layer 2 support for instant transactions and DeFi operations.
+    to: https://alpha.hydrawallet.app
+    target: _blank
+    spotlight: true
+    ---
+    #leading
+    ![Hydra Wallet](/images/hydra-wallet-logo.png){.size-11 .rounded-xl .object-contain}
+
+    #footer
+    :u-badge{color="neutral" variant="subtle" size="sm" label="Cardano Wallet"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Hydra SDK Playground
+    description: An interactive playground for experimenting with Hydra SDK features and building DApps.
+    to: https://play.hydrasdk.com
+    target: _blank
+    spotlight: true
+    ---
+    #leading
+    ![Hydra SDK Playground](/images/hydra-playground-logo-white.png){.size-11 .rounded-xl .object-contain}
+
+    #footer
+    :u-badge{color="neutral" variant="subtle" size="sm" label="Development"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Hydra Flappy Bird
+    description: Classic Flappy Bird game reimagined with blockchain integration, NFT rewards, and Hydra-powered microtransactions.
+    to: https://play-flappy.hydrawallet.app
+    target: _blank
+    spotlight: true
+    ---
+    #leading
+    ![Hydra Flappy Bird](/images/hydra-flappy-logo.png){.size-11 .rounded-xl .object-contain}
+
+    #footer
+    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Hydra Fastpay
+    description: Lightning-fast payment processing using Hydra Layer 2 for instant, low-cost transactions on Cardano.
+    to: https://alpha.hydrawallet.app/dapps/hydra-fastpay
+    target: _blank
+    spotlight: true
+    ---
+    #leading
+    ![Hydra Fastpay](/images/hydra-fastpay-logo.png){.size-11 .rounded-xl .object-contain}
+
+    #footer
+    :u-badge{color="neutral" variant="subtle" size="sm" label="Payment Solution"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Hydra Rock Paper Scissors
+    description: Decentralized game of Rock Paper Scissors with NFT rewards and Hydra Layer 2 scalability.
+    to: https://alpha.hydrawallet.app/games/rock-paper-scissors
+    target: _blank
+    spotlight: true
+    ---
+    #leading
+    ![Hydra Rock Paper Scissors](/images/hydra-rock-paper-scissors-logo.png){.size-11 .rounded-xl .object-contain}
+
+    #footer
+    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+    ::::
   :::
+::
 
-  :::u-page-feature
-  ---
-  icon: i-lucide-git-branch
-  ---
-  #title
-  Version Control
+::u-page-section{class="dark:bg-neutral-950"}
+#title
+Quick Start
 
-  #description
-  Content lives in your repository. Branch, review, and deploy documentation alongside your code.
+#description
+Get up and running in minutes.
+
+  :::u-page-grid
+    ::::div
+    #### 1. Installation
+
+      :::::prose-pre
+      ---
+      code: npm install @hydra-sdk/core @hydra-sdk/bridge @hydra-sdk/transaction @hydra-sdk/cardano-wasm
+      filename: Terminal
+      ---
+      ```bash [Terminal]
+      npm install @hydra-sdk/core @hydra-sdk/bridge @hydra-sdk/transaction @hydra-sdk/cardano-wasm
+      ```
+      :::::
+
+    #### 2. Basic Usage
+
+      :::::prose-pre
+      ---
+      filename: wallet.ts
+      code: |
+        import { AppWallet, NETWORK_ID } from '@hydra-sdk/core'
+
+        // Create new wallet
+        const wallet = new AppWallet({
+          networkId: NETWORK_ID.PREPROD,
+          key: {
+            type: 'mnemonic',
+            words: AppWallet.brew() // Generate new mnemonic
+          }
+        })
+
+        // Get account
+        const account = wallet.getAccount(0, 0)
+        console.log('Address:', account.baseAddressBech32)
+      ---
+      ```ts [wallet.ts]
+      import { AppWallet, NETWORK_ID } from '@hydra-sdk/core'
+
+      // Create new wallet
+      const wallet = new AppWallet({
+        networkId: NETWORK_ID.PREPROD,
+        key: {
+          type: 'mnemonic',
+          words: AppWallet.brew() // Generate new mnemonic
+        }
+      })
+
+      // Get account
+      const account = wallet.getAccount(0, 0)
+      console.log('Address:', account.baseAddressBech32)
+      ```
+      :::::
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Installation Guide
+    description: Learn how to install and set up the SDK in your project.
+    icon: i-lucide-download
+    to: /getting-started/installation
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Basic Usage
+    description: Explore how to create wallets, build transactions, and interact with Hydra.
+    icon: i-lucide-book-open
+    to: /getting-started/quick-start
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Code Examples
+    description: See practical examples and use cases for common scenarios.
+    icon: i-lucide-square-code
+    to: https://github.com/Vtechcom/hydra-sdk
+    target: _blank
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Guides & Tutorials
+    description: Follow step-by-step guides for building wallet applications.
+    icon: i-lucide-graduation-cap
+    to: /getting-started
+    ---
+    ::::
+  :::
+::
+
+::u-page-section{class="dark:bg-neutral-950"}
+  :::u-page-c-t-a
+  ---
+  variant: subtle
+  title: Proudly sponsored by VTechcom
+  description: A creative software development technology company, accompanying the future of decentralized applications on Cardano.
+  links:
+    - label: Visit VTechcom
+      to: https://vtechcom.org/
+      target: _blank
+      icon: i-lucide-globe
+    - label: Partnership Inquiries
+      to: mailto:contact@vtechcom.org
+      target: _blank
+      variant: subtle
+      icon: i-lucide-mail
+  ---
+  ::::div{.flex .justify-center}
+  ![VTechcom](/images/vtechcom-logo.png){.size-16 .object-contain}
+  ::::
+  :::
+::
+
+::u-page-section{class="dark:bg-neutral-950"}
+#title
+Join our community
+
+#description
+Connect with developers, get support, and stay updated with the latest SDK developments.
+
+  :::u-page-grid
+    ::::u-page-card
+    ---
+    title: GitHub
+    description: Contribute to the SDK, report issues, and explore the source code.
+    icon: i-simple-icons-github
+    to: https://github.com/Vtechcom/hydra-sdk
+    target: _blank
+    spotlight: true
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Discord
+    description: Join our community Discord for support and discussions.
+    icon: i-simple-icons-discord
+    to: https://discord.com/invite/eZKRyQnbea
+    target: _blank
+    spotlight: true
+    ---
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Telegram
+    description: Get quick updates and connect with other developers.
+    icon: i-simple-icons-telegram
+    to: https://t.me/+DPJxXA5y9wgzZThl
+    target: _blank
+    spotlight: true
+    ---
+    ::::
   :::
 ::
 
@@ -245,16 +396,16 @@ Enhanced with Nuxt Content
   :::u-page-c-t-a
   ---
   links:
-    - label: Start building
-      to: '/getting-started'
+    - label: Get Started
+      to: /getting-started
       trailingIcon: i-lucide-arrow-right
     - label: View on GitHub
-      to: 'https://github.com/nuxt-ui-templates/docs'
+      to: https://github.com/Vtechcom/hydra-sdk
       target: _blank
       variant: subtle
       icon: i-simple-icons-github
-  title: Ready to build an amazing documentation?
-  description: Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today.
+  title: Ready to build on Cardano and Hydra?
+  description: Get started with the Hydra SDK and start shipping fast, low-cost Layer 2 applications today.
   class: dark:bg-neutral-950
   ---
 

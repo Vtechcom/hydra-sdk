@@ -79,17 +79,17 @@ export default defineNuxtConfig({
   },
 
   llms: {
-    domain: 'https://docs-template.nuxt.dev/',
-    title: 'Nuxt Docs Template',
-    description: 'A template for building documentation with Nuxt UI and Nuxt Content.',
+    domain: 'https://hydrasdk.com/',
+    title: 'Hydra SDK',
+    description: 'A TypeScript toolkit for building Cardano wallet applications with Hydra Layer 2 integration.',
     // nuxt-llms ships its own `/raw/**.md` route that is locale-unaware (it
     // queries the raw path, which never includes the stripped locale prefix).
     // Disable it so our locale-aware handler in server/routes/raw/ serves
     // `/raw/<locale>/...md` correctly.
     contentRawMarkdown: false,
     full: {
-      title: 'Nuxt Docs Template - Full Documentation',
-      description: 'This is the full documentation for the Nuxt Docs Template.'
+      title: 'Hydra SDK - Full Documentation',
+      description: 'The complete documentation for Hydra SDK.'
     },
     sections: [
       {
@@ -100,17 +100,38 @@ export default defineNuxtConfig({
         ]
       },
       {
-        title: 'Essentials',
+        title: 'Guides',
         contentCollection: 'docs_en',
         contentFilters: [
-          { field: 'path', operator: 'LIKE', value: '/essentials%' }
+          { field: 'path', operator: 'LIKE', value: '/guides%' }
+        ]
+      },
+      {
+        title: 'Concepts',
+        contentCollection: 'docs_en',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/concepts%' }
+        ]
+      },
+      {
+        title: 'API Reference',
+        contentCollection: 'docs_en',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/api%' }
+        ]
+      },
+      {
+        title: 'Resources',
+        contentCollection: 'docs_en',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/resources%' }
         ]
       }
     ]
   },
 
   mcp: {
-    name: 'Docs template'
+    name: 'Hydra SDK'
   },
 
   ogImage: {
