@@ -1,5 +1,14 @@
 # @hydra-sdk/bridge
 
+## 1.3.2
+
+### Patch Changes
+
+- Sync updated Cardano protocol parameters (v11) and cost models.
+- Updated dependencies
+  - @hydra-sdk/cardano-wasm@1.0.0
+  - @hydra-sdk/core@1.4.1
+
 ## 1.3.1
 
 ### Patch Changes
