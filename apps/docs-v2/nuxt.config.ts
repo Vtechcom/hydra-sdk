@@ -50,7 +50,11 @@ export default defineNuxtConfig({
       }
     },
     experimental: {
-      sqliteConnector: 'native'
+      // 'native' (better-sqlite3) is the fastest connector for local dev, but the
+      // native addon is unreliable on Vercel's serverless runtime. Omit the
+      // override on Vercel so @nuxt/content falls back to its default portable
+      // connector; keep native everywhere else.
+      ...(process.env.VERCEL ? {} : { sqliteConnector: 'native' })
     }
   },
 
