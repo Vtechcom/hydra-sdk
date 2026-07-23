@@ -4,6 +4,20 @@ Hydra L2 bridge: Head lifecycle, real-time tx, UTxO mgmt. **See [docs/master-ind
 
 [![npm](https://img.shields.io/npm/v/@hydra-sdk/bridge)](https://npmjs.com/package/@hydra-sdk/bridge)
 
+## 🔗 Supported hydra-node versions
+
+| `@hydra-sdk/bridge` | `hydra-node` | Status |
+| --- | --- | --- |
+| `2.x` | `2.x` (tested against **2.3.0**) | ✅ Active |
+| `1.x` | `1.x` (up to **1.3.0**) | 🚫 End of life — no further releases |
+
+The bridge major version tracks the hydra-node major version. Minor and patch
+versions move independently.
+
+`2.0.0` targets the **v2 protocol**, which removed the commit phase (ADR-33).
+Upgrading from `1.x` is a breaking change — see
+[MIGRATION-v2.md](./MIGRATION-v2.md).
+
 ## 🚀 Quick Start
 
 ```bash

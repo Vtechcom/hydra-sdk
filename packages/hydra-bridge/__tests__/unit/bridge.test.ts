@@ -13,7 +13,7 @@ import { HydraBridgeFetcher } from '../../src/types/fetcher.type'
 import { HydraBridgeSubmitter } from '../../src/types/submitter.type'
 import mitt, { Emitter } from 'mitt'
 import { Transaction } from '../../src/types/transaction.type'
-import { UTxOObject } from '@hydra-sdk/core'
+import { DEFAULT_PROTOCOL_PARAMETERS, UTxOObject } from '@hydra-sdk/core'
 
 // Mock connector factory
 const createMockConnector = (overrides?: Partial<HydraConnector>): HydraConnector => {
@@ -343,6 +343,40 @@ describe('HydraBridge', () => {
 
 			await expect(bridge.getProtocolParameters()).rejects.toThrow('Failed to query protocol parameters')
 		})
+
+		// Inside a head utxoCostPerByte is 0. castProtocol must keep that zero
+		// rather than substituting the L1 default, or min-UTxO maths goes wrong.
+		it('should preserve a zero utxoCostPerByte instead of falling back', async () => {
+			;(mockConnector.fetcher.queryRawProtocolParameters as Mock).mockResolvedValue({
+				...(await (mockConnector.fetcher.queryRawProtocolParameters as Mock).getMockImplementation()!()),
+				utxoCostPerByte: 0
+			})
+
+			const params = await bridge.getProtocolParameters()
+			expect(params.coinsPerUtxoSize).toBe(0)
+		})
+
+		it('should fall back to core defaults for fields the node omits', async () => {
+			;(mockConnector.fetcher.queryRawProtocolParameters as Mock).mockResolvedValue({
+				txFeeFixed: 155381,
+				txFeePerByte: 44
+			})
+
+			const params = await bridge.getProtocolParameters()
+			expect(params.minFeeA).toBe(44)
+			expect(params.maxTxSize).toBe(DEFAULT_PROTOCOL_PARAMETERS.maxTxSize)
+			expect(params.minPoolCost).toBe(DEFAULT_PROTOCOL_PARAMETERS.minPoolCost)
+			expect(params.maxTxSize).not.toBeUndefined()
+		})
+
+		it('should expose raw parameters including PV11 cost models', async () => {
+			const raw = await bridge.getRawProtocolParameters()
+
+			expect(raw.txFeePerByte).toBe(44)
+			// costModels/protocolVersion have no slot in core's Protocol — they must
+			// survive on the raw object for ExUnits budgeting.
+			expect(raw.protocolVersion).toBeDefined()
+		})
 	})
 
 	describe('querySnapshotUtxo', () => {
@@ -457,12 +491,36 @@ describe('HydraBridge', () => {
 			})
 		})
 
-		describe('abort', () => {
-			it('should send Abort command', () => {
-				bridge.commands.abort()
+		describe('safeClose', () => {
+			it('should send SafeClose command', () => {
+				bridge.commands.safeClose()
 
 				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.Abort
+					command: HydraCommand.SafeClose
+				})
+			})
+		})
+
+		describe('sideLoadSnapshot', () => {
+			it('should send SideLoadSnapshot command with the snapshot', () => {
+				const snapshot = { tag: 'ConfirmedSnapshot' }
+				bridge.commands.sideLoadSnapshot(snapshot)
+
+				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
+					command: HydraCommand.SideLoadSnapshot,
+					payload: { snapshot }
+				})
+			})
+		})
+
+		describe('partialFanout', () => {
+			it('should send PartialFanout command with the selected UTxO', () => {
+				const utxoToFanout = {}
+				bridge.commands.partialFanout(utxoToFanout)
+
+				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
+					command: HydraCommand.PartialFanout,
+					payload: { utxoToFanout }
 				})
 			})
 		})
@@ -544,14 +602,17 @@ describe('HydraBridge', () => {
 		})
 
 		describe('initSync', () => {
-			it('should send Init command and wait for HeadIsInitializing', async () => {
+			// hydra-node v2 removed the commit phase — the head opens directly and
+			// never emits HeadIsInitializing.
+			it('should send Init command and wait for HeadIsOpen', async () => {
 				const initPromise = bridge.commands.initSync!(1, 100)
 
-				// Emit HeadIsInitializing event
 				setTimeout(() => {
 					mockConnector.eventEmitter.emit('onMessage', {
-						tag: HydraHeadTag.HeadIsInitializing,
+						tag: HydraHeadTag.HeadIsOpen,
 						headId: 'head-123',
+						parties: [{ vkey: 'vkey-1' }],
+						seq: 1,
 						timestamp: new Date().toISOString()
 					} as HydraPayload)
 				}, 10)
@@ -564,6 +625,20 @@ describe('HydraBridge', () => {
 				const initPromise = bridge.commands.initSync!(0, 50)
 
 				await expect(initPromise).rejects.toThrow('Init timeout')
+			})
+
+			it('should fail fast when the node rejects Init because it is unsynced', async () => {
+				const initPromise = bridge.commands.initSync!(3, 10_000)
+
+				setTimeout(() => {
+					mockConnector.eventEmitter.emit('onMessage', {
+						tag: HydraHeadTag.RejectedInputBecauseUnsynced,
+						clientInput: { tag: HydraCommand.Init },
+						drift: 42
+					} as HydraPayload)
+				}, 10)
+
+				await expect(initPromise).rejects.toThrow('node is out of sync')
 			})
 		})
 	})

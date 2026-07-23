@@ -4,15 +4,15 @@ import {
 	HydraCommand,
 	HydraHeadStatus,
 	HydraHeadTag,
-	type SnapshotConfirmed
+	type SyncedStatus
 } from './types/payload.type'
-import type { SubmitTxBody } from './types/submit-tx.type'
-import type { CommitBody } from './types/commit.type'
+import type { SubmitL2TxResponse, SubmitTxBody } from './types/submit-tx.type'
+import type { CommitBody, PendingDeposit } from './types/commit.type'
 import { toProtocol, type RawProtocolParameters } from './types/protocol-parameters.type'
 import { Converter, Protocol, TimeUtils, TxHash, UTxO, UTxOObject } from '@hydra-sdk/core'
 import { Transaction } from './types/transaction.type'
 import { HydraConnector } from './types/hydra-connector.type'
-import { WebsocketConnector } from './connector/websocket'
+import { CHAIN_TIMEOUT_MS, WebsocketConnector } from './connector/websocket'
 import { type SubmitTxError, type SubmitTxResult } from './types/submitter.type'
 import { awaitHydraMessage } from './utils/await-hydra-message'
 
@@ -68,6 +68,10 @@ export type IHydraBridge = {
 	slotZeroTimestamp: number | null
 	/** Highest snapshot number applied to the cache. -1 until the first snapshot is received. */
 	lastSnapshotNumber: number
+	/** `hydraNodeVersion` reported in the last Greetings. null before the first Greetings. */
+	nodeVersion: string | null
+	/** Whether the node considers itself synced with the chain. null before the first report. */
+	syncedStatus: SyncedStatus | null
 
 	events: HydraConnector['eventEmitter']
 	headInfo: () => Promise<{
@@ -86,24 +90,18 @@ export type IHydraBridge = {
 	commands: {
 		init: () => void
 		close: () => void
-		abort: () => void
+		safeClose: () => void
 		fanout: () => void
 		contest: () => void
 		recover: (recoverTxId: string) => void
 		decommit: (payload: { cborHex: string; txId: string; timeout?: number }) => Promise<unknown>
+		sideLoadSnapshot: (snapshot: unknown) => void
+		partialFanout: (utxoToFanout: UTxOObject) => void
 		initSync?: (retry: number, interval: number) => Promise<unknown>
 		newTx: (cborHex: string, description?: string, cb?: () => any) => void
 	}
 
-	submitTxSync: (
-		tx: Transaction,
-		options?: { timeout: number }
-	) => Promise<{
-		txId: string
-		isValid: boolean
-		isConfirmed: boolean
-		result: Readonly<SnapshotConfirmed> | HydraHeadTag.SnapshotConfirmed | null
-	}>
+	submitTxSync: (tx: Transaction, options?: { timeout: number }) => Promise<SubmitTxResult>
 
 	submitTx: (
 		tx: Transaction,
@@ -136,6 +134,16 @@ export class HydraBridge implements IHydraBridge {
 
 	verbose = false
 	slotZeroTimestamp: number | null = null
+	nodeVersion: string | null = null
+	syncedStatus: SyncedStatus | null = null
+
+	/**
+	 * True once {@link slotZeroTimestamp} was derived from a node-supplied
+	 * `chainTime`, which is exact. A value derived from `Greetings.currentSlot`
+	 * uses local `Date.now()` and carries the network round-trip as error, so it
+	 * is allowed to be overwritten; an exact one is not.
+	 */
+	private slotZeroIsExact = false
 
 	private autoReconnectEnabled = false
 	private reconnectAttempts = 0
@@ -165,12 +173,13 @@ export class HydraBridge implements IHydraBridge {
 
 		this.eventEmitter.on('onMessage', payload => {
 			if (payload.tag === HydraHeadTag.Greetings) {
-				// Derive slot-zero timestamp for in-head slot arithmetic
-				if (payload.currentSlot !== undefined) {
-					const receiveTime = Date.now()
-					const slotConfig = TimeUtils.buildHydraSlotConfig(receiveTime, { zeroSlot: payload.currentSlot })
-					this.slotZeroTimestamp = TimeUtils.slotToBeginUnixTime(0, slotConfig)
-					this.verbose && log(chalk.gray('slotZeroTimestamp set:'), this.slotZeroTimestamp)
+				this.nodeVersion = payload.hydraNodeVersion ?? null
+				this.syncedStatus = payload.chainSyncedStatus ?? null
+
+				// Approximate slot zero so in-head slot arithmetic works right away.
+				// Superseded by any chainSlot/chainTime pair the node sends later.
+				if (payload.currentSlot !== undefined && !this.slotZeroIsExact) {
+					this.setSlotZeroFrom(payload.currentSlot, Date.now(), false)
 				}
 				// Greetings carries snapshotUtxo for free — use it to seed the cache
 				// without making an extra HTTP round-trip
@@ -189,6 +198,22 @@ export class HydraBridge implements IHydraBridge {
 				} else {
 					this.verbose && log(chalk.yellow(`Skipping out-of-order snapshot #${snapNum} (last=${this.lastSnapshotNumber})`))
 				}
+			} else if (payload.tag === HydraHeadTag.HeadIsOpen) {
+				// hydra-node v2 dropped `utxo` from HeadIsOpen, so there is nothing to
+				// seed from here — pull the opening snapshot over HTTP instead.
+				if (this.lastSnapshotNumber === -1) {
+					this.querySnapshotUtxo().catch(() => {})
+				}
+			} else if (payload.tag === HydraHeadTag.NodeSynced || payload.tag === HydraHeadTag.NodeUnsynced) {
+				this.syncedStatus = payload.tag === HydraHeadTag.NodeSynced ? 'InSync' : 'CatchingUp'
+				// chainTime is the node's own UTC time for chainSlot — exact, unlike
+				// pairing currentSlot with local Date.now().
+				this.setSlotZeroFrom(payload.chainSlot, Date.parse(payload.chainTime), true)
+				payload.tag === HydraHeadTag.NodeUnsynced &&
+					warn(chalk.yellow(`Node is out of sync (drift ${payload.drift}s) — it will reject client inputs`))
+			} else if (payload.tag === HydraHeadTag.SyncedStatusReport) {
+				this.syncedStatus = payload.synced
+				this.setSlotZeroFrom(payload.chainSlot, Date.parse(payload.chainTime), true)
 			}
 		})
 
@@ -211,6 +236,28 @@ export class HydraBridge implements IHydraBridge {
 				}, interval)
 			})
 		}
+	}
+
+	// ---------------------------------------------------------------------------
+	// Slot arithmetic
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Anchor slot 0 from a (slot, unix-ms) pair.
+	 *
+	 * @param exact whether `atUnixMs` came from the node (`chainTime`) rather than
+	 * from local wall-clock. An exact anchor is never overwritten by an
+	 * approximate one.
+	 */
+	private setSlotZeroFrom(slot: number, atUnixMs: number, exact: boolean): void {
+		if (!Number.isFinite(slot) || !Number.isFinite(atUnixMs)) return
+		if (this.slotZeroIsExact && !exact) return
+
+		const slotConfig = TimeUtils.buildHydraSlotConfig(atUnixMs, { zeroSlot: slot })
+		this.slotZeroTimestamp = TimeUtils.slotToBeginUnixTime(0, slotConfig)
+		this.slotZeroIsExact = exact
+		this.verbose &&
+			log(chalk.gray(`slotZeroTimestamp set (${exact ? 'exact' : 'approx'}):`), this.slotZeroTimestamp)
 	}
 
 	// ---------------------------------------------------------------------------
@@ -312,12 +359,23 @@ export class HydraBridge implements IHydraBridge {
 		})
 	}
 
+	/**
+	 * Head summary from `GET /head`.
+	 *
+	 * NOTE: `headStatus` here is a `HeadState` tag (`Idle` | `Open` | `Closed`),
+	 * which is a narrower set than {@link HydraHeadStatus} — `FanoutPossible` is
+	 * only ever reported through `Greetings.headStatus`.
+	 *
+	 * `vkey` is the FIRST party of the head, not necessarily this node. Use
+	 * `Greetings.me.vkey` for that.
+	 */
 	async headInfo() {
 		const info = await this.connector.fetcher.queryHeadInfo()
+		const contents = info.tag === 'Idle' ? null : info.contents
 		return {
-			headId: info.contents?.headId ?? null,
-			headStatus: info.tag as HydraHeadStatus,
-			vkey: info.contents?.parameters?.parties[0]?.vkey ?? null
+			headId: contents && 'headId' in contents ? contents.headId : null,
+			headStatus: info.tag as unknown as HydraHeadStatus,
+			vkey: (contents && 'parameters' in contents ? contents.parameters?.parties?.[0]?.vkey : null) ?? null
 		}
 	}
 
@@ -349,6 +407,54 @@ export class HydraBridge implements IHydraBridge {
 		}
 		const rawPP = await this.queryRawProtocolParameters()
 		return toProtocol(rawPP)
+	}
+
+	/**
+	 * The node's protocol parameters, unmodified.
+	 *
+	 * {@link getProtocolParameters} narrows them to the `Protocol` shape used by
+	 * `@hydra-sdk/core`, which drops `costModels` and `protocolVersion`. Use this
+	 * when you need those — e.g. budgeting Plutus ExUnits, where the cost model
+	 * changed with the van Rossem hard fork (PV11).
+	 */
+	public async getRawProtocolParameters(): Promise<RawProtocolParameters> {
+		if (this.rawProtocolParameters) {
+			return this.rawProtocolParameters
+		}
+		return this.queryRawProtocolParameters()
+	}
+
+	// ---------------------------------------------------------------------------
+	// Incremental commits (deposits)
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * TxIds of deposits observed on chain but not yet included in a snapshot
+	 * (`GET /commits`).
+	 *
+	 * Deposits stay recoverable here after a head closes, so this is also the way
+	 * to find funds to reclaim from a previous head.
+	 */
+	public async pendingDeposits(): Promise<PendingDeposit[]> {
+		const query = this.connector.fetcher.queryPendingDeposits
+		if (!query) {
+			throw new Error('Connector does not implement queryPendingDeposits (GET /commits)')
+		}
+		return query()
+	}
+
+	/**
+	 * Recover a pending deposit back to L1 (`DELETE /commits/{txId}`).
+	 *
+	 * Falls back to the WebSocket `Recover` command when the connector has no
+	 * HTTP implementation. Unlike the command, the HTTP form reports the outcome.
+	 */
+	public async recoverDeposit(depositTxId: string, options = { timeout: CHAIN_TIMEOUT_MS }): Promise<string | void> {
+		const recover = this.connector.submitter.recoverDeposit
+		if (recover) {
+			return recover(depositTxId, options)
+		}
+		this.commands.recover(depositTxId)
 	}
 
 	async querySnapshotUtxo() {
@@ -397,9 +503,13 @@ export class HydraBridge implements IHydraBridge {
 				this.sendCommand({
 					command: HydraCommand.Close
 				}),
-			abort: () =>
+			/**
+			 * Close the head only if it holds no non-ADA assets. The node answers
+			 * with an `InvalidInput` message when assets are present.
+			 */
+			safeClose: () =>
 				this.sendCommand({
-					command: HydraCommand.Abort
+					command: HydraCommand.SafeClose
 				}),
 			fanout: () =>
 				this.sendCommand({
@@ -418,14 +528,35 @@ export class HydraBridge implements IHydraBridge {
 				}),
 			decommit: ({ cborHex, txId, timeout = 30000 }: { cborHex: string; txId: string; timeout?: number }) =>
 				this.decommit({ cborHex, txId, timeout }),
+			sideLoadSnapshot: (snapshot: unknown) =>
+				this.sendCommand({
+					command: HydraCommand.SideLoadSnapshot,
+					payload: { snapshot }
+				}),
+			/**
+			 * @experimental Requires a hydra-node newer than v2.3.0 (selective
+			 * partial fanout, #2750). Older nodes reply with `InvalidInput`.
+			 */
+			partialFanout: (utxoToFanout: UTxOObject) =>
+				this.sendCommand({
+					command: HydraCommand.PartialFanout,
+					payload: { utxoToFanout }
+				}),
 
 			initSync: (retry = 3, interval = 20000) => this.initHydraHead(retry, interval)
 		}
 	}
 
+	/**
+	 * Send `Init` and wait for the head to come up.
+	 *
+	 * NOTE: hydra-node v2 removed the commit phase (ADR-33) — there is no
+	 * `HeadIsInitializing` any more and the head opens directly, so this resolves
+	 * on `HeadIsOpen`.
+	 */
 	async initHydraHead(retry: number, interval: number) {
 		this.commands.init()
-		this.verbose && log('Waiting for head to initialize')
+		this.verbose && log('Waiting for head to open')
 
 		// Retry sender — runs independently of the message wait
 		let attemptsLeft = retry
@@ -441,7 +572,17 @@ export class HydraBridge implements IHydraBridge {
 			return await awaitHydraMessage<true>(
 				this.eventEmitter,
 				payload => {
-					if (payload.tag === HydraHeadTag.HeadIsInitializing) return { resolve: true }
+					if (payload.tag === HydraHeadTag.HeadIsOpen) return { resolve: true }
+					// The node refuses Init while out of sync — fail fast rather than
+					// burning every retry against a node that cannot accept it.
+					if (
+						payload.tag === HydraHeadTag.RejectedInputBecauseUnsynced &&
+						payload.clientInput?.tag === HydraCommand.Init
+					) {
+						return {
+							reject: new Error(`Init rejected: node is out of sync with the chain (drift ${payload.drift}s)`)
+						}
+					}
 					return null
 				},
 				(retry + 1) * interval,
@@ -452,21 +593,30 @@ export class HydraBridge implements IHydraBridge {
 		}
 	}
 
-	async submitTxSync(
-		tx: Transaction,
-		options = { timeout: 30000 }
-	): Promise<{
-		txId: string
-		isValid: boolean
-		isConfirmed: boolean
-		result: Readonly<SnapshotConfirmed> | HydraHeadTag.SnapshotConfirmed | null
-	}> {
+	async submitTxSync(tx: Transaction, options = { timeout: 30000 }): Promise<SubmitTxResult> {
 		this.verbose && log('submitTxSync', chalk.gray(tx.txId))
 		if (!this.connected()) {
 			warn('Not connected, cannot submit transaction')
 			throw new Error('Not connected to Hydra node')
 		}
 		return this.connector.submitter.submitTxSync(tx, options)
+	}
+
+	/**
+	 * Submit an L2 transaction through `POST /transaction` and let the node
+	 * report the verdict.
+	 *
+	 * Prefer this over {@link submitTxSync} when the connector speaks HTTP: the
+	 * node decides confirmed/invalid/rejected itself instead of the client racing
+	 * WebSocket messages against a timeout.
+	 */
+	async submitL2Tx(tx: Transaction, options = { timeout: CHAIN_TIMEOUT_MS }): Promise<SubmitL2TxResponse> {
+		const submit = this.connector.submitter.submitL2Tx
+		if (!submit) {
+			throw new Error('Connector does not implement submitL2Tx (POST /transaction)')
+		}
+		this.verbose && log('submitL2Tx', chalk.gray(tx.txId))
+		return submit(tx, options)
 	}
 
 	submitTx(
