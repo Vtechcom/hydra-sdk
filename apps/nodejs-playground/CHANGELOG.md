@@ -1,5 +1,12 @@
 # nodejs-playground
 
+## 1.0.24
+
+### Patch Changes
+
+- Updated dependencies [6be2b85]
+  - @hydra-sdk/bridge@2.0.0
+
 ## 1.0.23
 
 ### Patch Changes
