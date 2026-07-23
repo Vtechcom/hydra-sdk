@@ -1,5 +1,12 @@
 # nodejs-playground
 
+## 1.0.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/transaction@1.2.1
+
 ## 1.0.22
 
 ### Patch Changes

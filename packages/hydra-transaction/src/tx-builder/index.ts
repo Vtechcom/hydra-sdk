@@ -1340,7 +1340,15 @@ export class TxBuilder {
 			this._txBuilder.remove_script_data_hash()
 			this._txBuilder.calc_script_data_hash(costMdls)
 		}
-		this.selectUtxosFrom(rawUTxOs, strategy, { recalculateScriptDataHash })
+		// Coin selection is only needed when there are NORMAL inputs to select from.
+		// A script-only spend whose script input already funds the outputs (common in Hydra —
+		// e.g. a session/state UTxO that continues to an equal-value output) has no normal
+		// inputs; skip selection so it doesn't throw "UTxO inputs Insufficient". The script
+		// data hash was already (re)calculated above, and with no change output nothing
+		// invalidates it.
+		if (rawUTxOs.length > 0) {
+			this.selectUtxosFrom(rawUTxOs, strategy, { recalculateScriptDataHash })
+		}
 	}
 
 	private _addReferenceInputsToBuilder(referenceInputs: TxIn[]): void {
