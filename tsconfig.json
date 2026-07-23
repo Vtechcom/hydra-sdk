@@ -1,4 +1,12 @@
 {
+    // Directories owning a tsconfig.json are excluded so the editor resolves
+    // them through their own project rather than this one, which sets no
+    // `target` and would report spurious errors (e.g. BigInt literals).
+    "exclude": [
+        "node_modules",
+        "**/dist",
+        "packages/hydra-bridge/e2e"
+    ],
     "compilerOptions": {
         "baseUrl": ".",
         "esModuleInterop": true,

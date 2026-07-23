@@ -1,0 +1,26 @@
+{
+	// The e2e suite is not part of the package build: packages/hydra-bridge/tsconfig.json
+	// only includes `src`, so without this the editor falls back to an inferred
+	// project (ES5 target, no bundler resolution) and reports spurious errors —
+	// BigInt literals, and no declaration for the .mjs seed script.
+	"extends": "@hydra-sdk/tsconfig/base",
+	"include": ["**/*.ts", "../../../infra/hydra-offline/*.d.mts"],
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"lib": ["ESNext", "DOM"],
+		"types": ["vitest/globals", "node"],
+		"strict": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"allowImportingTsExtensions": true,
+		"paths": {
+			"@hydra-sdk/core": ["../../core/src/index.ts"],
+			"@hydra-sdk/transaction": ["../../hydra-transaction/src/index.ts"],
+			"@hydra-sdk/bridge": ["../src/index.ts"]
+		},
+		"baseUrl": "."
+	}
+}
