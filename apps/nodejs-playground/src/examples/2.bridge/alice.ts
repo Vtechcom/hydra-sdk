@@ -47,10 +47,8 @@ async function main() {
 				headStatus = 'Closed'
 			} else if (message.tag === HydraHeadTag.HeadIsFinalized) {
 				headStatus = 'Finalized'
-			} else if (message.tag === HydraHeadTag.HeadIsAborted) {
-				headStatus = 'Aborted'
-			} else if (message.tag === HydraHeadTag.HeadIsInitializing) {
-				headStatus = 'Initializing'
+			} else if (message.tag === HydraHeadTag.ReadyToFanout) {
+				headStatus = 'FanoutPossible'
 			}
 
 			console.log(

@@ -14,7 +14,7 @@
 				<div v-if="connected" class="hydra-controls">
 					<button @click="initHead" :disabled="headStatus !== 'Idle'" class="btn btn-secondary">Init Head</button>
 					<button @click="closeHead" :disabled="headStatus !== 'Open'" class="btn btn-warning">Close Head</button>
-					<button @click="abortHead" :disabled="headStatus === 'Final'" class="btn btn-danger">Abort Head</button>
+					<button @click="finalizeHead" :disabled="headStatus === 'Final'" class="btn btn-danger">Finalize Head</button>
 				</div>
 			</div>
 
@@ -123,10 +123,10 @@
 		addEvent('HeadIsClosed', 'Hydra Head is closed')
 	}
 
-	const abortHead = async () => {
+	const finalizeHead = async () => {
 		headStatus.value = 'Final'
-		addEvent('Command', 'Aborting Hydra Head')
-		addEvent('HeadIsAborted', 'Hydra Head aborted')
+		addEvent('Command', 'Finalizing Hydra Head')
+		addEvent('HeadIsFinalized', 'Hydra Head finalized')
 	}
 
 	const hydraCode = computed(() =>
@@ -167,7 +167,7 @@ bridge.events.on('onMessage', (payload) => {
 // Hydra Head commands
 bridge.commands.init()     // Initialize head
 bridge.commands.close()    // Close head
-bridge.commands.abort()    // Abort head
+bridge.commands.safeClose() // Close only if no non-ADA assets
 `.trim()
 	)
 </script>
