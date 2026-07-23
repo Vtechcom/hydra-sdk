@@ -1,5 +1,18 @@
 # @hydra-sdk/transaction
 
+## 1.2.1
+
+### Patch Changes
+
+- fix(tx-builder): allow spending a script UTxO whose script input alone funds the outputs
+
+  `_addInputsToBuilder` unconditionally called `selectUtxosFrom`, which throws "UTxO inputs
+  Insufficient" when there are no _normal_ inputs to select from. This blocked the legitimate
+  pattern where a single script input already funds the transaction's outputs (common in Hydra —
+  e.g. a session/state UTxO continuing to an equal-value output). Coin selection is now skipped when
+  there are no normal inputs; the script data hash is already computed and, with no change output,
+  nothing invalidates it.
+
 ## 1.2.0
 
 ### Minor Changes
