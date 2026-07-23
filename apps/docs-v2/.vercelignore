@@ -1,0 +1,14 @@
+# Vercel runs `nuxt build` itself (see vercel.json), so only sources need to be
+# uploaded. Without this the CLI ships ~65MB of local build output and the
+# deploy upload fails.
+node_modules
+.output
+.nuxt
+.data
+.turbo
+dist
+
+# Local env — Vercel holds the real values as project environment variables
+.env
+.env.*
+!.env.example
