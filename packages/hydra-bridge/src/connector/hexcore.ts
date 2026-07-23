@@ -4,15 +4,17 @@ import { io, ManagerOptions, Socket, SocketOptions } from 'socket.io-client'
 import { HydraBridgeEvents, HydraConnector, HydraConnectorEndpoint } from '../types/hydra-connector.type'
 import { HydraBridgeFetcher } from '../types/fetcher.type'
 import { HydraBridgeSubmitter } from '../types/submitter.type'
-import { HydraCommand, HydraHeadTag, HydraPayload } from '../types/payload.type'
+import { HydraCommand, HydraHeadTag, HydraPayload, SnapshotConfirmed, isInvalidInputPayload } from '../types/payload.type'
 import { parseUrl } from '../utils/url-parser'
 import axios, { AxiosInstance } from 'axios'
 import { RawProtocolParameters } from '../types/protocol-parameters.type'
 import { UTxOObject } from '@hydra-sdk/core'
 import { CommitBody, CommitResponse } from '../types/commit.type'
 import { SubmitTxBody } from '../types/submit-tx.type'
+import { SideLoadSnapshotBody } from '../types/hydra-head-info.type'
 import { Transaction } from '../types/transaction.type'
 import { buildUrl } from '../utils/url-builder'
+import { CHAIN_TIMEOUT_MS } from './websocket'
 
 export type HexcoreConnectorOptions = {
 	// socketIoUrl: string
@@ -54,6 +56,38 @@ export const defaultHexcoreFetcher = (connector: HexcoreConnector): HydraBridgeF
 				return rs.data?.data || {}
 			} catch (error) {
 				throw new Error('[HexcoreConnector][QueryHeadInfo]: ' + error)
+			}
+		},
+		queryConfirmedSnapshot: async () => {
+			try {
+				const rs = await connector.apiFetch.get('/hydra/snapshot')
+				return rs.data?.data ?? null
+			} catch (error) {
+				throw new Error('[HexcoreConnector][QueryConfirmedSnapshot]: ' + error)
+			}
+		},
+		queryLastSeenSnapshot: async () => {
+			try {
+				const rs = await connector.apiFetch.get('/hydra/snapshot/last-seen')
+				return rs.data?.data
+			} catch (error) {
+				throw new Error('[HexcoreConnector][QueryLastSeenSnapshot]: ' + error)
+			}
+		},
+		queryPendingDeposits: async () => {
+			try {
+				const rs = await connector.apiFetch.get('/hydra/commits')
+				return rs.data?.data ?? []
+			} catch (error) {
+				throw new Error('[HexcoreConnector][QueryPendingDeposits]: ' + error)
+			}
+		},
+		queryNodeConfig: async () => {
+			try {
+				const rs = await connector.apiFetch.get('/hydra/config')
+				return rs.data?.data
+			} catch (error) {
+				throw new Error('[HexcoreConnector][QueryNodeConfig]: ' + error)
 			}
 		}
 	}
@@ -105,7 +139,7 @@ export const defaultHexcoreSubmitter = (connector: HexcoreConnector): HydraBridg
 					txId: tx.txId,
 					isValid: true,
 					isConfirmed: true,
-					result: rs.data.data as HydraHeadTag.SnapshotConfirmed
+					result: rs.data.data as SnapshotConfirmed
 				}
 			} catch (error) {
 				throw new Error('[HexcoreConnector][submitTxSync]: ' + error)
@@ -124,6 +158,50 @@ export const defaultHexcoreSubmitter = (connector: HexcoreConnector): HydraBridg
 				.catch(error => {
 					callback({ txId: tx.txId, reason: error.message, tag: 'Error' }, null)
 				})
+		},
+		submitL2Tx: async (tx: Transaction, options = { timeout: CHAIN_TIMEOUT_MS }) => {
+			try {
+				const rs = await connector.apiFetch.post(
+					'/hydra/transaction',
+					{ submitL2Tx: { type: tx.type, description: tx.description, cborHex: tx.cborHex, txId: tx.txId } },
+					{ timeout: options.timeout }
+				)
+				return rs.data?.data ?? rs.data
+			} catch (error: any) {
+				const body = error?.response?.data?.data ?? error?.response?.data
+				if (body && typeof body === 'object' && 'tag' in body) return body
+				throw new Error('[HexcoreConnector][SubmitL2Tx]: ' + error)
+			}
+		},
+		recoverDeposit: async (depositTxId: string, options = { timeout: CHAIN_TIMEOUT_MS }) => {
+			try {
+				const rs = await connector.apiFetch.delete(`/hydra/commits/${encodeURIComponent(depositTxId)}`, {
+					timeout: options.timeout
+				})
+				return rs.data?.data ?? rs.data
+			} catch (error) {
+				throw new Error('[HexcoreConnector][RecoverDeposit]: ' + error)
+			}
+		},
+		decommit: async (tx: Transaction, options = { timeout: CHAIN_TIMEOUT_MS }) => {
+			try {
+				const rs = await connector.apiFetch.post(
+					'/hydra/decommit',
+					{ type: tx.type, description: tx.description, cborHex: tx.cborHex, txId: tx.txId },
+					{ timeout: options.timeout }
+				)
+				return rs.data?.data ?? rs.data
+			} catch (error) {
+				throw new Error('[HexcoreConnector][Decommit]: ' + error)
+			}
+		},
+		sideLoadSnapshot: async (body: SideLoadSnapshotBody, options = { timeout: CHAIN_TIMEOUT_MS }) => {
+			try {
+				const rs = await connector.apiFetch.post('/hydra/snapshot', body, { timeout: options.timeout })
+				return rs.data?.data ?? rs.data
+			} catch (error) {
+				throw new Error('[HexcoreConnector][SideLoadSnapshot]: ' + error)
+			}
 		}
 	}
 }
@@ -191,7 +269,12 @@ export class HexcoreConnector implements HydraConnector {
 		})
 
 		this.socketIoClient.on('hydra', (message: { status: 'success' | 'fail'; data: HydraPayload }) => {
-			this.eventEmitter.emit('onMessage', message.data)
+			// The node sends InvalidInput untagged; stamp it so consumers can
+			// discriminate the whole payload union on `tag`.
+			const payload = (
+				isInvalidInputPayload(message.data) ? { ...message.data, tag: HydraHeadTag.InvalidInput } : message.data
+			) as HydraPayload
+			this.eventEmitter.emit('onMessage', payload)
 		})
 	}
 

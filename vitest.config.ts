@@ -13,6 +13,9 @@ export default defineConfig({
 
 		include: ['tests/**/*.test.ts', 'tests/**/*.spec.ts', 'packages/**/*.test.ts', 'packages/**/*.spec.ts'],
 
+		// e2e needs a live hydra-node — run it with `pnpm test:e2e`.
+		exclude: ['**/node_modules/**', '**/dist/**', '**/*.e2e.test.ts'],
+
 		alias: {
 			'@hydra-sdk/cardano-wasm': path.resolve(__dirname, 'packages/cardano-wasm/src/index.node.ts'),
 			'@hydra-sdk/core': path.resolve(__dirname, 'packages/core/src/index.ts'),

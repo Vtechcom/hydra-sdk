@@ -1,10 +1,12 @@
-import { UTxOObject } from '@hydra-sdk/core'
+import type { PostTxError } from './post-tx-error.type'
 
 /**
- * A Cardano transaction in the text envelope format . That is, a JSON object wrapper with some `type` around a `cborHex` encoded transaction. The hydra-node uses this format as follows:
- - When encoding, an additonal 'txId' is included.
- - On decoding, when 'txId' is included it is checked to be consistent.
- - The 'type' is not used to determine content and any transaction is tried to decode as a 'ConwayEra' transaction, which mostly is backward compatible to previous eras.
+ * A Cardano transaction in the text envelope format — a JSON wrapper with a
+ * `type` around a `cborHex` encoded transaction. The hydra-node uses it as follows:
+ * - When encoding, an additional `txId` is included.
+ * - On decoding, when `txId` is included it is checked to be consistent.
+ * - The `type` is not used to determine content; any transaction is decoded as a
+ *   `ConwayEra` transaction, which is mostly backward compatible with previous eras.
  */
 export type SubmitTxBody = {
 	type: 'Tx ConwayEra' | 'Unwitnessed Tx ConwayEra' | 'Witnessed Tx ConwayEra'
@@ -19,144 +21,48 @@ export type SubmitTxBody = {
 	txId?: string
 }
 
-export type SubmitTxResponse =
-	| TransactionSubmitted
-	| ScriptFailedInWallet
-	| NotEnoughFuel
-	| NoFuelUTXOFound
-	| CannotFindOwnInitial
-	| UnsupportedLegacyOutput
-	| NoSeedInput
-	| InvalidStateToPost
-	| PlutusValidationFailed
-	| FailedToPostTx
-	| CommittedTooMuchADAForMainnet
-	| FailedToDraftTxNotInitializing
-	| InvalidSeed
-	| InvalidHeadId
-	| FailedToConstructAbortTx
-	| FailedToConstructCloseTx
-	| FailedToConstructContestTx
-	| FailedToConstructCollectTx
-	| FailedToConstructDepositTx
-	| FailedToConstructRecoverTx
-	| FailedToConstructIncrementTx
-	| FailedToConstructDecrementTx
-	| FailedToConstructFanoutTx
-
-type TransactionSubmitted = {
+export type TransactionSubmitted = {
 	tag: 'TransactionSubmitted'
 }
 
-type NotEnoughFuel = {
-	tag: 'NotEnoughFuel'
-}
-
-type NoFuelUTXOFound = {
-	tag: 'NoFuelUTXOFound'
-}
-
-type ScriptFailedInWallet = {
-	tag: 'ScriptFailedInWallet'
-	redeemerPtr: string
-	failureReason: string
-}
-
-type CannotFindOwnInitial = {
-	tag: 'CannotFindOwnInitial'
-	knownUTxO: UTxOObject
-}
-
-type UnsupportedLegacyOutput = {
-	tag: 'UnsupportedLegacyOutput'
-	byronAddress: string
-}
+/**
+ * Response of `POST /cardano-transaction` (submit an L1 transaction through the
+ * node's chain backend).
+ *
+ * Source: `Hydra.API.HTTPServer.handleSubmitUserTx` — on failure the body is a
+ * `PostTxError`.
+ */
+export type SubmitTxResponse = TransactionSubmitted | PostTxError
 
 /**
- * Initialising a new Head failed because the DirectChain component was unable to find a "seed" UTxO to consume.
- * This can happen if no UTxO has been assigned to the internal wallet's address for this purpose, or if the component is still catching up with the chain.
- * This error is usually transient and clients should retry to post the transaction.
+ * Response of `POST /transaction` (submit an L2 transaction into the head and
+ * wait for the node's verdict).
+ *
+ * Source: `Hydra.API.HTTPServer.SubmitL2TxResponse` (hydra-node v2.3.0).
  */
-type NoSeedInput = {
-	tag: 'NoSeedInput'
+export type SubmitL2TxResponse =
+	| {
+			/** Included in a confirmed snapshot. */
+			tag: 'SubmitTxConfirmed'
+			snapshotNumber: number
+	  }
+	| {
+			/** Rejected by the L2 ledger. */
+			tag: 'SubmitTxInvalid'
+			validationError: string
+	  }
+	| {
+			/** Rejected because the node is out of sync with the chain. */
+			tag: 'SubmitTxRejected'
+			reason: string
+	  }
+	| {
+			/** Accepted but not yet confirmed within the node's API timeout. */
+			tag: 'SubmitTxSubmitted'
+	  }
+
+export type SubmitL2TxBody = {
+	submitL2Tx: SubmitTxBody
 }
 
-// TODO: need update info
-type InvalidStateToPost = {
-	tag: 'InvalidStateToPost'
-}
-
-// TODO: need update info
-type PlutusValidationFailed = {
-	tag: 'PlutusValidationFailed'
-}
-
-// TODO: need update info
-type FailedToPostTx = {
-	tag: 'FailedToPostTx'
-}
-
-// TODO: need update info
-type CommittedTooMuchADAForMainnet = {
-	tag: 'CommittedTooMuchADAForMainnet'
-}
-
-// TODO: need update info
-type FailedToDraftTxNotInitializing = {
-	tag: 'FailedToDraftTxNotInitializing'
-}
-
-// TODO: need update info
-type InvalidSeed = {
-	tag: 'InvalidSeed'
-}
-
-// TODO: need update info
-type InvalidHeadId = {
-	tag: 'InvalidHeadId'
-}
-
-// TODO: need update info
-type FailedToConstructAbortTx = {
-	tag: 'FailedToConstructAbortTx'
-}
-
-// TODO: need update info
-type FailedToConstructCloseTx = {
-	tag: 'FailedToConstructCloseTx'
-}
-
-// TODO: need update info
-type FailedToConstructContestTx = {
-	tag: 'FailedToConstructContestTx'
-}
-
-// TODO: need update info
-type FailedToConstructCollectTx = {
-	tag: 'FailedToConstructCollectTx'
-}
-
-// TODO: need update info
-type FailedToConstructDepositTx = {
-	tag: 'FailedToConstructDepositTx'
-}
-
-// TODO: need update info
-type FailedToConstructRecoverTx = {
-	tag: 'FailedToConstructRecoverTx'
-}
-
-// TODO: need update info
-type FailedToConstructIncrementTx = {
-	tag: 'FailedToConstructIncrementTx'
-}
-
-// TODO: need update info
-type FailedToConstructDecrementTx = {
-	tag: 'FailedToConstructDecrementTx'
-}
-
-// TODO: need update info
-type FailedToConstructFanoutTx = {
-	tag: 'FailedToConstructFanoutTx'
-}
+export type { PostTxError }

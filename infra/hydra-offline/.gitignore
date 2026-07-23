@@ -1,0 +1,8 @@
+# Native hydra-node binary (~428MB) — fetch from a GitHub release, don't commit
+bin/
+
+# Runtime state written by hydra-node (includes the embedded etcd data dir)
+persistence/
+
+# Hydra keys generated on first run — throwaway, single-party offline head
+credentials/

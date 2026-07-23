@@ -1,0 +1,14 @@
+# Runtime state written by hydra-node (includes the embedded etcd data dir)
+persistence/
+
+# Hydra keys generated on first run
+credentials/
+
+# Never commit L1 keys. The Cardano signing key is supplied via
+# HYDRA_CARDANO_SIGNING_KEY and must live outside the repo.
+*.skey
+*.vkey
+*.addr
+.pp-l1.json
+.bridge.pid
+.bridge.log
