@@ -183,7 +183,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Hydra SDK Playground
     description: Một sân chơi tương tác để thử nghiệm các tính năng của Hydra SDK và xây dựng DApp.
-    to: https://play.hydrasdk.com
+    to: https://playground.hydrasdk.com
     target: _blank
     variant: subtle
     spotlight: true

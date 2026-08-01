@@ -15,7 +15,7 @@
 		{ label: t('nav.apiReference'), to: localePath('/api') },
 		{ label: t('nav.examples'), to: localePath('/examples') },
 		{ label: t('nav.guides'), to: localePath('/guides') },
-		{ label: 'Playground', to: 'https://play.hydrasdk.com', target: '_blank', animation: true }
+		{ label: 'Playground', to: 'https://playground.hydrasdk.com', target: '_blank', animation: true }
 	])
 </script>
 

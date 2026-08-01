@@ -183,7 +183,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Hydra SDK Playground
     description: Hydra SDK の機能を試したり DApp を構築したりするためのインタラクティブなプレイグラウンド。
-    to: https://play.hydrasdk.com
+    to: https://playground.hydrasdk.com
     target: _blank
     variant: subtle
     spotlight: true

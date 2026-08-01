@@ -1,0 +1,268 @@
+<!doctype html>
+<!--
+  Source for public/images/og-image.png — kept in the repo so the card can be
+  regenerated when the branding moves. Render it with:
+
+      node apps/playground/scripts/generate-og.mjs
+
+  Colours and type are the same tokens the app uses (assets/css/tailwind.css):
+  brand green #00DC82, Space Grotesk for display, JetBrains Mono for chain data.
+-->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				width: 1200px;
+				height: 630px;
+				overflow: hidden;
+				background: #121212;
+				font-family: 'Public Sans', sans-serif;
+				color: #fafafa;
+				position: relative;
+			}
+
+			/* Same top-anchored aurora as the app's dark canvas. */
+			.aurora {
+				position: absolute;
+				inset: 0;
+				background: radial-gradient(130% 82% at 50% -12%, rgba(0, 220, 130, 0.28) 0%, rgba(0, 220, 130, 0.08) 30%, transparent 62%);
+			}
+
+			/* Faint grid, a nod to the workspace the app actually is. */
+			.grid {
+				position: absolute;
+				inset: 0;
+				background-image:
+					linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+					linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+				background-size: 48px 48px;
+				mask-image: radial-gradient(90% 70% at 50% 40%, #000 30%, transparent 78%);
+			}
+
+			.frame {
+				position: relative;
+				height: 100%;
+				padding: 56px 64px;
+				display: flex;
+				flex-direction: column;
+			}
+
+			/* ── brand ─────────────────────────────────────────────── */
+			.brand {
+				display: flex;
+				align-items: center;
+				gap: 14px;
+			}
+
+			.brand img {
+				width: 52px;
+				height: 52px;
+				filter: drop-shadow(0 0 24px rgba(0, 220, 130, 0.35));
+			}
+
+			.wordmark {
+				font-family: 'Space Grotesk', sans-serif;
+				font-weight: 700;
+				font-size: 27px;
+				letter-spacing: -0.02em;
+				line-height: 1;
+			}
+
+			.eyebrow {
+				font-family: 'Space Grotesk', sans-serif;
+				font-weight: 600;
+				font-size: 12px;
+				letter-spacing: 0.22em;
+				text-transform: uppercase;
+				color: #00dc82;
+				margin-top: 6px;
+				line-height: 1;
+			}
+
+			/* ── headline ──────────────────────────────────────────── */
+			.body {
+				flex: 1;
+				display: flex;
+				align-items: center;
+				gap: 56px;
+			}
+
+			h1 {
+				font-family: 'Space Grotesk', sans-serif;
+				font-weight: 700;
+				font-size: 68px;
+				line-height: 1.04;
+				letter-spacing: -0.03em;
+			}
+
+			h1 .accent {
+				color: #00dc82;
+			}
+
+			.lede {
+				margin-top: 22px;
+				font-size: 23px;
+				line-height: 1.45;
+				color: #b4b4b4;
+				max-width: 20ch;
+			}
+
+			.left {
+				flex: 1;
+			}
+
+			/* ── code card ─────────────────────────────────────────── */
+			.card {
+				width: 404px;
+				flex-shrink: 0;
+				border: 1px solid #2c2c2c;
+				border-radius: 14px;
+				background: rgba(30, 30, 30, 0.72);
+				box-shadow: 0 24px 60px -28px rgba(0, 220, 130, 0.45);
+				overflow: hidden;
+			}
+
+			.card-head {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 11px 14px;
+				border-bottom: 1px solid #2c2c2c;
+				background: rgba(255, 255, 255, 0.02);
+			}
+
+			.dot {
+				width: 9px;
+				height: 9px;
+				border-radius: 50%;
+				background: #3a3a3a;
+			}
+
+			.card-title {
+				margin-left: 4px;
+				font-family: 'JetBrains Mono', monospace;
+				font-size: 12px;
+				color: #8a8a8a;
+			}
+
+			pre {
+				padding: 16px 14px;
+				font-family: 'JetBrains Mono', monospace;
+				font-size: 13.5px;
+				line-height: 1.72;
+				color: #d4d4d4;
+				white-space: pre;
+			}
+
+			.k {
+				color: #ff7bd5;
+			}
+			.f {
+				color: #75edae;
+			}
+			.s {
+				color: #00dc82;
+			}
+			.c {
+				color: #6b6b6b;
+			}
+
+			/* ── pipeline + url ────────────────────────────────────── */
+			.footer {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			.pipeline {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				font-family: 'JetBrains Mono', monospace;
+				font-size: 14px;
+				color: #7c7c7c;
+			}
+
+			.step {
+				padding: 6px 13px;
+				border: 1px solid #2c2c2c;
+				border-radius: 999px;
+			}
+
+			.step.on {
+				color: #00dc82;
+				border-color: rgba(0, 220, 130, 0.45);
+				background: rgba(0, 220, 130, 0.09);
+			}
+
+			.url {
+				font-family: 'Space Grotesk', sans-serif;
+				font-weight: 500;
+				font-size: 19px;
+				color: #cfcfcf;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="aurora"></div>
+		<div class="grid"></div>
+
+		<div class="frame">
+			<header class="brand">
+				<img src="../public/logo-sdk.png" alt="" />
+				<div>
+					<div class="wordmark">Hydra SDK</div>
+					<div class="eyebrow">Playground</div>
+				</div>
+			</header>
+
+			<div class="body">
+				<div class="left">
+					<h1>Build Cardano &amp;<br /><span class="accent">Hydra</span> transactions<br />in the browser</h1>
+					<p class="lede">Compose, inspect, sign — and copy the TypeScript that does the same.</p>
+				</div>
+
+				<div class="card">
+					<div class="card-head">
+						<span class="dot"></span><span class="dot"></span><span class="dot"></span>
+						<span class="card-title">build-tx.ts</span>
+					</div>
+					<pre><span class="k">const</span> builder = <span class="k">new</span> <span class="f">TxBuilder</span>()
+builder.<span class="f">setInputs</span>(utxos)
+builder.<span class="f">addOutput</span>({ … })
+builder.<span class="f">mint</span>(<span class="s">'1000'</span>, policyId, name)
+
+<span class="k">const</span> tx = <span class="k">await</span> builder.<span class="f">complete</span>()
+<span class="c">// free the WASM handles</span>
+tx.<span class="f">free</span>()</pre>
+				</div>
+			</div>
+
+			<footer class="footer">
+				<div class="pipeline">
+					<span class="step on">Draft</span>
+					→
+					<span class="step">Built</span>
+					→
+					<span class="step">Signed</span>
+					→
+					<span class="step">Sent</span>
+				</div>
+				<div class="url">playground.hydrasdk.com</div>
+			</footer>
+		</div>
+	</body>
+</html>

@@ -183,7 +183,7 @@ Discover powerful applications already using our SDK in production.
     ---
     title: Hydra SDK Playground
     description: An interactive playground for experimenting with Hydra SDK features and building DApps.
-    to: https://play.hydrasdk.com
+    to: https://playground.hydrasdk.com
     target: _blank
     variant: subtle
     spotlight: true

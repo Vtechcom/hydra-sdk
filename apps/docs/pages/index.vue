@@ -393,7 +393,7 @@
 			description: t('home.showcase.apps.hydraPlayground.description'),
 			icon: '/images/hydra-playground-logo-white.png',
 			features: ['Interactive Playground', 'Hydra SDK', 'DApp Development', 'Testing'],
-			url: 'https://play.hydrasdk.com',
+			url: 'https://playground.hydrasdk.com',
 			visitButton: t('home.showcase.apps.hydraPlayground.visitButton')
 		},
 		{

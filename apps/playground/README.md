@@ -66,6 +66,27 @@ Both are read from `apps/playground/.env` if present (see `.env.example`).
 NUXT_PUBLIC_GTAG_ID=G-XXXX docker compose up --build
 ```
 
+### Domain
+
+The canonical origin is **`https://playground.hydrasdk.com`**, declared once as `SITE_URL` at the top
+of `nuxt.config.ts` and reused by the social meta and `site.url`. The card image prints the domain
+too, so a rename means re-rendering it (below).
+
+### Social card
+
+`public/images/og-image.png` (1200×630) is generated from `scripts/og-image.html`:
+
+```bash
+node scripts/generate-og.mjs
+```
+
+It renders the card with the Chromium that Playwright already installed — no extra dependency, and
+the source stays in the repo so it can be regenerated when the branding moves.
+
+Because the app is `ssr: false`, the prerendered HTML is a bare SPA shell: **only static head entries
+in `nuxt.config.ts` reach a social crawler**, since crawlers do not run JavaScript. That is why the
+og/twitter tags live there rather than in `useSeoMeta`, and why every route shares one card.
+
 ### nginx
 
 `docker/nginx.conf` covers the two things a Cardano SPA needs beyond static file serving:

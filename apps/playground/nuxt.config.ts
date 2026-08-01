@@ -6,6 +6,20 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 
+/**
+ * Canonical origin. Social meta needs absolute URLs, so this is referenced in
+ * several places below — keep it as the single spot a domain change touches.
+ * The card image itself also prints the domain: after changing this, re-render
+ * it with `node scripts/generate-og.mjs`.
+ */
+const SITE_URL = 'https://playground.hydrasdk.com'
+
+const SITE_DESCRIPTION =
+	'Build, inspect, sign and submit Cardano and Hydra transactions in the browser — with the matching TypeScript generated as you go.'
+
+const OG_IMAGE = `${SITE_URL}/images/og-image.png`
+const OG_IMAGE_ALT = 'Hydra SDK Playground — build Cardano and Hydra transactions in the browser'
+
 export default defineNuxtConfig({
 	compatibilityDate: '2025-07-15',
 	devtools: { enabled: true },
@@ -152,30 +166,37 @@ export default defineNuxtConfig({
 	app: {
 		head: {
 			title: 'Hydra SDK Playground',
+			// These have to live here, not in useSeoMeta: with `ssr: false` the
+			// prerendered HTML is a bare SPA shell, so only static head entries end
+			// up in the markup a social crawler sees (crawlers do not run JS).
+			// app.vue mirrors the same values for the in-browser experience.
 			meta: [
 				{ charset: 'utf-8' },
 				{ name: 'viewport', content: 'width=device-width, initial-scale=1' },
-				{
-					name: 'description',
-					content: 'Hydra SDK Playground - A playground for experimenting with Hydra SDK features and capabilities'
-				},
 				{ name: 'theme-color', content: '#00dc82' },
+				{ name: 'description', content: SITE_DESCRIPTION },
 
 				{ property: 'og:title', content: 'Hydra SDK Playground' },
-				{ property: 'og:description', content: 'Hydra SDK Playground' },
-				{ property: 'og:image', content: '/images/og-image.webp' },
-				{ property: 'og:url', content: 'https://play.hydrasdk.com' },
+				{ property: 'og:description', content: SITE_DESCRIPTION },
 				{ property: 'og:type', content: 'website' },
 				{ property: 'og:site_name', content: 'Hydra SDK Playground' },
 				{ property: 'og:locale', content: 'en_US' },
+				{ property: 'og:url', content: SITE_URL },
+				// Absolute: crawlers do not resolve relative image paths reliably.
+				{ property: 'og:image', content: OG_IMAGE },
+				{ property: 'og:image:width', content: '1200' },
+				{ property: 'og:image:height', content: '630' },
+				{ property: 'og:image:type', content: 'image/png' },
+				{ property: 'og:image:alt', content: OG_IMAGE_ALT },
 
-				{ name: 'twitter:card', content: 'summary' },
-				{ name: 'twitter:site', content: '@hydra-sdk' },
-				{ name: 'twitter:creator', content: '@hydra-sdk' },
+				// `summary` would crop the 1200×630 card down to a small square.
+				{ name: 'twitter:card', content: 'summary_large_image' },
+				{ name: 'twitter:site', content: '@VtechcomLabs' },
+				{ name: 'twitter:creator', content: '@VtechcomLabs' },
 				{ name: 'twitter:title', content: 'Hydra SDK Playground' },
-				{ name: 'twitter:description', content: 'Hydra SDK Playground' },
-				{ name: 'twitter:image', content: '/images/og-image.webp' },
-				{ name: 'twitter:url', content: 'https://play.hydrasdk.com' }
+				{ name: 'twitter:description', content: SITE_DESCRIPTION },
+				{ name: 'twitter:image', content: OG_IMAGE },
+				{ name: 'twitter:image:alt', content: OG_IMAGE_ALT }
 			],
 			link: [
 				{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
@@ -189,7 +210,7 @@ export default defineNuxtConfig({
 	// @nuxtjs/sitemap configuration
 	// @ts-ignore
 	site: {
-		url: 'https://play.hydrasdk.com', // URL gốc của site
+		url: SITE_URL, // URL gốc của site
 		siteName: 'Hydra SDK Playground'
 	},
 	// Nitro configuration for static generation

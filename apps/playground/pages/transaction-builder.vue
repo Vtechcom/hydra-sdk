@@ -3,10 +3,20 @@
 	import { decodeDraft } from '~/lib/share'
 	import { toast } from 'vue-sonner'
 
+	const TITLE = 'Transaction Builder — Hydra SDK Playground'
+	const DESCRIPTION =
+		'Build, inspect and submit Cardano and Hydra transactions with the Hydra SDK TxBuilder — with the matching TypeScript generated as you go.'
+
+	// Shared links to this route should carry its own copy; the card image and the
+	// rest of the social tags come from app.vue.
 	useSeoMeta({
-		title: 'Transaction Builder - Hydra Wallet SDK Playground',
-		description:
-			'Build, inspect and submit Cardano and Hydra transactions with the Hydra SDK TxBuilder — with the matching TypeScript generated as you go.'
+		title: TITLE,
+		description: DESCRIPTION,
+		ogTitle: TITLE,
+		ogDescription: DESCRIPTION,
+		ogUrl: 'https://playground.hydrasdk.com/transaction-builder',
+		twitterTitle: TITLE,
+		twitterDescription: DESCRIPTION
 	})
 
 	const uiStore = useUiStore()
