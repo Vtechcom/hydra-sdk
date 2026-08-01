@@ -1,14 +1,20 @@
 .scroll-bar-primary {
+	scrollbar-width: thin;
+	scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent) transparent;
+
 	&::-webkit-scrollbar {
-		width: 5px;
-		height: 2px;
+		width: 6px;
+		height: 6px;
 	}
 	&::-webkit-scrollbar-track {
 		background: transparent;
 	}
 	&::-webkit-scrollbar-thumb {
-		background: #bdbdbd;
+		background: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
 		border-radius: 20px;
+	}
+	&:hover::-webkit-scrollbar-thumb {
+		background: color-mix(in oklab, var(--color-primary-400) 60%, transparent);
 	}
 }
 .scroll-bar--autohidden {

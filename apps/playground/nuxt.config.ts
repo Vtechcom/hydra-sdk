@@ -48,7 +48,8 @@ export default defineNuxtConfig({
 		classSuffix: '',
 		storage: 'localStorage',
 		storageKey: 'color-mode',
-		fallback: 'light'
+		preference: 'system',
+		fallback: 'dark'
 	},
 
 	icon: {
@@ -57,10 +58,12 @@ export default defineNuxtConfig({
 		}
 	},
 
-	// Google Fonts
+	// Google Fonts — same pairing as apps/docs-v2 (Public Sans body, Space Grotesk
+	// display), plus JetBrains Mono which the playground needs for CBOR/hashes.
 	googleFonts: {
 		families: {
-			Inter: [400, 500, 600, 700, 800],
+			'Public Sans': [400, 500, 600, 700],
+			'Space Grotesk': [500, 600, 700],
 			'JetBrains Mono': [400, 500]
 		}
 	},
@@ -113,15 +116,19 @@ export default defineNuxtConfig({
 		prefix: '_',
 		upperAfterPrefix: false
 	},
+	// Element Plus is only used by the legacy pages (/, /hydra-tx-trace, the two
+	// test pages) — the transaction builder no longer touches it. Its theme is
+	// pointed at the brand green so those pages don't clash while they wait to be
+	// migrated off it.
 	elementPlus: {
 		importStyle: 'scss',
 		themeChalk: {
 			$colors: {
-				primary: { base: '#b13dff' }
+				primary: { base: '#007f45' }
 			},
 			dark: {
 				$colors: {
-					primary: { base: '#c78fff' }
+					primary: { base: '#00dc82' }
 				}
 			}
 		}
@@ -152,7 +159,7 @@ export default defineNuxtConfig({
 					name: 'description',
 					content: 'Hydra SDK Playground - A playground for experimenting with Hydra SDK features and capabilities'
 				},
-				{ name: 'theme-color', content: '#3b82f6' },
+				{ name: 'theme-color', content: '#00dc82' },
 
 				{ property: 'og:title', content: 'Hydra SDK Playground' },
 				{ property: 'og:description', content: 'Hydra SDK Playground' },
@@ -160,7 +167,7 @@ export default defineNuxtConfig({
 				{ property: 'og:url', content: 'https://play.hydrasdk.com' },
 				{ property: 'og:type', content: 'website' },
 				{ property: 'og:site_name', content: 'Hydra SDK Playground' },
-				{ property: 'og:locale', content: 'vi_VN' },
+				{ property: 'og:locale', content: 'en_US' },
 
 				{ name: 'twitter:card', content: 'summary' },
 				{ name: 'twitter:site', content: '@hydra-sdk' },
