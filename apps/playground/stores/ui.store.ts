@@ -1,106 +1,38 @@
 import { toast } from 'vue-sonner'
-import type { LayoutItem } from 'vue3-grid-layout-next/dist/helpers/utils'
+
+export interface WorkspaceLayout {
+	/** Percentage widths of the context / builder / result columns. */
+	columns: [number, number, number]
+}
+
+const DEFAULT_LAYOUT: WorkspaceLayout = { columns: [22, 40, 38] }
 
 export const useUiStore = defineStore('ui', () => {
-	const defaultLayout: LayoutItem[] = [
-		{
-			i: 'BaseWalletConfig',
-			x: 0,
-			y: 0,
-			w: 3,
-			h: 7,
-			minW: 1,
-			minH: 2,
-			maxW: 3,
-			maxH: 7,
-			isDraggable: true,
-			isResizable: false,
-			moved: false
-		},
-		{
-			i: 'BaseProviderConfig',
-			x: 3,
-			y: 0,
-			w: 3,
-			h: 7,
-			minH: 2,
-			minW: 2,
-			maxH: 7,
-			maxW: 3,
-			isDraggable: true,
-			isResizable: false,
-			moved: false
-		},
-		{
-			i: 'TxSigner',
-			x: 0,
-			y: 24,
-			w: 3,
-			h: 15,
-			minW: 3,
-			minH: 7,
-			static: false,
-			moved: false
-		},
-		{
-			i: 'UtxoManager',
-			x: 6,
-			y: 24,
-			w: 6,
-			h: 15,
-			minW: 6,
-			minH: 7,
-			static: false,
-			moved: false
-		},
-		{
-			i: 'TxBuilder',
-			x: 0,
-			y: 7,
-			w: 12,
-			h: 17,
-			static: false,
-			moved: false
-		},
-		{
-			i: 'TxSubmit',
-			x: 3,
-			y: 24,
-			w: 3,
-			h: 15,
-			static: false,
-			moved: false
-		}
-	] as const
-	const layout = useLocalStorage<LayoutItem[]>('layout.0.0.1', defaultLayout)
-	const draggable = ref(true)
-	const resizable = ref(true)
+	// New key: the previous value stored a vue3-grid-layout item list, which this
+	// workspace no longer understands. Bumping the key retires it cleanly instead
+	// of trying to migrate a layout model that no longer exists.
+	const layout = useLocalStorage<WorkspaceLayout>('hydra-playground.workspace.v1', DEFAULT_LAYOUT, { mergeDefaults: true })
+	const contextCollapsed = useLocalStorage('hydra-playground.context-collapsed', false)
+	// Closed until there is something to sign — the dock is a lot of vertical
+	// space to spend on an empty form (BottomDock opens it on a successful build).
+	const dockOpen = useLocalStorage('hydra-playground.dock-open', false)
 
-	const resetLayout = () => {
-		layout.value = defaultLayout
-		toast.success('Layout reset to default')
+	const setColumns = (sizes: number[]) => {
+		if (sizes.length === 3) layout.value.columns = [sizes[0], sizes[1], sizes[2]]
 	}
 
-	const getLayoutConfig = (key: string) => {
-		return layout.value.find(item => item.i === key)!
-	}
-
-	const setMinimized = (i: string, minimized: boolean) => {
-		const item = layout.value.find(item => item.i === i)
-		if (item) {
-			item.h = minimized ? item.minH || 1 : item.maxH || 4
-			item.w = minimized ? item.minW || 1 : item.maxW || 4
-		} else {
-			toast.error(`Item with key ${i} not found`)
-		}
+	const resetWorkspace = () => {
+		layout.value = { columns: [...DEFAULT_LAYOUT.columns] as [number, number, number] }
+		contextCollapsed.value = false
+		dockOpen.value = false
+		toast.success('Workspace layout reset')
 	}
 
 	return {
 		layout,
-		draggable,
-		resizable,
-		resetLayout,
-		getLayoutConfig,
-		setMinimized
+		contextCollapsed,
+		dockOpen,
+		setColumns,
+		resetWorkspace
 	}
 })

@@ -14,14 +14,10 @@
 		twitterCard: 'summary'
 	})
 
-	const colorMode = useColorMode()
-	onMounted(() => {
-		colorMode.preference = 'light'
-	})
 </script>
 
 <template>
-	<NuxtLoadingIndicator color="#a855f7" :height="2" />
+	<NuxtLoadingIndicator color="#00dc82" :height="2" />
 	<NuxtLayout>
 		<NuxtPage />
 	</NuxtLayout>

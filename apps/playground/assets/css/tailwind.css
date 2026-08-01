@@ -4,21 +4,26 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-	--font-sans: 'Inter', sans-serif;
+	--font-sans: 'Public Sans', sans-serif;
 	--font-mono: 'JetBrains Mono', monospace;
+	/* Geometric display face for headings and the brand wordmark — same pairing
+	   as the docs site (apps/docs-v2), so the two properties read as one family. */
+	--font-display: 'Space Grotesk', 'Public Sans', sans-serif;
 
-	/* Primary Colors */
-	--color-primary-50: #f5eeff;
-	--color-primary-100: #e8d6ff;
-	--color-primary-200: #d6b2ff;
-	--color-primary-300: #c78fff;
-	--color-primary-400: #bb6aff;
-	--color-primary-500: #b13dff;
-	--color-primary-600: #a300f2;
-	--color-primary-700: #8000c0;
-	--color-primary-800: #5a0089;
-	--color-primary-900: #340051;
-	--color-primary-950: #200034;
+	/* Primary Colors — the Hydra SDK brand green, identical to the scale used by
+	   apps/docs-v2. `primary` and `green` are deliberate aliases of one scale so
+	   CSS ported from the docs (aurora, .hcard glow) keeps working verbatim. */
+	--color-primary-50: #effdf5;
+	--color-primary-100: #d9fbe8;
+	--color-primary-200: #b3f5d1;
+	--color-primary-300: #75edae;
+	--color-primary-400: #00dc82;
+	--color-primary-500: #00c16a;
+	--color-primary-600: #00a155;
+	--color-primary-700: #007f45;
+	--color-primary-800: #016538;
+	--color-primary-900: #0a5331;
+	--color-primary-950: #052e16;
 
 	/* Secondary Colors */
 	--color-secondary-50: #e8f1ff;
@@ -33,18 +38,19 @@
 	--color-secondary-900: #001f35;
 	--color-secondary-950: #001222;
 
-	/* Green/Success Colors */
+	/* Brand green — alias of the primary scale (see above). */
 	--color-green-25: #f6fef9;
-	--color-green-50: #ecfdf3;
-	--color-green-100: #d1fadf;
-	--color-green-200: #a6f4c5;
-	--color-green-300: #6ce9a6;
-	--color-green-400: #32d583;
-	--color-green-500: #12b76a;
-	--color-green-600: #039855;
-	--color-green-700: #027a48;
-	--color-green-800: #05603a;
-	--color-green-900: #054f31;
+	--color-green-50: #effdf5;
+	--color-green-100: #d9fbe8;
+	--color-green-200: #b3f5d1;
+	--color-green-300: #75edae;
+	--color-green-400: #00dc82;
+	--color-green-500: #00c16a;
+	--color-green-600: #00a155;
+	--color-green-700: #007f45;
+	--color-green-800: #016538;
+	--color-green-900: #0a5331;
+	--color-green-950: #052e16;
 
 	--color-success-25: #f6fef9;
 	--color-success-50: #ecfdf3;
@@ -134,26 +140,52 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
+
+	/* Accordion open/close, driven by Reka's measured content height. */
+	--animate-accordion-down: accordion-down 0.2s ease-out;
+	--animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes accordion-down {
+	from {
+		height: 0;
+	}
+	to {
+		height: var(--reka-accordion-content-height);
+	}
+}
+
+@keyframes accordion-up {
+	from {
+		height: var(--reka-accordion-content-height);
+	}
+	to {
+		height: 0;
+	}
 }
 :root {
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.145 0 0);
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.145 0 0);
-	--primary: var(--color-primary-300);
-	--primary-foreground: var(--color-primary-900);
-	--secondary: var(--color-secondary-100);
-	--secondary-foreground: var(--color-secondary-800);
+	/* green-700 rather than the vivid green-400: `--primary` is used both as a
+	   button background (white label on top) and as body-size text colour in this
+	   app, and 700 is the lightest step that clears 4.5:1 in both directions. The
+	   vivid brand green stays for accents, glows and dark mode. */
+	--primary: var(--color-primary-700);
+	--primary-foreground: oklch(1 0 0);
+	--secondary: var(--color-primary-100);
+	--secondary-foreground: var(--color-primary-800);
 	--muted: oklch(0.97 0 0);
 	--muted-foreground: oklch(0.556 0 0);
 	--placeholder: oklch(0.8 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
+	--accent: var(--color-primary-50);
+	--accent-foreground: var(--color-primary-800);
 	--destructive: oklch(0.577 0.245 27.325);
-	--destructive-foreground: oklch(0.577 0.245 27.325);
-	--border: var(--color-secondary-100);
-	--input: var(--color-secondary-100);
-	--ring: oklch(0.708 0 0);
+	--destructive-foreground: oklch(1 0 0);
+	--border: oklch(0.922 0 0);
+	--input: oklch(0.922 0 0);
+	--ring: var(--color-primary-400);
 	--chart-1: oklch(0.646 0.222 41.116);
 	--chart-2: oklch(0.6 0.118 184.704);
 	--chart-3: oklch(0.398 0.07 227.392);
@@ -162,12 +194,12 @@
 	--radius: 0.625rem;
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: oklch(0.145 0 0);
-	--sidebar-primary: oklch(0.205 0 0);
+	--sidebar-primary: var(--color-primary-700);
 	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.97 0 0);
-	--sidebar-accent-foreground: oklch(0.205 0 0);
-	--sidebar-border: var(--color-secondary-100);
-	--sidebar-ring: oklch(0.708 0 0);
+	--sidebar-accent: var(--color-primary-50);
+	--sidebar-accent-foreground: var(--color-primary-800);
+	--sidebar-border: oklch(0.922 0 0);
+	--sidebar-ring: var(--color-primary-400);
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);
 }
@@ -175,37 +207,38 @@
 .dark {
 	--background: oklch(0.145 0 0);
 	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.145 0 0);
+	/* lifted off the page so cards read as surfaces on the near-black canvas */
+	--card: oklch(0.185 0 0);
 	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.145 0 0);
+	--popover: oklch(0.195 0 0);
 	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.985 0 0);
-	--primary-foreground: oklch(0.205 0 0);
-	--secondary: oklch(0.269 0 0);
-	--secondary-foreground: oklch(0.985 0 0);
+	--primary: var(--color-primary-400);
+	--primary-foreground: var(--color-primary-950);
+	--secondary: color-mix(in oklab, var(--color-primary-400) 14%, oklch(0.24 0 0));
+	--secondary-foreground: var(--color-primary-100);
 	--muted: oklch(0.269 0 0);
 	--muted-foreground: oklch(0.708 0 0);
 	--placeholder: oklch(0.269 0 0);
-	--accent: oklch(0.269 0 0);
-	--accent-foreground: oklch(0.985 0 0);
-	--destructive: oklch(0.396 0.141 25.723);
-	--destructive-foreground: oklch(0.637 0.237 25.331);
-	--border: oklch(0.269 0 0);
-	--input: oklch(0.269 0 0);
-	--ring: oklch(0.439 0 0);
+	--accent: color-mix(in oklab, var(--color-primary-400) 10%, oklch(0.26 0 0));
+	--accent-foreground: var(--color-primary-100);
+	--destructive: oklch(0.55 0.19 25.5);
+	--destructive-foreground: oklch(0.985 0 0);
+	--border: oklch(0.279 0 0);
+	--input: oklch(0.279 0 0);
+	--ring: var(--color-primary-500);
 	--chart-1: oklch(0.488 0.243 264.376);
 	--chart-2: oklch(0.696 0.17 162.48);
 	--chart-3: oklch(0.769 0.188 70.08);
 	--chart-4: oklch(0.627 0.265 303.9);
 	--chart-5: oklch(0.645 0.246 16.439);
-	--sidebar: oklch(0.205 0 0);
+	--sidebar: oklch(0.185 0 0);
 	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.269 0 0);
-	--sidebar-accent-foreground: oklch(0.985 0 0);
-	--sidebar-border: oklch(0.269 0 0);
-	--sidebar-ring: oklch(0.439 0 0);
+	--sidebar-primary: var(--color-primary-400);
+	--sidebar-primary-foreground: var(--color-primary-950);
+	--sidebar-accent: color-mix(in oklab, var(--color-primary-400) 10%, oklch(0.26 0 0));
+	--sidebar-accent-foreground: var(--color-primary-100);
+	--sidebar-border: oklch(0.279 0 0);
+	--sidebar-ring: var(--color-primary-500);
 }
 
 @layer base {
@@ -215,13 +248,66 @@
 	body {
 		@apply bg-background text-foreground font-sans;
 	}
+	/* Headings wear the display face with tight tracking — same rule as the docs
+	   site, so a heading looks identical across both properties. */
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-family: var(--font-display);
+		letter-spacing: -0.02em;
+	}
 }
 
-@layer base {
-	* {
-		@apply border-border outline-ring/50;
+/* ------------------------------------------------------------------ *
+ * Brand surface system — ported from apps/docs-v2 so the playground and
+ * the docs read as one product. The aurora is deliberately STATIC here:
+ * the docs let it breathe on a 14s loop, but this is a workspace people
+ * type CBOR into, and ambient motion behind a form is a distraction.
+ * ------------------------------------------------------------------ */
+body {
+	background-image: radial-gradient(120% 60% at 50% -10%, color-mix(in oklab, var(--color-primary-400) 8%, transparent), transparent 58%);
+	background-attachment: fixed;
+}
+
+.dark body {
+	background-image: radial-gradient(
+		130% 70% at 50% -12%,
+		color-mix(in oklab, var(--color-primary-400) 18%, transparent) 0%,
+		color-mix(in oklab, var(--color-primary-400) 6%, transparent) 30%,
+		transparent 60%
+	);
+}
+
+/* Small display-face label that gives each panel a header rhythm. */
+.eyebrow {
+	display: inline-block;
+	font-family: var(--font-display);
+	font-size: 0.6875rem;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted-foreground);
+}
+
+/* Shared hover behaviour for interactive cards: lift + brand glow. */
+.hcard {
+	transition:
+		transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+		border-color 0.35s ease,
+		box-shadow 0.35s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.hcard:hover {
+		transform: translateY(-2px);
 	}
-	body {
-		@apply bg-background text-foreground;
-	}
+}
+
+.hcard:hover {
+	border-color: color-mix(in oklab, var(--color-primary-400) 45%, transparent);
+	box-shadow:
+		0 14px 44px -20px color-mix(in oklab, var(--color-primary-400) 70%, transparent),
+		inset 0 1px 0 0 color-mix(in oklab, var(--color-primary-400) 12%, transparent);
 }

@@ -1,6 +1,4 @@
-import { NETWORK_ID, NETWORK_MAGIC, ProviderUtils, type UTxO } from '@hydra-sdk/core'
-import { useForm } from 'vee-validate'
-import { toast } from 'vue-sonner'
+import { NETWORK_ID, NETWORK_MAGIC } from '@hydra-sdk/core'
 
 export const useMainStore = defineStore('main', () => {
 	const networks = ref([
@@ -8,35 +6,16 @@ export const useMainStore = defineStore('main', () => {
 		{ name: 'PREPROD', label: 'Preprod', networkId: NETWORK_ID.PREPROD, networkMagic: NETWORK_MAGIC.PREPROD },
 		{ name: 'PREVIEW', label: 'Preview', networkId: NETWORK_ID.PREVIEW, networkMagic: NETWORK_MAGIC.PREVIEW }
 	])
-	const network = useLocalStorage<'MAINNET' | 'PREPROD' | 'PREVIEW'>('network', 'MAINNET')
+	const network = useLocalStorage<'MAINNET' | 'PREPROD' | 'PREVIEW'>('network', 'PREPROD')
 	const networkInfo = computed(() => networks.value.find(n => n.name === network.value)!)
-	// Wallet
-	const walletPrvKeyHex = useSessionStorage<string>('rootKey', '')
 
-	// Tx builder
-	const inputUTxOs = shallowRef<UTxO[]>([])
-	const addUTxOToInput = (utxo: UTxO) => {
-		if (
-			inputUTxOs.value.find(u => u.input.txHash === utxo.input.txHash && u.input.outputIndex === utxo.input.outputIndex)
-		) {
-			toast.warning('UTxO already exists in inputs.')
-			return
-		}
-		inputUTxOs.value = [...inputUTxOs.value, utxo]
-		triggerRef(inputUTxOs)
-		toast.success('UTxO added to inputs.')
-	}
+	// Session-scoped on purpose: a playground key should not outlive the tab.
+	const walletPrvKeyHex = useSessionStorage<string>('rootKey', '')
 
 	return {
 		network,
 		networkInfo,
 		networks,
-
-		// Wallet
-		walletPrvKeyHex,
-
-		// Tx builder
-		inputUTxOs,
-		addUTxOToInput
+		walletPrvKeyHex
 	}
 })

@@ -6,103 +6,58 @@
 		containerClass?: string
 	}>()
 
-	const uiStore = useUiStore()
+	// Same set of destinations as the docs header (apps/docs-v2/app/app.config.ts)
+	// so the two properties feel like one product.
+	const socialLinks = [
+		{ icon: 'simple-icons:github', to: 'https://github.com/Vtechcom/hydra-sdk', label: 'Hydra SDK on GitHub' },
+		{ icon: 'simple-icons:discord', to: 'https://discord.com/invite/eZKRyQnbea', label: 'Hydra SDK on Discord' },
+		{ icon: 'simple-icons:x', to: 'https://x.com/VtechcomLabs', label: 'Vtechcom Labs on X' }
+	]
 </script>
 
 <template>
-	<header class="sticky top-0 z-50 border-b border-gray-200 bg-white-50 backdrop-blur-sm dark:border-gray-800 dark:bg-black-900 dark:bg-gray-900/80">
+	<header class="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
 		<div class="mx-auto px-4" :class="props.containerClass">
-			<div class="flex h-16 items-center justify-between">
-				<!-- Logo and Title -->
-				<div class="flex items-center space-x-4">
-					<!-- Mobile Sidebar -->
+			<div class="flex h-14 items-center gap-4">
+				<!-- Brand -->
+				<NuxtLink :to="'/'" class="group/brand flex shrink-0 items-center gap-2.5">
+					<img src="/logo-sdk.png" alt="Hydra SDK" class="size-8 shrink-0 transition-transform duration-300 ease-out group-hover/brand:scale-110" >
+					<span class="hidden flex-col gap-0.5 sm:flex">
+						<span class="font-display text-base font-bold leading-none tracking-tight">Hydra SDK</span>
+						<span class="text-[10px] font-medium uppercase leading-none tracking-[0.14em] text-muted-foreground">Playground v{{ version }}</span>
+					</span>
+				</NuxtLink>
 
-					<NuxtLink :to="'/'" class="group flex items-center space-x-3">
-						<img src="/logo-sdk.png" alt="SDK Logo" srcset="/logo-sdk.png" class="size-10" />
-						<div class="hidden sm:block">
-							<h1 class="text-lg font-semibold text-gray-600 transition-colors group-hover:text-blue-600 dark:text-gray-300 dark:group-hover:text-blue-400">Hydra SDK</h1>
-							<p class="-mt-0.5 text-xs text-gray-600 dark:text-gray-300">Playground v{{ version }}</p>
-						</div>
-					</NuxtLink>
-				</div>
+				<div class="flex-1" />
 
-				<!-- Navigation -->
-				<!-- <nav class="hidden items-center space-x-6 md:flex">
-					<NuxtLink
-						v-for="item in navigation"
-						:key="item.to"
-						:to="item.to"
-						class="text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-					>
-						{{ item.label }}
-					</NuxtLink>
-				</nav> -->
+				<BaseNetworkSwitch class="w-[150px]" />
 
-				<div class="">
-					<!-- Network Switcher -->
-					<BaseNetworkSwitch />
-				</div>
+				<Separator orientation="vertical" class="h-6" />
 
-				<!-- Right side actions -->
-				<div class="flex items-center space-x-4">
-					<!-- Search -->
-					<!-- <UiDialogSearch v-model:open="openDialogSearch"> </UiDialogSearch> -->
-
-					<Button @click="uiStore.resetLayout()" type="default" size="sm" variant="outline">
-						<Icon name="mdi:card-remove-outline" size="16" class="mr-1" />
-						Reset layout
+				<div class="flex items-center gap-1">
+					<Button as-child variant="ghost" size="sm" class="hidden h-8 md:inline-flex">
+						<NuxtLink to="https://hydrasdk.com" target="_blank">
+							<Icon name="lucide:book-open" size="16" />
+							<span>Docs</span>
+						</NuxtLink>
 					</Button>
 
-					<!-- GitHub Link -->
-					<NuxtLink class="flex" target="_blank" to="https://github.com/Vtechcom/hydra-sdk">
-						<Icon name="mdi:github" size="24" />
-					</NuxtLink>
+					<BaseColorModeToggle />
 
-					<!-- Theme Toggle -->
-					<!-- <UiColorModeButton /> -->
-
-					<!-- Mobile Menu -->
-					<!-- <UButton icon="i-heroicons-bars-3" variant="ghost" size="sm" class="md:hidden" color="secondary" @click="mobileMenuOpen = !mobileMenuOpen" /> -->
+					<Button
+						v-for="link in socialLinks"
+						:key="link.to"
+						as-child
+						variant="ghost"
+						size="sm"
+						class="size-8 p-0"
+					>
+						<NuxtLink :to="link.to" target="_blank" :aria-label="link.label">
+							<Icon :name="link.icon" size="17" />
+						</NuxtLink>
+					</Button>
 				</div>
 			</div>
-
-			<!-- Mobile Navigation -->
-			<!-- <transition name="slide-fade">
-				<div v-if="mobileMenuOpen" class="animate__animated animate__slideInDown border-t border-gray-200 py-4 md:hidden dark:border-gray-700">
-					<nav class="flex flex-col space-y-2">
-						<NuxtLink
-							v-for="item in navigation"
-							:key="item.to"
-							:to="item.to"
-							class="rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-blue-400"
-							@click="mobileMenuOpen = false"
-						>
-							{{ item.label }}
-						</NuxtLink>
-					</nav>
-				</div>
-			</transition> -->
 		</div>
 	</header>
 </template>
-
-<style lang="scss" scoped>
-	.slide-fade-enter-active {
-		@apply transition-all duration-300 ease-out;
-	}
-	.slide-fade-leave-active {
-		@apply transition-all duration-200 ease-in;
-	}
-	.slide-fade-enter-from {
-		@apply -translate-y-2 opacity-0;
-	}
-	.slide-fade-enter-to {
-		@apply translate-y-0 opacity-100;
-	}
-	.slide-fade-leave-from {
-		@apply translate-y-0 opacity-100;
-	}
-	.slide-fade-leave-to {
-		@apply -translate-y-2 opacity-0;
-	}
-</style>
