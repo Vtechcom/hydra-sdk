@@ -49,6 +49,8 @@
 		"@hydra-sdk/eslint-config": "workspace:*",
 		"@hydra-sdk/tsconfig": "workspace:*",
 		"@element-plus/nuxt": "^1.1.4",
+		"@nuxt/eslint": "1.4.1",
+		"@vueuse/nuxt": "13.3.0",
 		"@iconify-json/ic": "^1.2.4",
 		"@iconify-json/lucide": "^1.2.62",
 		"@iconify-json/mdi": "^1.2.3",

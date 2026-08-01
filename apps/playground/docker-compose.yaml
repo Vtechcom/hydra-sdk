@@ -1,0 +1,48 @@
+# Hydra SDK Playground — static build served by nginx.
+#
+#   docker compose up --build          # build the image and serve on :3010
+#   docker compose --profile local up  # serve an existing .output/public, no image build
+#
+# The build context is the monorepo root because the app depends on @hydra-sdk/*
+# through pnpm workspace links; running these commands from apps/playground is
+# fine, compose resolves the context itself.
+
+name: hydra-sdk-playground
+
+services:
+  playground:
+    build:
+      context: ../..
+      dockerfile: apps/playground/Dockerfile
+      args:
+        # Baked into the bundle at build time — a static site has no server left
+        # to read env at runtime. Leave empty and analytics stays off.
+        NUXT_PUBLIC_GTAG_ID: ${NUXT_PUBLIC_GTAG_ID:-}
+    image: hydra-sdk-playground:local
+    container_name: hydra-sdk-playground
+    ports:
+      # 3000/3001 are where Nuxt dev servers usually land; pick a lane that does
+      # not collide with one you already have running.
+      - '${PLAYGROUND_PORT:-3010}:80'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Serves a build you already produced on the host (`pnpm generate`), so you can
+  # iterate on the nginx config or preview a build without rebuilding the image.
+  local:
+    profiles: ['local']
+    image: nginx:1.27-alpine
+    container_name: hydra-sdk-playground-local
+    volumes:
+      - ./.output/public:/usr/share/nginx/html:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      # Its own port so it can run alongside `playground` — sharing one port just
+      # leaves the second container up with nothing published.
+      - '${PLAYGROUND_LOCAL_PORT:-3011}:80'
+    restart: unless-stopped

@@ -1,75 +1,74 @@
-# Nuxt Minimal Starter
+# Hydra SDK Playground
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Interactive playground for `@hydra-sdk/*` — build, inspect, sign and submit Cardano and Hydra
+transactions in the browser, with the equivalent TypeScript generated as you go.
 
-## Setup
+The app is client-only (`ssr: false`) and prerenders to a static site, so it can be served by any
+static host.
 
-Make sure to install dependencies:
+## Development
+
+Run from the monorepo root so the workspace packages are built first:
 
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+pnpm dev:playground        # http://localhost:3000
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Or from this directory, once `pnpm install` has run at the root:
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
 pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
-
-Build the application for production:
+## Production build
 
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+# from the monorepo root
+pnpm playground:generate   # → apps/playground/.output/public
 ```
 
-Locally preview production build:
+`playground:generate` runs `set:prod` first, which points the `@hydra-sdk/*` package `exports` at
+`dist` instead of `src`.
+
+## Docker
+
+The build context is the **monorepo root** — the app resolves `@hydra-sdk/*` through pnpm workspace
+links, so it cannot be built from this directory alone. Compose already handles that:
 
 ```bash
-# npm
-npm run preview
+# from apps/playground
+docker compose up --build           # build the image, serve on http://localhost:3010
 
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+docker compose --profile local up   # serve an existing .output/public on :3011, no image build
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Or without compose:
+
+```bash
+# from the monorepo root
+docker build -f apps/playground/Dockerfile -t hydra-sdk-playground .
+docker run --rm -p 3010:80 hydra-sdk-playground
+```
+
+The final image is nginx over the prerendered output — no Node.js at runtime.
+
+### Configuration
+
+| Variable | Where | Notes |
+| --- | --- | --- |
+| `PLAYGROUND_PORT` | compose, runtime | Host port for the built image. Default `3010`. |
+| `PLAYGROUND_LOCAL_PORT` | compose, runtime | Host port for the `local` profile. Default `3011`. |
+| `NUXT_PUBLIC_GTAG_ID` | **build time** | Compiled into the bundle — a static site has no server to read env at runtime. Leave empty and analytics stays off. |
+
+Both are read from `apps/playground/.env` if present (see `.env.example`).
+
+```bash
+NUXT_PUBLIC_GTAG_ID=G-XXXX docker compose up --build
+```
+
+### nginx
+
+`docker/nginx.conf` covers the two things a Cardano SPA needs beyond static file serving:
+
+- `.wasm` is served as `application/wasm`, which `WebAssembly.instantiateStreaming` requires.
+- unresolved routes fall back to `200.html`, since the app is client-rendered.

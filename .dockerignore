@@ -1,0 +1,46 @@
+# Build context for apps/playground is the monorepo root (the app is wired to
+# @hydra-sdk/* through pnpm workspace links). Keep the context to sources only —
+# host node_modules in particular must never be copied in: they carry
+# platform-specific binaries built for the host, not for the image.
+
+**/node_modules
+**/.pnpm-store
+
+# Build outputs
+**/.nuxt
+**/.nitro
+**/.output
+**/.turbo
+**/.vercel
+**/dist
+**/.data
+**/.cache
+
+# VCS / tooling
+.git
+.github
+.changeset
+.vscode
+.idea
+**/.DS_Store
+
+# Local env — .env.example stays so the image documents what it expects
+**/.env
+**/.env.*
+!**/.env.example
+
+# Not needed to build the playground. Note that apps/docs and apps/docs-v2 are
+# NOT excluded: they are pnpm workspace members, and --frozen-lockfile checks
+# every manifest the lockfile knows about. They are simply not installed (see
+# the --filter in the Dockerfile).
+demo
+infra
+docs
+_bmad
+_bmad-output
+sdk-ai-agent
+scripts
+tmp
+**/coverage
+**/*.log
+**/.playwright-mcp
