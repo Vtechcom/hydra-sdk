@@ -32,7 +32,8 @@ pnpm format
 
 # Dev servers
 pnpm dev:playground    # Nuxt playground app
-pnpm dev:docs          # Docs site
+pnpm dev:docs-v2       # Docs site (current)
+pnpm dev:docs          # Docs site v1 — DEPRECATED, see below
 pnpm dev:nodejs        # Node.js playground
 ```
 
@@ -59,7 +60,8 @@ packages/
 apps/
   playground/            # Nuxt 3 + Vue 3 interactive demo
   nodejs-playground/     # Node.js integration tests (Jest)
-  docs/                  # Nuxt Content docs site (EN/VI/JA)
+  docs-v2/               # Nuxt 4 + Nuxt UI docs site (EN) — the live docs, hydrasdk.com
+  docs/                  # DEPRECATED Nuxt Content docs site (EN/VI/JA) — superseded by docs-v2
 ```
 
 ### Dependency chain
@@ -93,13 +95,17 @@ Selects the correct build of `@emurgo/cardano-serialization-lib` via package.jso
 
 Each SDK package uses `tsup` to emit ESM + CJS. `turbo run build` respects the `^build` dependency so packages build in order. Test aliases in `vitest.config.ts` point directly to `src/` to skip the build step during testing.
 
-## Documentation Rules (from `.github/copilot-instructions.md`)
+## Documentation Rules
 
-- Keep English (`docs/content/**/**.md`), Vietnamese (`docs/content/vi/**/**.md`), and Japanese (`docs/content/ja/**/**.md`) docs in sync.
-- Translate guides/tutorials only; keep code, variables, keywords, and glossary terms (`migration`, `wasm`, `utilities`, `Hydra Head`, `UTxO`, `Plutus`, `CBOR`) in English.
-- Glossary terms live in `apps/docs/i18n/locales/en.json`, `vi.json`, `ja.json`. Add new terms to all three files.
+`apps/docs-v2` is the documentation. Write there.
+
+- Content lives in `apps/docs-v2/content/en/**` and is **English only** — the site is not translated, so there is nothing to keep in sync.
+- Release notes go in `apps/docs-v2/content/en/5.resources/1.changelog.md`, newest entry first, and the `(Latest)` marker moves to it.
 - Check available API functions in `sdk-ai-agent/sdk-api-metadata.json` before adding docs.
-- Do not capitalize all words in Vietnamese titles.
+
+### `apps/docs` is deprecated
+
+The v1 site (Nuxt Content, EN/VI/JA) is superseded by `docs-v2` and is kept only for reference and for its URLs. **Do not add or update content there** — a change made in `apps/docs` will not reach readers, and mirroring an edit into both sites just creates two versions of the truth. Its old rules (keep EN/VI/JA in sync, translate guides only, glossary terms in `apps/docs/i18n/locales/*.json`, no all-caps Vietnamese titles) apply only if you are explicitly asked to touch that site.
 
 ## Code Style
 
