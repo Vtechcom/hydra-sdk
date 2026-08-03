@@ -1,5 +1,12 @@
 # @hydra-sdk/bridge
 
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/core@1.4.2
+
 ## 2.0.0
 
 ### Major Changes
