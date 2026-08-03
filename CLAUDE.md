@@ -95,6 +95,14 @@ Selects the correct build of `@emurgo/cardano-serialization-lib` via package.jso
 
 Each SDK package uses `tsup` to emit ESM + CJS. `turbo run build` respects the `^build` dependency so packages build in order. Test aliases in `vitest.config.ts` point directly to `src/` to skip the build step during testing.
 
+## Deployment
+
+`hydrasdk.com` (`apps/docs-v2`) and `playground.hydrasdk.com` (`apps/playground`) already have CI/CD — **merging into `master` deploys both sites**. There is no manual build or upload step.
+
+- The pipelines live outside the repo. `.github/workflows` holds no deploy workflow; its three workflows only build and test. What the repo does carry is the config those pipelines read: `apps/docs-v2/vercel.json` for the docs, and `apps/playground/Dockerfile` + `docker/nginx.conf` for the playground.
+- So getting an SDK change onto the playground is just a merge — do **not** commit `apps/playground/.output`. It is a build artifact, not source.
+- Publishing to npm is the exception: it stays a separate manual step (`changeset publish`) and does not ride along with a merge.
+
 ## Documentation Rules
 
 `apps/docs-v2` is the documentation. Write there.
