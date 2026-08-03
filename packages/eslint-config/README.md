@@ -1,6 +1,6 @@
 # @hydra-sdk/eslint-config
 
-Shared ESLint config for Hydra SDK: Airbnb + TS + Prettier. **See [docs/master-index.md](../docs/master-index.md)**.
+Shared ESLint config for the Hydra SDK monorepo: Airbnb + TypeScript + Prettier.
 
 ## Usage
 
@@ -14,6 +14,6 @@ pnpm add -D @hydra-sdk/eslint-config
 }
 ```
 
-**Docs:** [hydrasdk.com/docs](https://hydrasdk.com/docs)
+**Docs:** [hydrasdk.com](https://hydrasdk.com)
 
 Apache 2.0. [Repo](https://github.com/Vtechcom/hydra-sdk)
