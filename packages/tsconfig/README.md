@@ -14,6 +14,6 @@ pnpm add -D @hydra-sdk/tsconfig
 }
 ```
 
-**Docs:** [docs/master-index.md](../docs/master-index.md) | [hydrasdk.com/docs](https://hydrasdk.com/docs)
+**Docs:** [hydrasdk.com](https://hydrasdk.com)
 
 Apache 2.0. [Repo](https://github.com/Vtechcom/hydra-sdk)

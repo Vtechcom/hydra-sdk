@@ -1,3 +1,14 @@
+> [!WARNING]
+> **Deprecated — superseded by [`apps/docs-v2`](../docs-v2).**
+>
+> This is the v1 documentation site (Nuxt Content, EN/VI/JA). It is no longer the
+> published documentation and receives no new content. Anything written here will
+> not reach readers.
+>
+> Write documentation in `apps/docs-v2/content/en/**` instead (`pnpm dev:docs-v2`).
+> This app is kept for reference and for its existing URLs only; treat it as frozen
+> unless you are deliberately working on the v1 site.
+
 # Documentation Content Structure
 
 This shows the complete content structure for the documentation site.

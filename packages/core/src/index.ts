@@ -1,3 +1,5 @@
+import type { CardanoWASM } from '@hydra-sdk/cardano-wasm'
+
 export * from './embedded'
 export * from './wallet'
 export * from './cardanocli-wallet'
@@ -17,7 +19,7 @@ import * as Deserializer from './utils/cardano-wasm/deserializer'
 import * as Resolver from './utils/cardano-wasm/resolver'
 import * as Converter from './utils/cardano-wasm/converter'
 import * as BuildKeys from './utils/cardano-wasm/build-keys'
-import * as CostModels from './utils/cost-models'
+import * as CostModelsImpl from './utils/cost-models'
 import * as TimeUtils from './utils/time'
 import * as DatumUtils from './utils/datum'
 import * as PolicyUtils from './utils/policy'
@@ -31,6 +33,22 @@ import * as KeysUtils from './utils/keys.util'
 import * as PlutusUtils from './utils/plutus-script.util'
 import * as AddressUtils from './utils/address'
 import * as RedeemerUtils from './utils/redeemer'
+
+/**
+ * Mirrors the `cost-models` module, except that `defaultCostModels` is a getter
+ * rather than a module-level constant: building it eagerly would run WASM while
+ * `@hydra-sdk/core` is still being imported, which races the bundler's async
+ * WASM instantiation. Consumers keep using `CostModels.defaultCostModels`.
+ */
+const CostModels: {
+	buildCostModels: typeof CostModelsImpl.buildCostModels
+	readonly defaultCostModels: CardanoWASM.Costmdls
+} = {
+	buildCostModels: CostModelsImpl.buildCostModels,
+	get defaultCostModels() {
+		return CostModelsImpl.getDefaultCostModels()
+	}
+}
 
 export {
 	// CardanoWASM Utilities

@@ -1,5 +1,12 @@
 # @hydra-sdk/transaction
 
+## 1.2.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @hydra-sdk/core@1.4.2
+
 ## 1.2.1
 
 ### Patch Changes

@@ -1,63 +1,86 @@
 # @hydra-sdk/cardano-wasm
 
-Cardano WASM bindings: Auto browser/node detection. **See [docs/master-index.md](../docs/master-index.md)**.
+The `@emurgo/cardano-serialization-lib` bindings every Hydra SDK package imports through, with the right build picked for your target.
 
-## Features
+[![npm](https://img.shields.io/npm/v/@hydra-sdk/cardano-wasm)](https://npmjs.com/package/@hydra-sdk/cardano-wasm)
 
-- **Automatic Environment Detection**: Automatically uses the browser version (`@emurgo/cardano-serialization-lib-browser`) when bundled for browsers and the Node.js version (`@emurgo/cardano-serialization-lib-nodejs`) when run in Node.js environments.
-- **TypeScript Support**: Full TypeScript support with proper type definitions for both environments.
-- **Multiple Module Formats**: Supports both CommonJS and ES modules.
+## 🎮 Try it first
 
-## Installation
+The [**Hydra SDK Playground**](https://playground.hydrasdk.com/transaction-builder) runs these bindings in a real browser bundle — useful as a working reference for the bundler setup below.
+
+## 🚀 Quick Start
 
 ```bash
-npm install @hydra-sdk/cardano-wasm
-# or
 pnpm add @hydra-sdk/cardano-wasm
 ```
-
-## Usage
 
 ```typescript
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 
-// CardanoWASM will automatically be the browser or Node.js version
-// depending on your environment
 const address = CardanoWASM.Address.from_bech32('addr1...')
+const value = CardanoWASM.Value.new(CardanoWASM.BigNum.from_str('2000000'))
 ```
 
-## How it Works
+Keep this package a **direct dependency** even when you only use `@hydra-sdk/core`, `@hydra-sdk/bridge` or `@hydra-sdk/transaction` — your bundler has to see it to configure WASM handling.
 
-This package uses Node.js conditional exports to provide different entry points:
+## 📦 How the build is selected
 
-- **Browser environments**: Uses `@emurgo/cardano-serialization-lib-browser`
-- **Node.js environments**: Uses `@emurgo/cardano-serialization-lib-nodejs`
-- **Default fallback**: Uses the browser version
+Selection happens at **resolution time** through `exports` conditions, not at runtime:
 
-The selection happens automatically based on your bundler's environment detection or Node.js's module resolution.
+| Condition | Resolves to |
+| --- | --- |
+| `browser` | `@emurgo/cardano-serialization-lib-browser` (WASM) |
+| `node` | `@emurgo/cardano-serialization-lib-nodejs` |
+| default | the browser build |
 
-## Development
+Your bundler or the Node.js resolver picks the condition — there is no environment sniffing in the package.
+
+### asm.js fallback
+
+For targets without WebAssembly, import the opt-in subpath:
+
+```typescript
+import { CardanoWASM } from '@hydra-sdk/cardano-wasm/asmjs'
+```
+
+It is significantly slower and much larger; use it only where WASM is genuinely unavailable.
+
+## 🛠️ Bundler setup
+
+WASM needs a little configuration in the browser. With Vite:
+
+```typescript
+import wasm from 'vite-plugin-wasm'
+import topLevelAwait from 'vite-plugin-top-level-await'
+
+export default defineConfig({
+  plugins: [wasm(), topLevelAwait()],
+  optimizeDeps: { exclude: ['@hydra-sdk/cardano-wasm'] }
+})
+```
+
+The WASM module is instantiated **asynchronously**, so never call into `CardanoWASM` at module-evaluation time — do it inside a function or after your app has started. See the [Configuration Guide](https://hydrasdk.com/getting-started/configuration) for Next.js, Webpack and Node.js setups.
+
+## 🔨 Development
 
 ```bash
-# Build the package
-pnpm build
-
-# Run tests
+pnpm build   # emit all variants
+pnpm dev     # watch mode
 pnpm test
-
-# Development with watch mode
-pnpm dev
 ```
 
-## Build Output
+Build output:
 
-The build process generates multiple files:
+- `dist/index.js` / `index.mjs` — browser build (CJS / ESM)
+- `dist/index.node.js` / `index.node.mjs` — Node.js build (CJS / ESM)
+- `dist/index.asmjs.js` / `index.asmjs.mjs` — asm.js fallback (CJS / ESM)
+- matching `.d.ts` / `.d.mts` declarations for each
 
-- `dist/index.js` / `dist/index.mjs` - Browser version (CommonJS/ESM)
-- `dist/index.node.js` / `dist/index.node.mjs` - Node.js version (CommonJS/ESM)
-- `dist/index.d.ts` / `dist/index.node.d.ts` - TypeScript declarations
+## 📚 Documentation
 
-## Docs
-[hydrasdk.com/docs](https://hydrasdk.com/docs) | [Technical](../docs/technical/bmm-index.md)
+- [API reference](https://hydrasdk.com/api/cardano-wasm) · [Configuration](https://hydrasdk.com/getting-started/configuration)
+- [Changelog](https://hydrasdk.com/resources/changelog)
 
-Apache 2.0. [Repo](https://github.com/Vtechcom/hydra-sdk)
+## License
+
+Apache 2.0. [Repo](https://github.com/Vtechcom/hydra-sdk) | [Issues](https://github.com/Vtechcom/hydra-sdk/issues)

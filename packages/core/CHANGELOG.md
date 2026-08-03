@@ -1,5 +1,15 @@
 # @hydra-sdk/core
 
+## 1.4.2
+
+### Patch Changes
+
+- Stop running WASM while `@hydra-sdk/core` is being imported.
+
+  `NETWORK_ID`, `NETWORK_MAGIC`, `PLACEHOLDER_ADDRESS` and `defaultCostModels` were all computed at module-evaluation time from `CardanoWASM`. Bundlers instantiate the WASM module asynchronously, so in a browser build the import of `@hydra-sdk/core` could win that race and throw `Cannot read properties of undefined (reading 'networkinfo_mainnet')` — enough to take down the whole app during startup, since the failure happened before any of it rendered.
+
+  The network constants are now written out as the literals the protocol fixes them at (a test asserts they stay in sync with `CardanoWASM.NetworkInfo`), and `CostModels.defaultCostModels` builds its singleton on first access instead of on import. `CostModels.defaultCostModels` and `CostModels.buildCostModels` are unchanged for callers.
+
 ## 1.4.1
 
 ### Patch Changes

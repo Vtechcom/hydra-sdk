@@ -1,6 +1,6 @@
 # @hydra-sdk/bridge
 
-Hydra L2 bridge: Head lifecycle, real-time tx, UTxO mgmt. **See [docs/master-index.md](../docs/master-index.md)**.
+Talk to a `hydra-node`: head lifecycle, real-time events, snapshot UTxOs and L2 transaction submission.
 
 [![npm](https://img.shields.io/npm/v/@hydra-sdk/bridge)](https://npmjs.com/package/@hydra-sdk/bridge)
 
@@ -16,40 +16,45 @@ versions move independently.
 
 `2.0.0` targets the **v2 protocol**, which removed the commit phase (ADR-33).
 Upgrading from `1.x` is a breaking change — see
-[MIGRATION-v2.md](./MIGRATION-v2.md).
+[MIGRATION-v2.md](https://github.com/Vtechcom/hydra-sdk/blob/master/packages/hydra-bridge/MIGRATION-v2.md).
+
+## 🎮 Try it first
+
+The [**Hydra SDK Playground**](https://playground.hydrasdk.com) builds and inspects Hydra transactions in the browser — switch the [transaction builder](https://playground.hydrasdk.com/transaction-builder) into Hydra mode to see how an L2 transaction differs from an L1 one. When a head rejects a transaction, [Hydra Message Trace](https://playground.hydrasdk.com/hydra-tx-trace) decodes the node's `validationError` into something readable.
 
 ## 🚀 Quick Start
 
 ```bash
-pnpm add @hydra-sdk/bridge
+pnpm add @hydra-sdk/bridge @hydra-sdk/cardano-wasm
 ```
 
 ```typescript
-import { HydraBridge, HexcoreConnector } from '@hydra-sdk/bridge'
+import { HydraBridge } from '@hydra-sdk/bridge'
 
-const connector = new HexcoreConnector({ socketIoUrl: 'wss://your-hydra-api.com/hydra' })
-const bridge = new HydraBridge({ connector })
-bridge.connect()
+const bridge = new HydraBridge({ url: 'ws://localhost:4001', verbose: true })
+await bridge.connect()
+
+const info = await bridge.headInfo()
+const utxos = bridge.snapshotUtxoArray()
 ```
+
+`url` accepts `ws://`, `wss://`, `http://`, `https://`, and gateway URLs carrying `?X-Api-Key=…`. For Socket.IO endpoints with JWT auth, pass a `HexcoreConnector` as `connector` instead — see the [API reference](https://hydrasdk.com/api/bridge#connectors).
 
 ## ✨ Key Features
 
-- 🔌 **Multiple Connections** (WebSocket, Socket.IO)
-- 🌐 **Hydra Head Lifecycle** management (Init, Open, Close, Fanout)
-- 📡 **Real-time Events** for network state monitoring
-- 💰 **UTxO Management** with snapshot queries
-- 🔄 **Commit/Decommit** operations for fund management
-- 🔐 **JWT Authentication** support
+- **Head lifecycle** — `commands.init()`, `close()`, `safeClose()`, `contest()`, `fanout()`, `partialFanout()`
+- **Incremental deposits** — `pendingDeposits()` and `recoverDeposit()` replace the v1 commit phase
+- **L2 submission** — `submitL2Tx()` over `POST /transaction`, plus `submitTxSync()` (Promise) and `submitTx()` (error-first callback)
+- **O(1) balance and UTxO reads** from an in-memory snapshot cache — no I/O per call
+- **Real-time events** for every head state transition, with the payload union fully typed
+- **Protocol parameters** — `getProtocolParameters()`, and `getRawProtocolParameters()` for `costModels` / `protocolVersion` when budgeting exUnits
+- **Auto-reconnect** with configurable interval and attempt cap, cancelled safely on `disconnect()`
 
 ## 📚 Documentation
 
-For comprehensive guides, examples, and API reference:
-
-**Docs:** [hydrasdk.com/docs](https://hydrasdk.com/docs) | [Technical](../docs/technical/bmm-index.md)
-
-## 🛠️ Build Configuration
-
-The SDK works with modern build tools. For detailed setup instructions, visit our [Configuration Guide](https://hydrasdk.com/getting-started/configuration).
+- [API reference](https://hydrasdk.com/api/bridge) · [Hydra integration guide](https://hydrasdk.com/guides/hydra-integration)
+- [Transactions in Hydra](https://hydrasdk.com/concepts/transactions-in-hydra) · [Hydra protocol versions](https://hydrasdk.com/concepts/hydra-v2-changes)
+- [v1 → v2 migration](https://github.com/Vtechcom/hydra-sdk/blob/master/packages/hydra-bridge/MIGRATION-v2.md) · [Changelog](https://hydrasdk.com/resources/changelog)
 
 ## License
 

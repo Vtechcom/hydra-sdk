@@ -38,8 +38,27 @@ export function buildCostModels({
 	return costmdls
 }
 
-export const defaultCostModels = buildCostModels({
-	plutusV1: DEFAULT_V1_COST_MODEL_LIST,
-	plutusV2: DEFAULT_V2_COST_MODEL_LIST,
-	plutusV3: DEFAULT_V3_COST_MODEL_LIST
-})
+let cachedDefaultCostModels: CardanoWASM.Costmdls | undefined
+
+/**
+ * The shared default `Costmdls`, built on first use and cached from then on.
+ *
+ * It is deliberately *not* built while this module evaluates: bundlers
+ * instantiate the WASM module asynchronously, so running WASM at import time
+ * races that instantiation and throws `Cannot read properties of undefined
+ * (reading 'costmodel_new')`. Reach for this through
+ * `CostModels.defaultCostModels`, which calls this getter for you.
+ *
+ * The returned object is a singleton — callers must not `free()` it, or later
+ * builds would dereference a freed pointer.
+ */
+export const getDefaultCostModels = (): CardanoWASM.Costmdls => {
+	if (!cachedDefaultCostModels) {
+		cachedDefaultCostModels = buildCostModels({
+			plutusV1: DEFAULT_V1_COST_MODEL_LIST,
+			plutusV2: DEFAULT_V2_COST_MODEL_LIST,
+			plutusV3: DEFAULT_V3_COST_MODEL_LIST
+		})
+	}
+	return cachedDefaultCostModels
+}

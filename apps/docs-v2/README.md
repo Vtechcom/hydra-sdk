@@ -1,62 +1,44 @@
-# Nuxt Docs Template
+# Hydra SDK Documentation
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+The published documentation for the Hydra SDK — [hydrasdk.com](https://hydrasdk.com). Built with Nuxt 4, Nuxt UI and Nuxt Content.
 
-Use this template to build your own documentation with [Nuxt UI](https://ui.nuxt.com) quickly.
+> This site supersedes `apps/docs`, which is deprecated and no longer receives content. Write documentation here.
 
-- [Live demo](https://docs-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+## Content
 
-<a href="https://docs-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/docs-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/docs-light.png">
-    <img alt="Nuxt Docs Template" src="https://ui.nuxt.com/assets/templates/nuxt/docs-light.png">
-  </picture>
-</a>
+Content lives in `content/en/**`, organised in five sections:
 
-## Quick Start
+| Section | Path | Holds |
+| --- | --- | --- |
+| Getting started | `content/en/1.getting-started` | Installation, quick start, configuration |
+| Guides | `content/en/2.guides` | Task-oriented walkthroughs |
+| Concepts | `content/en/3.concepts` | How Hydra and the SDK work |
+| API | `content/en/4.api` | Per-package reference |
+| Resources | `content/en/5.resources` | Changelog, migration, performance |
 
-```bash [Terminal]
-npm create nuxt@latest -- -t ui/docs
+English only — the site is not translated, unlike the v1 docs.
+
+Release notes go at the top of `content/en/5.resources/1.changelog.md`, with the `(Latest)` marker moved to the newest entry. Before documenting an API, check `sdk-ai-agent/sdk-api-metadata.json` for what actually exists.
+
+## Development
+
+From the repo root:
+
+```bash
+pnpm dev:docs-v2   # http://localhost:3003
 ```
 
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=docs&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fdocs&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fdocs-dark.png&demo-url=https%3A%2F%2Fdocs-template.nuxt.dev%2F&demo-title=Nuxt%20Docs%20Template&demo-description=A%20documentation%20template%20powered%20by%20Nuxt%20Content.)
-
-## Setup
-
-Make sure to install the dependencies:
+Or from this directory:
 
 ```bash
 pnpm install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
 pnpm dev
+pnpm build      # production build
+pnpm preview    # preview the production build
+pnpm lint
+pnpm typecheck
 ```
 
-## Production
+## Deployment
 
-Build the application for production:
-
-```bash
-pnpm build
-```
-
-Locally preview production build:
-
-```bash
-pnpm preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-## Renovate integration
-
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
+Deployed to Vercel from this directory as a standalone project (see `vercel.json`), serving `hydrasdk.com` and `www.hydrasdk.com`.
