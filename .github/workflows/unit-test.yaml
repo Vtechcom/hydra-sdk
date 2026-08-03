@@ -35,7 +35,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 9
+          # Must match the root package.json `packageManager` field. pnpm 9 reads
+          # overrides from package.json only, so it does not see the
+          # `tsup>typescript` override in pnpm-workspace.yaml and fails the
+          # install with ERR_PNPM_LOCKFILE_CONFIG_MISMATCH (pnpm enables
+          # --frozen-lockfile automatically when CI=true).
+          version: 10.5.2
           run_install: false
 
       - name: Get pnpm store directory
