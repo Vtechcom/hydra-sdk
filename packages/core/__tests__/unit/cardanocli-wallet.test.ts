@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { CardanoCliWallet } from '../../src/cardanocli-wallet'
 import { NETWORK_ID } from '../../src/constants'
-import { cardanoCliKeygen } from '../../src/utils/keys.util'
+import { cardanoCliKeygen, mnemonicToCliKey } from '../../src/utils/keys.util'
+import { AppWallet } from '../../src/wallet'
 import { UTxO } from '../../src/types/cardano'
 
 // Generate a test key pair
@@ -491,6 +492,49 @@ describe('CardanoCliWallet', () => {
 			const result = await wallet.queryUTxOs('addr_test1...')
 
 			expect(result).toEqual([])
+		})
+	})
+
+	describe('extended (BIP32-Ed25519) keys', () => {
+		const mnemonic = AppWallet.brew()
+		const extendedKeyPair = mnemonicToCliKey(mnemonic, 0, 0)
+
+		const extendedWallet = () =>
+			new CardanoCliWallet({
+				skey: extendedKeyPair.sk.cborHex,
+				vkey: extendedKeyPair.vk.cborHex,
+				networkId: NETWORK_ID.PREPROD
+			})
+
+		it('should accept a 128-byte xprv and a 64-byte xpub', () => {
+			expect(extendedWallet().paymentSKey).toBeInstanceOf(CardanoWASM.PrivateKey)
+			expect(extendedWallet().paymentVKey).toBeInstanceOf(CardanoWASM.PublicKey)
+		})
+
+		it('should derive paymentVKey matching paymentSKey', () => {
+			const wallet = extendedWallet()
+
+			expect(wallet.paymentVKey.to_hex()).toBe(wallet.paymentSKey.to_public().to_hex())
+		})
+
+		it('should resolve to the enterprise address of the mnemonic it came from', () => {
+			const appWallet = new AppWallet({ key: { type: 'mnemonic', words: mnemonic }, networkId: NETWORK_ID.PREPROD })
+
+			expect(extendedWallet().getAddressBech32()).toBe(appWallet.getAccount(0, 0).enterpriseAddressBech32)
+		})
+
+		it('should sign a transaction', async () => {
+			const signedTxHex = await extendedWallet().signTx(validUnsignedTxHex)
+			const vkeys = CardanoWASM.Transaction.from_hex(signedTxHex).witness_set().vkeys()
+
+			expect(vkeys?.len()).toBe(1)
+		})
+
+		it('should sign and verify a message end-to-end', () => {
+			const wallet = extendedWallet()
+			const message = new TextEncoder().encode('Hello, Cardano!')
+
+			expect(wallet.paymentVKey.verify(message, wallet.paymentSKey.sign(message))).toBe(true)
 		})
 	})
 

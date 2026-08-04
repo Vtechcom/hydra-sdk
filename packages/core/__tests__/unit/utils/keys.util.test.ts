@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { cardanoCliKeygen, hydraCliKeygen, genVkey, mnemonicToCliKey } from '../../../src/utils/keys.util'
+import { AppWallet } from '../../../src/wallet'
+import { CardanoCliWallet } from '../../../src/cardanocli-wallet'
+import { NETWORK_ID } from '../../../src/constants'
+
+// Valid unsigned transaction hex for testing signTx (from resolver tests)
+const validUnsignedTxHex =
+	'84a400d9010281825820a3d36ebe9989d832841c683544a9304d3de3dee218872ca982f7d2770489e01800018282583900e06f2ae361f33815f775b224789025dccc4b6413599224e70841eebfeee790c7bb9c497f716fcec7d92a4d68c27b48c9e301b7c547c653cd1a05f5e1008258390015bc6c82189db95e8eb57107e06b8819b8ddbdb9ae873c8487249825d7ea711f85c8f93a1e1176bac951b6332b0875661c9ffc4547416fc1821a05f34273a1581c0836587ed7cee3c0790e24c930c67f31fc2511a3c25aa66ed205e05fa14474525053192710021a00029e8d075820d36a2619a672494604e11bb447cbcf5231e9f2ba25c2169177edc941bd50ad6ca0f5a0'
 
 describe('keys.util', () => {
 	describe('cardanoCliKeygen', () => {
@@ -227,8 +234,11 @@ describe('keys.util', () => {
 			'rug'
 		]
 
-		const EXPECTED_SK = '582061c83a67fd860c5ec3c93544171597ad0fc239b929740aad0636d6f0c151f036'
-		const EXPECTED_VK = '5820101c31a58574070ca7c9c760c91dded56b53feedab7f85682a32599e5751bd33'
+		// 128-byte xprv (prv | pub | chaincode) and 64-byte xpub (pub | chaincode)
+		const EXPECTED_SK =
+			'5880007561c83a67fd860c5ec3c93544171597ad0fc239b929740aad0636d6f0c151f03645ceae6e15c0c3f7c726b40a55999922c5e10830af09b991da72e02ea48401df411c33ee3c03ff24b0b2851c855b078d9371c5c89ec6e9a43df2b179030a8ec959c1316f8a5386468a47010cb059ce7dd009441bd1808e1a835ae37e84c6'
+		const EXPECTED_VK =
+			'584001df411c33ee3c03ff24b0b2851c855b078d9371c5c89ec6e9a43df2b179030a8ec959c1316f8a5386468a47010cb059ce7dd009441bd1808e1a835ae37e84c6'
 
 		it('should generate a key pair', () => {
 			const keyPair = mnemonicToCliKey(mnemonic)
@@ -248,27 +258,66 @@ describe('keys.util', () => {
 		it('should generate signing key with correct type', () => {
 			const keyPair = mnemonicToCliKey(mnemonic)
 
-			expect(keyPair.sk.type).toBe('PaymentSigningKeyShelley_ed25519')
+			expect(keyPair.sk.type).toBe('PaymentExtendedSigningKeyShelley_ed25519_bip32')
 			expect(keyPair.sk.description).toBe('Payment Signing Key')
 		})
 
 		it('should generate verification key with correct type', () => {
 			const keyPair = mnemonicToCliKey(mnemonic)
 
-			expect(keyPair.vk.type).toBe('PaymentVerificationKeyShelley_ed25519')
+			expect(keyPair.vk.type).toBe('PaymentExtendedVerificationKeyShelley_ed25519_bip32')
 			expect(keyPair.vk.description).toBe('Payment Verification Key')
 		})
 
-		it('should generate signing key cborHex starting with 5820', () => {
+		it('should generate signing key cborHex as a 128-byte xprv', () => {
 			const keyPair = mnemonicToCliKey(mnemonic)
 
-			expect(keyPair.sk.cborHex).toMatch(/^5820[0-9a-f]{64}$/i)
+			expect(keyPair.sk.cborHex).toMatch(/^5880[0-9a-f]{256}$/i)
 		})
 
-		it('should generate verification key cborHex starting with 5820', () => {
+		it('should generate verification key cborHex as a 64-byte xpub', () => {
 			const keyPair = mnemonicToCliKey(mnemonic)
 
-			expect(keyPair.vk.cborHex).toMatch(/^5820[0-9a-f]{64}$/i)
+			expect(keyPair.vk.cborHex).toMatch(/^5840[0-9a-f]{128}$/i)
+		})
+
+		it('should embed the public key inside the 128-byte xprv', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			// xprv = prv (64B) | pub (32B) | chaincode (32B); xpub = pub (32B) | chaincode (32B)
+			expect(keyPair.sk.cborHex.slice(4 + 128)).toBe(keyPair.vk.cborHex.slice(4))
+		})
+
+		it('should resolve to the same address as the wallet it was derived from', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			const wallet = new AppWallet({ key: { type: 'mnemonic', words: mnemonic }, networkId: NETWORK_ID.PREPROD })
+			const cliWallet = new CardanoCliWallet({
+				skey: keyPair.sk.cborHex,
+				vkey: keyPair.vk.cborHex,
+				networkId: NETWORK_ID.PREPROD
+			})
+
+			expect(cliWallet.getAddressBech32()).toBe(wallet.getAccount(0, 0).enterpriseAddressBech32)
+		})
+
+		it('should sign identically to the wallet it was derived from', async () => {
+			const keyPair = mnemonicToCliKey(mnemonic, 0, 3)
+
+			const wallet = new AppWallet({ key: { type: 'mnemonic', words: mnemonic }, networkId: NETWORK_ID.PREPROD })
+			const cliWallet = new CardanoCliWallet({
+				skey: keyPair.sk.cborHex,
+				vkey: keyPair.vk.cborHex,
+				networkId: NETWORK_ID.PREPROD
+			})
+
+			expect(await cliWallet.signTx(validUnsignedTxHex)).toBe(await wallet.signTx(validUnsignedTxHex, false, 0, 3))
+		})
+
+		it('should round-trip through genVkey', () => {
+			const keyPair = mnemonicToCliKey(mnemonic)
+
+			expect(genVkey(keyPair.sk)).toEqual(keyPair.vk)
 		})
 
 		it('should generate deterministic key pairs for same mnemonic', () => {
