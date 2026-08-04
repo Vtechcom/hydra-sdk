@@ -1,5 +1,31 @@
 # @hydra-sdk/core
 
+## 1.5.0
+
+### Minor Changes
+
+- Fix `KeysUtils.mnemonicToCliKey()` returning a key unrelated to the mnemonic it was derived from.
+
+  Mnemonic-derived payment keys are BIP32-Ed25519 **extended** keys (64 bytes, `kL | kR`). `mnemonicToCliKey()` cut a 32-byte slice out of one and handed it to `genVkey()`, which read it back with `PrivateKey.from_normal_bytes()`. Two things went wrong there: the slice was taken at hex offset 4 (a leftover from stripping a `5820` CBOR prefix that `to_raw_key().to_hex()` does not emit), so it was misaligned by two bytes; and even a correctly aligned `kL` cannot be read as a plain key, because `kL` is already the ed25519 scalar whereas a plain key is a seed that ed25519 hashes into a scalar. The result was a valid but arbitrary keypair whose address did not match the wallet the mnemonic builds — funds sent to one were unspendable by the other.
+
+  **Breaking:** `mnemonicToCliKey()` now returns the extended pair `cardano-cli` uses for HD-derived keys, so both `cborHex` values change:
+
+  |              | before                                  | now                                                   |
+  | ------------ | --------------------------------------- | ----------------------------------------------------- |
+  | `sk.type`    | `PaymentSigningKeyShelley_ed25519`      | `PaymentExtendedSigningKeyShelley_ed25519_bip32`      |
+  | `sk.cborHex` | `5820…` (32 bytes)                      | `5880…` (128-byte xprv, `prv \| pub \| chaincode`)    |
+  | `vk.type`    | `PaymentVerificationKeyShelley_ed25519` | `PaymentExtendedVerificationKeyShelley_ed25519_bip32` |
+  | `vk.cborHex` | `5820…` (32 bytes)                      | `5840…` (64-byte xpub, `pub \| chaincode`)            |
+
+  If you persisted keys produced by an earlier version, re-derive them and move any funds across.
+
+  The pair now resolves to the same payment credential as `AppWallet.getAccount(accountIndex, keyIndex).enterpriseAddressBech32`, and `CardanoCliWallet` built from it signs byte-identically to that `AppWallet`.
+
+  Supporting changes:
+  - `CardanoCliWallet` accepts extended keys. `skey` takes `5820…` (32 bytes), `5840…` (64-byte raw extended), `5860…` (96-byte xprv) or `5880…` (128-byte xprv); `vkey` takes `5820…` (32 bytes) or `5840…` (xpub). Plain keys behave exactly as before.
+  - `genVkey()` accepts every signing-key shape above. A BIP32-Ed25519 key carries a chain code, so it now yields an extended verification key; every other shape yields a plain one, unchanged.
+  - New `KeysUtils.encodeCliKeyEnvelope()` / `decodeCliKeyEnvelope()` / `cliSkeyToPrivateKey()` / `cliVkeyToPublicKey()` for reading and writing `cardano-cli` key envelopes directly.
+
 ## 1.4.2
 
 ### Patch Changes
