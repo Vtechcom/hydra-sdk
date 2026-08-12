@@ -148,8 +148,10 @@ export default defineNuxtConfig({
 		}
 	},
 
-	// CSS configuration
-	css: ['~/assets/scss/main.scss', '~/assets/css/tailwind.css'],
+	// CSS configuration.
+	// element-plus dark css-vars make el-* components (el-card, el-button, el-tag,
+	// el-input) follow the app's `.dark` class instead of staying light.
+	css: ['element-plus/theme-chalk/dark/css-vars.css', '~/assets/scss/main.scss', '~/assets/css/tailwind.css'],
 	shadcn: {
 		/**
 		 * Prefix for all the imported component
