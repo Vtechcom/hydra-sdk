@@ -269,22 +269,22 @@ const [spend] = await evaluator.evaluateTx(txHex)
 					<CardContent class="grid gap-3 sm:grid-cols-2">
 						<div class="rounded-lg border border-border p-3">
 							<div class="mb-1 text-xs font-semibold text-muted-foreground">complete()</div>
-							<div class="flex items-center gap-1.5 text-xs">
-								<Badge variant="outline" class="text-[10px]">select</Badge>
-								<Icon name="lucide:arrow-right" class="size-3 text-muted-foreground" />
-								<Badge variant="outline" class="text-[10px]">evaluate</Badge>
-								<Icon name="lucide:arrow-right" class="size-3 text-muted-foreground" />
-								<Badge variant="outline" class="text-[10px]">select again</Badge>
+							<div class="flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-xs">
+								<Badge variant="outline" class="shrink-0 whitespace-nowrap text-[10px]">select</Badge>
+								<Icon name="lucide:arrow-right" class="size-3 shrink-0 text-muted-foreground" />
+								<Badge variant="outline" class="shrink-0 whitespace-nowrap text-[10px]">evaluate</Badge>
+								<Icon name="lucide:arrow-right" class="size-3 shrink-0 text-muted-foreground" />
+								<Badge variant="outline" class="shrink-0 whitespace-nowrap text-[10px]">select again</Badge>
 							</div>
 						</div>
 						<div class="rounded-lg border border-primary/40 bg-primary/5 p-3">
 							<div class="mb-1 text-xs font-semibold text-primary">complete(&#123; fastRebalance: true &#125;)</div>
-							<div class="flex items-center gap-1.5 text-xs">
-								<Badge variant="outline" class="text-[10px]">select</Badge>
-								<Icon name="lucide:arrow-right" class="size-3 text-muted-foreground" />
-								<Badge variant="outline" class="text-[10px]">evaluate</Badge>
-								<Icon name="lucide:arrow-right" class="size-3 text-muted-foreground" />
-								<Badge variant="secondary" class="text-[10px]">reuse inputs + rebalance</Badge>
+							<div class="flex flex-wrap items-center gap-x-1.5 gap-y-1.5 text-xs">
+								<Badge variant="outline" class="shrink-0 whitespace-nowrap text-[10px]">select</Badge>
+								<Icon name="lucide:arrow-right" class="size-3 shrink-0 text-muted-foreground" />
+								<Badge variant="outline" class="shrink-0 whitespace-nowrap text-[10px]">evaluate</Badge>
+								<Icon name="lucide:arrow-right" class="size-3 shrink-0 text-muted-foreground" />
+								<Badge variant="secondary" class="shrink-0 whitespace-nowrap text-[10px]">reuse inputs + rebalance</Badge>
 							</div>
 						</div>
 					</CardContent>
