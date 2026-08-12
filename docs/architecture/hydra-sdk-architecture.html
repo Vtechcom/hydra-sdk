@@ -1,0 +1,1989 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hydra SDK · Architecture map</title>
+
+<style>
+	/* ─────────────────────────────────────────────────────────────
+	   Tokens. Colour encodes tier, not decoration:
+	   slate = consumers, teal = SDK, violet = WASM, bronze = network.
+	   ───────────────────────────────────────────────────────────── */
+	:root {
+		--serif: 'Iowan Old Style', 'Charter', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+		--sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+		--mono: ui-monospace, 'SF Mono', SFMono-Regular, 'JetBrains Mono', 'IBM Plex Mono', Menlo, Consolas, monospace;
+
+		--ground: #090E14;
+		--stage: #0D141C;
+		--surface: #121B24;
+		--panel: #111A23;
+		--raise: #18232F;
+		--hair: #22303E;
+		--hair-soft: #1A2531;
+
+		--fg: #DFE7EF;
+		--fg-2: #93A6B8;
+		--fg-3: #62778B;
+
+		--edge: #2C3F51;
+		--edge-hot: #5FF0DC;
+
+		--slate: #8FA6BE;
+		--teal: #35D6C6;
+		--violet: #9B8CFF;
+		--bronze: #E0A458;
+
+		--focus: #5FF0DC;
+		--radius: 9px;
+		--rail-w: 404px;
+	}
+
+	@media (prefers-color-scheme: light) {
+		:root {
+			--ground: #E7EDF2;
+			--stage: #F2F6F9;
+			--surface: #FFFFFF;
+			--panel: #E4ECF2;
+			--raise: #FFFFFF;
+			--hair: #C6D5E1;
+			--hair-soft: #DFE8EF;
+
+			--fg: #0D1720;
+			--fg-2: #485B6C;
+			--fg-3: #74889A;
+
+			--edge: #AFC1D0;
+			--edge-hot: #0A9A8A;
+
+			--slate: #4C6379;
+			--teal: #0C8577;
+			--violet: #5B45C9;
+			--bronze: #96601A;
+
+			--focus: #0A9A8A;
+		}
+	}
+
+	:root[data-theme='dark'] {
+		--ground: #090E14;
+		--stage: #0D141C;
+		--surface: #121B24;
+		--panel: #111A23;
+		--raise: #18232F;
+		--hair: #22303E;
+		--hair-soft: #1A2531;
+		--fg: #DFE7EF;
+		--fg-2: #93A6B8;
+		--fg-3: #62778B;
+		--edge: #2C3F51;
+		--edge-hot: #5FF0DC;
+		--slate: #8FA6BE;
+		--teal: #35D6C6;
+		--violet: #9B8CFF;
+		--bronze: #E0A458;
+		--focus: #5FF0DC;
+	}
+
+	:root[data-theme='light'] {
+		--ground: #E7EDF2;
+		--stage: #F2F6F9;
+		--surface: #FFFFFF;
+		--panel: #E4ECF2;
+		--raise: #FFFFFF;
+		--hair: #C6D5E1;
+		--hair-soft: #DFE8EF;
+		--fg: #0D1720;
+		--fg-2: #485B6C;
+		--fg-3: #74889A;
+		--edge: #AFC1D0;
+		--edge-hot: #0A9A8A;
+		--slate: #4C6379;
+		--teal: #0C8577;
+		--violet: #5B45C9;
+		--bronze: #96601A;
+		--focus: #0A9A8A;
+	}
+
+	* { box-sizing: border-box; }
+
+	body {
+		margin: 0;
+		background: var(--ground);
+		color: var(--fg);
+		font-family: var(--sans);
+		font-size: 14px;
+		line-height: 1.5;
+		-webkit-font-smoothing: antialiased;
+		overflow: hidden;
+	}
+
+	button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+	:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+	.shell { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+	/* ── Top bar ─────────────────────────────────────────────── */
+	.topbar {
+		display: flex; align-items: center; gap: 20px;
+		padding: 14px 20px; border-bottom: 1px solid var(--hair);
+		background: var(--stage); flex: none;
+	}
+	.brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+	.brand h1 {
+		margin: 0; font-family: var(--serif); font-weight: 600;
+		font-size: 21px; letter-spacing: -0.01em; white-space: nowrap;
+	}
+	.brand .sub {
+		font-family: var(--mono); font-size: 11px; color: var(--fg-3);
+		letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+	}
+	.chips { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+	.chip {
+		font-family: var(--mono); font-size: 10.5px; color: var(--fg-2);
+		border: 1px solid var(--hair); border-radius: 999px; padding: 3px 9px;
+		white-space: nowrap; font-variant-numeric: tabular-nums;
+	}
+	.chip b { color: var(--teal); font-weight: 600; }
+	.theme-btn {
+		flex: none; width: 32px; height: 32px; border: 1px solid var(--hair);
+		border-radius: 8px; display: grid; place-items: center; color: var(--fg-2);
+	}
+	.theme-btn:hover { color: var(--fg); border-color: var(--fg-3); }
+
+	/* ── Body grid ───────────────────────────────────────────── */
+	.body {
+		flex: 1; min-height: 0;
+		display: grid; grid-template-columns: minmax(0, 1fr) var(--rail-w);
+	}
+
+	/* ── Stage ───────────────────────────────────────────────── */
+	.stage { position: relative; min-width: 0; background: var(--stage); overflow: hidden; }
+
+	.viewport { position: absolute; inset: 0; cursor: grab; touch-action: none; }
+	.viewport.dragging { cursor: grabbing; }
+
+	.world {
+		position: absolute; top: 0; left: 0;
+		transform-origin: 0 0;
+		background-image: radial-gradient(circle at 1px 1px, var(--hair-soft) 1px, transparent 0);
+		background-size: 28px 28px;
+	}
+
+	.wires { position: absolute; top: 0; left: 0; overflow: visible; }
+	.nodes { position: absolute; top: 0; left: 0; }
+
+	/* group panels */
+	.grp rect { fill: var(--panel); stroke: var(--hair); stroke-width: 1; opacity: 0.88; }
+	.grp .grp-label {
+		font-family: var(--mono); font-size: 11px; font-weight: 600;
+		fill: var(--fg-2); letter-spacing: 0.04em;
+	}
+	.grp .grp-ver { font-family: var(--mono); font-size: 10px; fill: var(--fg-3); }
+	.grp.t-wasm .grp-label { fill: var(--violet); }
+	.grp.t-remote .grp-label { fill: var(--bronze); }
+	.grp.t-infra rect { stroke-dasharray: 4 4; }
+	.grp.t-infra .grp-label { fill: var(--bronze); }
+	.grp.t-app .grp-label { fill: var(--slate); }
+	.grp.t-sdk .grp-label { fill: var(--teal); }
+
+	/* edges */
+	.edge { fill: none; stroke: var(--edge); stroke-width: 1.15px; }
+	.edge.k-net { stroke-dasharray: 5 4; }
+	.edge.k-host { stroke-dasharray: 2 4; }
+	.edge.k-event { stroke-dasharray: 1 3; stroke-linecap: round; }
+	.edge.hovered { stroke: var(--fg-2); stroke-width: 1.8px; }
+	.elabel {
+		font-family: var(--mono); font-size: 9.5px; fill: var(--fg-2);
+		text-anchor: middle; opacity: 0; pointer-events: none;
+		paint-order: stroke; stroke: var(--stage); stroke-width: 4px; stroke-linejoin: round;
+	}
+	.elabel.shown { opacity: 1; }
+	.mk path { fill: var(--edge); }
+	.mk-hot path { fill: var(--edge-hot); }
+
+	/* nodes */
+	.node {
+		position: absolute; display: flex; align-items: center; gap: 0;
+		padding: 0; text-align: left;
+		background: var(--raise); border: 1px solid var(--hair);
+		border-radius: var(--radius);
+		transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+	}
+	.node:hover { transform: translateY(-1px); border-color: var(--tier); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28); }
+	.node .stripe {
+		flex: none; width: 3px; align-self: stretch; background: var(--tier);
+		opacity: 0.8; border-radius: var(--radius) 0 0 var(--radius);
+	}
+	.node .txt { padding: 0 11px; min-width: 0; flex: 1; overflow: hidden; }
+	.node .lbl {
+		display: block; font-family: var(--mono); font-size: 12px; font-weight: 600;
+		color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+	.node .sub {
+		display: block; font-size: 10.5px; color: var(--fg-3); margin-top: 1px;
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+	.node.t-app { --tier: var(--slate); }
+	.node.t-sdk { --tier: var(--teal); }
+	.node.t-wasm { --tier: var(--violet); }
+	.node.t-remote { --tier: var(--bronze); }
+	.node.t-infra { --tier: var(--bronze); border-style: dashed; }
+
+	.node .badge {
+		position: absolute; top: -8px; right: -8px; min-width: 20px; height: 20px;
+		padding: 0 6px; border-radius: 999px; display: none; place-items: center;
+		font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		background: var(--edge-hot); color: var(--ground);
+		box-shadow: 0 0 0 3px var(--stage);
+	}
+
+	/* flow-active dimming: the whole map recedes, the path stays lit */
+	.stage.flowing .node { opacity: 0.13; filter: saturate(0.25); }
+	.stage.flowing .grp { opacity: 0.3; }
+	.stage.flowing .edge { opacity: 0.06; }
+	.stage.flowing .node,
+	.stage.flowing .edge,
+	.stage.flowing .grp { transition: opacity 0.25s ease, filter 0.25s ease; }
+
+	.stage.flowing .node.on { opacity: 1; filter: none; border-color: var(--tier); }
+	/* A node the path passes through but does not stop at: lit, but quieter. */
+	.stage.flowing .node.on.transit { opacity: 0.62; }
+	.stage.flowing .node.on .badge { display: grid; }
+	.stage.flowing .node.on .badge:empty { display: none; }
+	.stage.flowing .edge.on {
+		opacity: 1; stroke: var(--edge-hot); stroke-width: 2px;
+		stroke-dasharray: 7 6; animation: crawl 0.9s linear infinite;
+		filter: drop-shadow(0 0 5px color-mix(in srgb, var(--edge-hot) 55%, transparent));
+	}
+	@keyframes crawl { to { stroke-dashoffset: -26; } }
+
+	.stage.flowing .node.cur {
+		box-shadow: 0 0 0 2px var(--edge-hot), 0 10px 26px rgba(0, 0, 0, 0.4);
+		transform: translateY(-2px);
+	}
+	.stage.flowing .node.cur .badge { background: var(--fg); color: var(--ground); }
+
+	/* stage furniture */
+	.stage-tools {
+		position: absolute; left: 16px; bottom: 16px; z-index: 4;
+		display: flex; gap: 8px; align-items: flex-end;
+	}
+	.zoom {
+		display: flex; background: var(--surface); border: 1px solid var(--hair);
+		border-radius: 8px; overflow: hidden;
+	}
+	.zoom button {
+		width: 34px; height: 32px; color: var(--fg-2); font-size: 15px;
+		display: grid; place-items: center;
+	}
+	.zoom button + button { border-left: 1px solid var(--hair); }
+	.zoom button:hover { background: var(--raise); color: var(--fg); }
+	.zoom .fit { width: auto; padding: 0 12px; font-family: var(--mono); font-size: 11px; }
+
+	.legend {
+		background: var(--surface); border: 1px solid var(--hair); border-radius: 8px;
+		padding: 9px 12px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+	}
+	.legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--fg-2); white-space: nowrap; }
+	.legend i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+
+	.stage-note {
+		position: absolute; right: 16px; top: 14px; z-index: 4;
+		font-family: var(--mono); font-size: 10.5px; color: var(--fg-3);
+		background: color-mix(in srgb, var(--stage) 82%, transparent);
+		border: 1px solid var(--hair-soft); border-radius: 7px; padding: 5px 10px;
+		pointer-events: none;
+	}
+
+	/* ── Tooltip ─────────────────────────────────────────────── */
+	.tip {
+		position: fixed; z-index: 60; width: 320px; max-width: calc(100vw - 24px);
+		background: var(--surface); border: 1px solid var(--hair);
+		border-radius: 10px; padding: 13px 15px;
+		box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+		opacity: 0; visibility: hidden; transform: translateY(4px);
+		transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+		pointer-events: none;
+	}
+	.tip.on { opacity: 1; visibility: visible; transform: none; }
+	.tip .tip-top { display: flex; align-items: baseline; gap: 8px; }
+	.tip h4 { margin: 0; font-family: var(--mono); font-size: 13px; font-weight: 700; }
+	.tip .tier {
+		font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em;
+		text-transform: uppercase; color: var(--tier); margin-left: auto;
+	}
+	.tip .path {
+		display: block; font-family: var(--mono); font-size: 10.5px; color: var(--fg-3);
+		margin: 5px 0 8px; word-break: break-all;
+	}
+	.tip p { margin: 0; font-size: 12.5px; color: var(--fg-2); line-height: 1.55; }
+	.tip ul {
+		margin: 10px 0 0; padding: 9px 0 0; list-style: none;
+		border-top: 1px solid var(--hair-soft);
+		display: flex; flex-wrap: wrap; gap: 4px 6px;
+	}
+	.tip li {
+		font-family: var(--mono); font-size: 10px; color: var(--fg-2);
+		background: var(--raise); border: 1px solid var(--hair-soft);
+		border-radius: 5px; padding: 2px 6px;
+	}
+	.tip .inflows {
+		margin-top: 10px; font-size: 11px; color: var(--fg-3);
+	}
+	.tip .inflows b { color: var(--tier); font-weight: 600; }
+
+	/* ── Rail ────────────────────────────────────────────────── */
+	.rail {
+		border-left: 1px solid var(--hair); background: var(--surface);
+		display: flex; flex-direction: column; min-height: 0; min-width: 0;
+	}
+	.rail-scroll { overflow-y: auto; overscroll-behavior: contain; flex: 1; min-height: 0; }
+
+	.eyebrow {
+		font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+		text-transform: uppercase; color: var(--fg-3);
+	}
+
+	.overview { padding: 20px 20px 4px; border-bottom: 1px solid var(--hair); }
+	.overview p { margin: 9px 0 0; font-size: 12.5px; color: var(--fg-2); line-height: 1.6; max-width: 60ch; }
+	.stats { display: flex; gap: 20px; margin: 16px 0 18px; }
+	.stat { display: flex; flex-direction: column; }
+	.stat b {
+		font-family: var(--serif); font-size: 24px; font-weight: 600;
+		line-height: 1; font-variant-numeric: tabular-nums;
+	}
+	.stat span { font-size: 10.5px; color: var(--fg-3); margin-top: 4px; }
+
+	.flow-head {
+		padding: 16px 20px 10px; display: flex; align-items: baseline; gap: 8px;
+		position: sticky; top: 0; background: var(--surface); z-index: 2;
+		border-bottom: 1px solid var(--hair-soft);
+	}
+	.cat-head {
+		padding: 16px 20px 6px; font-family: var(--mono); font-size: 10px;
+		letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-3);
+	}
+	.flow-list { padding: 0 12px 24px; display: flex; flex-direction: column; gap: 4px; }
+	.flow-card {
+		display: block; width: 100%; text-align: left; padding: 11px 12px;
+		border-radius: 9px; border: 1px solid transparent;
+		transition: background 0.12s ease, border-color 0.12s ease;
+	}
+	.flow-card:hover { background: var(--raise); border-color: var(--hair); }
+	.flow-card .fname {
+		display: block; font-family: var(--serif); font-size: 15.5px;
+		font-weight: 600; letter-spacing: -0.005em;
+	}
+	.flow-card .ftag { display: block; font-size: 12px; color: var(--fg-2); margin-top: 3px; line-height: 1.45; }
+	.flow-card .fmeta {
+		display: block; font-family: var(--mono); font-size: 10px; color: var(--fg-3);
+		margin-top: 6px; letter-spacing: 0.04em;
+	}
+
+	/* flow detail */
+	.detail { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+	.detail-head { padding: 14px 20px 16px; border-bottom: 1px solid var(--hair); }
+	.back {
+		display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono);
+		font-size: 11px; color: var(--fg-2); padding: 4px 8px 4px 4px; border-radius: 6px;
+		margin-bottom: 10px;
+	}
+	.back:hover { color: var(--fg); background: var(--raise); }
+	.detail-head h2 {
+		margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 600;
+		letter-spacing: -0.012em; text-wrap: balance;
+	}
+	.detail-head .ftag { margin: 6px 0 0; font-size: 12.5px; color: var(--fg-2); max-width: 58ch; }
+
+	.stepper {
+		display: flex; align-items: center; gap: 8px; margin-top: 14px;
+	}
+	.stepper .count {
+		font-family: var(--mono); font-size: 11px; color: var(--fg-2);
+		font-variant-numeric: tabular-nums; margin-right: auto;
+	}
+	.stepper button {
+		width: 30px; height: 28px; border: 1px solid var(--hair); border-radius: 7px;
+		color: var(--fg-2); display: grid; place-items: center;
+	}
+	.stepper button:hover:not(:disabled) { color: var(--fg); border-color: var(--fg-3); background: var(--raise); }
+	.stepper button:disabled { opacity: 0.35; cursor: default; }
+
+	.steps { list-style: none; margin: 0; padding: 8px 12px 28px; counter-reset: s; }
+	.step-item { position: relative; }
+	.step-btn {
+		display: grid; grid-template-columns: 26px 1fr; gap: 10px; width: 100%;
+		text-align: left; padding: 10px 10px 12px; border-radius: 9px;
+		border: 1px solid transparent;
+	}
+	.step-btn:hover { background: var(--raise); }
+	.step-item.cur .step-btn { background: var(--raise); border-color: var(--tier); }
+	.step-num {
+		grid-row: 1 / span 3; width: 24px; height: 24px; border-radius: 999px;
+		display: grid; place-items: center; font-family: var(--mono); font-size: 11px;
+		font-weight: 700; font-variant-numeric: tabular-nums;
+		border: 1px solid var(--hair); color: var(--fg-3); margin-top: 1px;
+	}
+	.step-item.cur .step-num { background: var(--tier); border-color: var(--tier); color: var(--ground); }
+	.step-node {
+		display: block; font-family: var(--mono); font-size: 10.5px;
+		color: var(--tier); letter-spacing: 0.03em;
+	}
+	.step-title { display: block; font-size: 13.5px; font-weight: 600; margin-top: 1px; text-wrap: balance; }
+	.step-note { display: block; font-size: 12.5px; color: var(--fg-2); margin-top: 4px; line-height: 1.55; }
+	.step-item::after {
+		content: ''; position: absolute; left: 22px; top: 42px; bottom: 2px;
+		width: 1px; background: var(--hair);
+	}
+	.step-item:last-child::after { display: none; }
+
+	.t-app { --tier: var(--slate); }
+	.t-sdk { --tier: var(--teal); }
+	.t-wasm { --tier: var(--violet); }
+	.t-remote { --tier: var(--bronze); }
+	.t-infra { --tier: var(--bronze); }
+
+	.hint {
+		padding: 0 20px 20px; font-size: 11.5px; color: var(--fg-3); line-height: 1.55;
+	}
+	.hint kbd {
+		font-family: var(--mono); font-size: 10.5px; border: 1px solid var(--hair);
+		border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; color: var(--fg-2);
+	}
+
+	/* ── Responsive ──────────────────────────────────────────── */
+	@media (max-width: 1080px) {
+		body { overflow: auto; }
+		.shell { height: auto; min-height: 100vh; }
+		.body { grid-template-columns: 1fr; }
+		.stage { height: 60vh; min-height: 380px; }
+		.rail { border-left: none; border-top: 1px solid var(--hair); }
+		.rail-scroll { overflow: visible; }
+		.topbar { flex-wrap: wrap; gap: 10px 16px; }
+		.chips { margin-left: 0; justify-content: flex-start; }
+	}
+	@media (max-width: 560px) {
+		.brand h1 { font-size: 18px; }
+		.brand .sub { display: none; }
+		.tip { width: calc(100vw - 24px); }
+		.legend { display: none; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*, *::before, *::after {
+			animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+			transition-duration: 0.001ms !important;
+		}
+	}
+</style>
+
+<div class="shell">
+	<header class="topbar">
+		<div class="brand">
+			<h1>Hydra SDK</h1>
+			<span class="sub">architecture &amp; flow map</span>
+		</div>
+		<div class="chips" id="chips"></div>
+		<button class="theme-btn" id="themeBtn" type="button" aria-label="Switch colour theme" title="Switch colour theme">
+			<svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+				<path fill="currentColor" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 1.6v10.8a5.4 5.4 0 0 1 0-10.8Z" />
+			</svg>
+		</button>
+	</header>
+
+	<div class="body">
+		<section class="stage" id="stage">
+			<div class="viewport" id="viewport">
+				<div class="world" id="world">
+					<svg class="wires" id="wires" aria-hidden="true">
+						<defs>
+							<marker id="ar" class="mk" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+								<path d="M0 1 L7 4 L0 7 z" />
+							</marker>
+							<marker id="ar-hot" class="mk mk-hot" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+								<path d="M0 1 L7 4 L0 7 z" />
+							</marker>
+						</defs>
+						<g id="layerGroups"></g>
+						<g id="layerEdges"></g>
+						<g id="layerLabels"></g>
+					</svg>
+					<div class="nodes" id="layerNodes"></div>
+				</div>
+			</div>
+
+			<div class="stage-note" id="stageNote">Hover a component · drag to pan · scroll to zoom</div>
+
+			<div class="stage-tools">
+				<div class="zoom">
+					<button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+					<button type="button" class="fit" id="zoomFit">FIT</button>
+					<button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+				</div>
+				<div class="legend">
+					<span><i style="background: var(--slate)"></i>Consumers</span>
+					<span><i style="background: var(--teal)"></i>SDK packages</span>
+					<span><i style="background: var(--violet)"></i>WASM</span>
+					<span><i style="background: var(--bronze)"></i>Network</span>
+				</div>
+			</div>
+		</section>
+
+		<aside class="rail">
+			<div class="rail-scroll" id="rail"></div>
+		</aside>
+	</div>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script type="application/json" id="graph-data">
+{
+	"$schema": "https://hydrasdk.com/schemas/architecture-map.v1.json",
+	"meta": {
+		"name": "Hydra SDK",
+		"description": "Architecture map of the Hydra SDK monorepo: a TypeScript toolkit for building Cardano + Hydra Layer 2 wallet applications.",
+		"repository": "Vtechcom/opensource-hydra-sdk",
+		"generatedFrom": "static analysis of packages/*, apps/*, infra/* on branch master",
+		"generatedAt": "2026-08-04",
+		"packages": {
+			"@hydra-sdk/core": "1.5.0",
+			"@hydra-sdk/bridge": "2.0.2",
+			"@hydra-sdk/transaction": "1.2.3",
+			"@hydra-sdk/cardano-wasm": "1.0.0"
+		},
+		"dependencyChain": [
+			"@hydra-sdk/transaction → @hydra-sdk/core → @hydra-sdk/cardano-wasm → @emurgo/cardano-serialization-lib",
+			"@hydra-sdk/bridge → @hydra-sdk/core → @hydra-sdk/cardano-wasm"
+		],
+		"tiers": {
+			"app": "Applications and consumers of the SDK",
+			"sdk": "Published SDK packages",
+			"wasm": "WASM boundary — cardano-serialization-lib",
+			"remote": "Remote services reached over the network",
+			"infra": "Local test infrastructure checked into the repo"
+		}
+	},
+
+	"groups": [
+		{ "id": "apps", "label": "Applications & consumers", "tier": "app", "layout": { "x": 40, "y": 44, "w": 1000, "h": 112 } },
+		{ "id": "bridge", "label": "@hydra-sdk/bridge", "version": "2.0.2", "tier": "sdk", "layout": { "x": 40, "y": 188, "w": 1000, "h": 192 } },
+		{ "id": "transaction", "label": "@hydra-sdk/transaction", "version": "1.2.3", "tier": "sdk", "layout": { "x": 40, "y": 400, "w": 1000, "h": 116 } },
+		{ "id": "core", "label": "@hydra-sdk/core", "version": "1.5.0", "tier": "sdk", "layout": { "x": 40, "y": 536, "w": 1000, "h": 272 } },
+		{ "id": "wasm", "label": "@hydra-sdk/cardano-wasm", "version": "1.0.0", "tier": "wasm", "layout": { "x": 40, "y": 828, "w": 1000, "h": 116 } },
+		{ "id": "endpoints", "label": "Hydra endpoints", "tier": "remote", "layout": { "x": 1090, "y": 44, "w": 330, "h": 316 } },
+		{ "id": "testnets", "label": "Local test networks", "tier": "infra", "layout": { "x": 1090, "y": 384, "w": 330, "h": 232 } },
+		{ "id": "chain", "label": "Chain access", "tier": "remote", "layout": { "x": 1090, "y": 640, "w": 330, "h": 316 } }
+	],
+
+	"nodes": [
+		{
+			"id": "app-playground",
+			"label": "Nuxt playground",
+			"sublabel": "apps/playground",
+			"group": "apps",
+			"tier": "app",
+			"path": "apps/playground",
+			"desc": "Nuxt 3 + Vue 3 interactive demo deployed to playground.hydrasdk.com. Pages cover the transaction builder, a Hydra tx trace viewer and raw cardano-wasm checks. Merging to master deploys it — never commit .output.",
+			"api": ["pages/transaction-builder.vue", "pages/hydra-tx-trace.vue", "composables/useWalletConfig.ts"],
+			"layout": { "x": 64, "y": 88, "w": 200, "h": 52 }
+		},
+		{
+			"id": "app-nodejs",
+			"label": "Node.js playground",
+			"sublabel": "apps/nodejs-playground",
+			"group": "apps",
+			"tier": "app",
+			"path": "apps/nodejs-playground/src",
+			"desc": "Integration scripts run against a real node: lock/unlock Plutus validators, mint and burn, key management, and the memory-leak harnesses that drove the WASM free-after-build work in TxBuilder.",
+			"api": ["contract/hydra-lock.ts", "contract/hydra-unlock.ts", "test-memory-leak-long.ts"],
+			"layout": { "x": 288, "y": 88, "w": 200, "h": 52 }
+		},
+		{
+			"id": "app-docs",
+			"label": "Docs site",
+			"sublabel": "apps/docs-v2",
+			"group": "apps",
+			"tier": "app",
+			"path": "apps/docs-v2/content/en",
+			"desc": "Nuxt 4 + Nuxt UI documentation at hydrasdk.com, English only, organised in five Diátaxis sections. apps/docs is the deprecated v1 site kept only for its URLs.",
+			"api": ["1.getting-started", "2.guides", "3.concepts", "4.api", "5.resources"],
+			"layout": { "x": 512, "y": 88, "w": 200, "h": 52 }
+		},
+		{
+			"id": "app-consumer",
+			"label": "Your application",
+			"sublabel": "npm consumer",
+			"group": "apps",
+			"tier": "app",
+			"path": "—",
+			"desc": "Any wallet or dApp installing the published packages. Imports only through @hydra-sdk/* — the SDK never asks you to touch @emurgo/cardano-serialization-lib directly.",
+			"api": ["@hydra-sdk/core", "@hydra-sdk/bridge", "@hydra-sdk/transaction"],
+			"layout": { "x": 736, "y": 88, "w": 200, "h": 52 }
+		},
+
+		{
+			"id": "bridge-core",
+			"label": "HydraBridge",
+			"sublabel": "head lifecycle facade",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/bridge.ts",
+			"desc": "The single entry point to a Hydra head. Owns the connector, the snapshot caches, slot-zero derivation from Greetings, protocol parameters, auto-reconnect, and the whole command surface.",
+			"api": ["connect()", "headInfo()", "commands.*", "submitTxSync()", "getProtocolParameters()", "queryAddressUTxO()", "getAddressBalance()", "pendingDeposits()", "recoverDeposit()"],
+			"layout": { "x": 64, "y": 228, "w": 232, "h": 56 }
+		},
+		{
+			"id": "ws-connector",
+			"label": "WebsocketConnector",
+			"sublabel": "WS + node REST",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/connector/websocket.ts",
+			"desc": "Default connector. Parses one URL into a socket URL and an HTTP base URL, appends history / snapshot-utxo / address query params, and ships a fetcher and submitter that hit the hydra-node REST API directly.",
+			"api": ["connect()", "sendCommand()", "submitTxSync()", "defaultWsFetcher", "defaultWsSubmitter"],
+			"layout": { "x": 320, "y": 228, "w": 216, "h": 56 }
+		},
+		{
+			"id": "hex-connector",
+			"label": "HexcoreConnector",
+			"sublabel": "REST gateway",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/connector/hexcore.ts",
+			"desc": "Alternative connector for a Hexcore gateway in front of the node. Implements the same HydraConnector contract with every route prefixed /hydra, so HydraBridge cannot tell the difference.",
+			"api": ["GET /hydra/snapshot/utxo", "POST /hydra/submit-tx", "POST /hydra/commit", "DELETE /hydra/commits/{txId}"],
+			"layout": { "x": 560, "y": 228, "w": 216, "h": 56 }
+		},
+		{
+			"id": "event-bus",
+			"label": "Event bus",
+			"sublabel": "mitt emitter",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/types/hydra-connector.type.ts",
+			"desc": "The connector's mitt emitter, re-exposed as bridge.events. Emits onConnected, onDisconnected, onConnectError and onMessage — every server payload arrives here already narrowed by tag.",
+			"api": ["onConnected", "onDisconnected", "onConnectError", "onMessage"],
+			"layout": { "x": 800, "y": 228, "w": 216, "h": 56 }
+		},
+		{
+			"id": "snapshot-cache",
+			"label": "Snapshot cache",
+			"sublabel": "O(1) address index",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/bridge.ts",
+			"desc": "Two maps rebuilt O(n) once per snapshot: address → txHash → UTxO, and address → assetUnit → bigint. lastSnapshotNumber guards them so a slow HTTP reply can never overwrite fresher WebSocket data.",
+			"api": ["addressUtxoIndex", "balanceCache", "lastSnapshotNumber", "updateSnapshot()"],
+			"layout": { "x": 64, "y": 308, "w": 232, "h": 56 }
+		},
+		{
+			"id": "payload-types",
+			"label": "Payload & tags",
+			"sublabel": "HydraPayload union",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/types/payload.type.ts",
+			"desc": "The discriminated union for every hydra-node server output, plus the HydraCommand and HydraHeadStatus enums. Derived from the Haskell source and verified against a live 2.3.0 node by the e2e suite.",
+			"api": ["Greetings", "SnapshotConfirmed", "TxValid / TxInvalid", "HeadIsOpen / HeadIsClosed", "ReadyToFanout", "CommitFinalized", "DecommitApproved"],
+			"layout": { "x": 320, "y": 308, "w": 216, "h": 56 }
+		},
+		{
+			"id": "await-msg",
+			"label": "awaitHydraMessage",
+			"sublabel": "request/response bridge",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/utils/await-hydra-message.ts",
+			"desc": "Turns the node's fire-and-forget socket into promises: subscribes to onMessage, resolves on the matching success tag, rejects on TxInvalid, CommandFailed, PostTxOnChainFailed or RejectedInputBecauseUnsynced, and always clears its timer.",
+			"api": ["awaitHydraMessage(emitter, matcher, timeout)"],
+			"layout": { "x": 560, "y": 308, "w": 216, "h": 56 }
+		},
+		{
+			"id": "head-commands",
+			"label": "Head commands",
+			"sublabel": "bridge.commands",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/bridge.ts",
+			"desc": "The client-input surface of the head, serialised onto the socket: open it, move value inside it, take value out, or wind it down.",
+			"api": ["init()", "newTx()", "decommit()", "recover()", "close()", "safeClose()", "contest()", "fanout()", "partialFanout()", "sideLoadSnapshot()"],
+			"layout": { "x": 800, "y": 308, "w": 216, "h": 56 }
+		},
+
+		{
+			"id": "txbuilder",
+			"label": "TxBuilder",
+			"sublabel": "chainable tx assembly",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/tx-builder/index.ts",
+			"desc": "Stages inputs, outputs, mints, certificates, withdrawals, validity and metadata as plain descriptors, then assembles them into CSL in one pass at complete(). Knows about Hydra: isHydra skips the L1 fee and collateral rules.",
+			"api": ["setInputs()", "txIn() / txOut()", "spendingPlutusScript()", "mint()", "changeAddress()", "complete()", "completeCbor()", "reset()", "dispose()"],
+			"layout": { "x": 64, "y": 444, "w": 232, "h": 56 }
+		},
+		{
+			"id": "datum-builder",
+			"label": "datumBuilder",
+			"sublabel": "PlutusData composer",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/utils/datum-builder.ts",
+			"desc": "Fluent construction of PlutusData from primitives (int, bytes), collections (list, map) and structured constr values, without hand-rolling CSL calls.",
+			"api": ["datumBuilder()"],
+			"layout": { "x": 320, "y": 444, "w": 216, "h": 56 }
+		},
+		{
+			"id": "redeemer-builder",
+			"label": "buildRedeemer",
+			"sublabel": "redeemer + ExUnits",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/utils/redeemer-builder.ts",
+			"desc": "Builds a Redeemer from a JS value with an explicit tag (SPEND, MINT, CERT, REWARD), pointer index and execution-unit budget. emptyRedeemer() covers validators that ignore their argument.",
+			"api": ["buildRedeemer(jsValue, options)", "emptyRedeemer(options)"],
+			"layout": { "x": 560, "y": 444, "w": 216, "h": 56 }
+		},
+		{
+			"id": "tx-metadata",
+			"label": "Metadata encoder",
+			"sublabel": "metadataObjToMetadatum",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/utils/metadata.ts",
+			"desc": "Recursively converts JS values — strings, numbers, bigints, byte arrays, arrays, objects and Maps — into TransactionMetadatum, with bigint-safe JSON helpers alongside.",
+			"api": ["metadataObjToMetadatum()", "bigIntReplacer()", "bigIntReviver()"],
+			"layout": { "x": 800, "y": 444, "w": 216, "h": 56 }
+		},
+
+		{
+			"id": "app-wallet",
+			"label": "AppWallet",
+			"sublabel": "ISigner + ISubmitter",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/wallet.ts",
+			"desc": "The wallet most applications use. Accepts a root bech32 key, cardano-cli key files or a mnemonic; holds an optional fetcher and submitter so querying and submitting go through one object.",
+			"api": ["getAccount()", "getPaymentAddress()", "getRewardAddress()", "signTx()", "signData()", "submitTx()", "queryUTxOs()", "AppWallet.brew()"],
+			"layout": { "x": 64, "y": 576, "w": 232, "h": 56 }
+		},
+		{
+			"id": "embedded-wallet",
+			"label": "EmbeddedWallet",
+			"sublabel": "key material + signing",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/embedded.ts",
+			"desc": "The key-handling layer AppWallet delegates to. WalletStaticMethods turns a mnemonic into a root private key and cardano-cli hex keys into signing keys; the instance derives accounts and returns raw Vkeywitnesses.",
+			"api": ["mnemonicToPrivateKeyHex()", "signingKeyToHexes()", "getAddresses()", "generateMnemonic()", "getAccount()", "signTx()", "signData()"],
+			"layout": { "x": 320, "y": 576, "w": 216, "h": 56 }
+		},
+		{
+			"id": "cli-wallet",
+			"label": "CardanoCliWallet",
+			"sublabel": "cardano-cli key files",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/cardanocli-wallet.ts",
+			"desc": "Wallet backed by cardano-cli .skey envelopes. Since core 1.5.0 those keys are derived as BIP32-Ed25519 extended keys so signatures match what the node expects.",
+			"api": ["getNetworkId()", "signTx()", "submitTx()", "queryUTxOs()"],
+			"layout": { "x": 560, "y": 576, "w": 216, "h": 56 }
+		},
+		{
+			"id": "build-keys",
+			"label": "BuildKeys",
+			"sublabel": "derivation + addresses",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/build-keys.ts",
+			"desc": "CIP-1852 derivation (m/1852'/1815'/account'/role/index) and address construction: base, enterprise, reward and DRep identifiers, plus scalar clamping and extended-key stripping.",
+			"api": ["buildKeys()", "buildBaseAddress()", "buildEnterpriseAddress()", "buildRewardAddress()", "buildDRepID()", "clampScalar()", "stripExtendedKey()"],
+			"layout": { "x": 800, "y": 576, "w": 216, "h": 56 }
+		},
+		{
+			"id": "serializer",
+			"label": "Serializer / Deserializer",
+			"sublabel": "CBOR ⇄ typed values",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/",
+			"desc": "The CBOR boundary. Reads transactions, addresses, Plutus scripts and Plutus data out of hex, writes asset units back, and extracts the amounts a transaction moves.",
+			"api": ["deserializeTx()", "deserializeAddress()", "deserializePlutusScript()", "deserializePlutusData()", "deserializeAmountsFromTx()", "serializeAssetUnit()"],
+			"layout": { "x": 64, "y": 656, "w": 232, "h": 56 }
+		},
+		{
+			"id": "resolver",
+			"label": "Resolver",
+			"sublabel": "transaction hashes",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/resolver.ts",
+			"desc": "Computes the transaction id from a CBOR hex string or a TransactionBody — the identity every Hydra event is keyed by, available before the transaction is ever submitted.",
+			"api": ["resolveTxHash()", "resolveTxBodyHash()"],
+			"layout": { "x": 320, "y": 656, "w": 216, "h": 56 }
+		},
+		{
+			"id": "converter",
+			"label": "Converter",
+			"sublabel": "UTxO ⇄ UTxOObject",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/converter.ts",
+			"desc": "Translates between the array shape the builder wants and the keyed map shape Hydra snapshots use, and turns a TxOutput descriptor into a CSL TransactionOutput.",
+			"api": ["convertUTxOToUTxOObject()", "convertUTxOObjectToUTxO()", "convertUTxOObjectToUTxOWithOptions()", "convertTxOutputToWasm()"],
+			"layout": { "x": 560, "y": 656, "w": 216, "h": 56 }
+		},
+		{
+			"id": "core-utils",
+			"label": "Domain helpers",
+			"sublabel": "datum · policy · plutus · address",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/",
+			"desc": "The namespaced helpers re-exported from the package root: datum hashing, policy ids and native scripts, applying parameters to Plutus scripts, and address derivation and inspection.",
+			"api": ["DatumUtils", "PolicyUtils", "PlutusUtils", "AddressUtils", "KeysUtils", "RedeemerUtils"],
+			"layout": { "x": 800, "y": 656, "w": 216, "h": 56 }
+		},
+		{
+			"id": "providers",
+			"label": "Providers",
+			"sublabel": "IFetcher + ISubmitter",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/providers/",
+			"desc": "Chain access behind two small interfaces. BaseWalletProvider fixes the contract; Blockfrost, Ogmios and Demeter implementations ship with the package, and anything satisfying IFetcher/ISubmitter can replace them.",
+			"api": ["BlockfrostProvider", "OgmiosProvider", "DemeterProvider", "IFetcher.fetchAddressUTxOs()", "ISubmitter.submitTx()"],
+			"layout": { "x": 64, "y": 736, "w": 232, "h": 56 }
+		},
+		{
+			"id": "protocol-params",
+			"label": "Protocol & constants",
+			"sublabel": "fees, cost models, eras",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/constants/",
+			"desc": "Default protocol parameters, Plutus cost models and network ids. defaultCostModels is a getter, not a constant — building it eagerly would run WASM while core is still being imported and race the bundler's async instantiation.",
+			"api": ["DEFAULT_PROTOCOL_PARAMETERS", "CostModels.defaultCostModels", "CostModels.buildCostModels()", "NETWORK_ID"],
+			"layout": { "x": 320, "y": 736, "w": 216, "h": 56 }
+		},
+		{
+			"id": "parser-utils",
+			"label": "Parser · Time · Metadata",
+			"sublabel": "encoding + slot math",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/",
+			"desc": "Hex, byte and text conversion; slot-to-time arithmetic the bridge uses once slot zero is known; and transaction metadata helpers.",
+			"api": ["ParserUtils.hexToBytes()", "ParserUtils.toBytes()", "TimeUtils", "MetadataUtils"],
+			"layout": { "x": 560, "y": 736, "w": 216, "h": 56 }
+		},
+		{
+			"id": "validation",
+			"label": "Validation",
+			"sublabel": "guards",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/validation.ts",
+			"desc": "Address and output checks used before a transaction reaches CSL, where a bad value costs an opaque WASM panic instead of a readable error. ValidatorUtils is the deprecated alias.",
+			"api": ["isValidAddress()", "isValidTxOutput()"],
+			"layout": { "x": 800, "y": 736, "w": 216, "h": 56 }
+		},
+
+		{
+			"id": "wasm-entry",
+			"label": "@hydra-sdk/cardano-wasm",
+			"sublabel": "single WASM boundary",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "packages/cardano-wasm/src/index.ts",
+			"desc": "The only module allowed to import @emurgo/cardano-serialization-lib. package.json export conditions pick the build — the consumer's bundler or runtime decides, not a runtime branch.",
+			"api": ["CardanoWASM", "@hydra-sdk/cardano-wasm/asmjs"],
+			"layout": { "x": 64, "y": 872, "w": 304, "h": 56 }
+		},
+		{
+			"id": "csl-browser",
+			"label": "CSL · browser",
+			"sublabel": "browser condition",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "@emurgo/cardano-serialization-lib-browser@14.1.2",
+			"desc": "Resolved by the browser export condition. WASM is instantiated asynchronously by the bundler, which is why core must not touch it at import time.",
+			"api": [],
+			"layout": { "x": 392, "y": 872, "w": 200, "h": 56 }
+		},
+		{
+			"id": "csl-node",
+			"label": "CSL · Node.js",
+			"sublabel": "node condition",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "@emurgo/cardano-serialization-lib-nodejs@14.1.2",
+			"desc": "Resolved by the node export condition, via src/index.node.ts. Used by the Node playground, the test suite and any server-side consumer.",
+			"api": [],
+			"layout": { "x": 616, "y": 872, "w": 200, "h": 56 }
+		},
+		{
+			"id": "csl-asmjs",
+			"label": "CSL · asm.js",
+			"sublabel": "opt-in subpath",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "@emurgo/cardano-serialization-lib-asmjs@14.1.2",
+			"desc": "Fallback for environments that cannot instantiate WASM. Opt-in only, through the /asmjs subpath — never selected automatically.",
+			"api": [],
+			"layout": { "x": 840, "y": 872, "w": 176, "h": 56 }
+		},
+
+		{
+			"id": "hydra-ws",
+			"label": "hydra-node · WebSocket",
+			"sublabel": "ws://host:4001",
+			"group": "endpoints",
+			"tier": "remote",
+			"path": "hydra-node 1.3.0 / 2.x API",
+			"desc": "The head's live channel. Greetings on connect, then a stream of TimedServerOutput payloads; client inputs go back the same way. Query params control history, snapshot-utxo and address filtering.",
+			"api": ["Greetings", "SnapshotConfirmed", "TxValid / TxInvalid", "HeadIsOpen / HeadIsClosed", "ReadyToFanout", "NewTx / Close / Fanout"],
+			"layout": { "x": 1114, "y": 96, "w": 282, "h": 64 }
+		},
+		{
+			"id": "hydra-rest",
+			"label": "hydra-node · REST",
+			"sublabel": "http://host:4001",
+			"group": "endpoints",
+			"tier": "remote",
+			"path": "hydra-node HTTP API",
+			"desc": "The node's request/response surface, used for cold-start reads and for anything that needs a reported outcome rather than a fire-and-forget command.",
+			"api": ["GET /protocol-parameters", "GET /snapshot/utxo", "GET /head", "GET /commits", "POST /commit", "POST /cardano-transaction", "DELETE /commits/{txId}"],
+			"layout": { "x": 1114, "y": 184, "w": 282, "h": 64 }
+		},
+		{
+			"id": "hexcore-rest",
+			"label": "Hexcore · REST",
+			"sublabel": "/hydra/* gateway",
+			"group": "endpoints",
+			"tier": "remote",
+			"path": "Hexcore gateway",
+			"desc": "A gateway that fronts one or more hydra nodes with the same routes under a /hydra prefix, plus API-key headers. Swapping to it is a connector change, not an application change.",
+			"api": ["GET /hydra/snapshot/utxo", "GET /hydra/head", "POST /hydra/submit-tx", "POST /hydra/transaction", "POST /hydra/decommit"],
+			"layout": { "x": 1114, "y": 272, "w": 282, "h": 64 }
+		},
+
+		{
+			"id": "infra-offline",
+			"label": "hydra-offline devnet",
+			"sublabel": "infra/hydra-offline",
+			"group": "testnets",
+			"tier": "infra",
+			"path": "infra/hydra-offline/run-offline.sh",
+			"desc": "A hydra-node in offline mode with a seeded UTxO set — no L1 at all. The e2e suite runs against it on port 4002. Commit, decommit, fanout and contest cannot be exercised here; those need a devnet with a cardano-node.",
+			"api": ["pnpm hydra:offline", "pnpm e2e:node", "pnpm test:e2e"],
+			"layout": { "x": 1114, "y": 436, "w": 282, "h": 64 }
+		},
+		{
+			"id": "infra-preprod",
+			"label": "hydra-preprod",
+			"sublabel": "infra/hydra-preprod",
+			"group": "testnets",
+			"tier": "infra",
+			"path": "infra/hydra-preprod/run-online.sh",
+			"desc": "An online head on the preprod network, backed by a real cardano-node. This is where the L1-facing half of the lifecycle — commit, fanout, contest — is actually testable.",
+			"api": ["pnpm hydra:preprod", "pnpm hydra:preprod:bridge"],
+			"layout": { "x": 1114, "y": 524, "w": 282, "h": 64 }
+		},
+
+		{
+			"id": "cardano-l1",
+			"label": "Cardano L1",
+			"sublabel": "cardano-node",
+			"group": "chain",
+			"tier": "remote",
+			"path": "cardano-node",
+			"desc": "The settlement layer. Commits deposit into the head's script, decommits decrement it, and fanout distributes the final snapshot. The SDK never speaks to it directly — the hydra node or a provider does.",
+			"api": ["head script UTxO", "deposit / decrement / fanout transactions"],
+			"layout": { "x": 1114, "y": 692, "w": 282, "h": 64 }
+		},
+		{
+			"id": "blockfrost",
+			"label": "Blockfrost",
+			"sublabel": "hosted chain API",
+			"group": "chain",
+			"tier": "remote",
+			"path": "packages/core/src/utils/providers/blockfrost.provider.ts",
+			"desc": "The default L1 provider. Pages address UTxOs, normalises them into the SDK's UTxO shape, and submits signed transactions.",
+			"api": ["GET /addresses/{address}/utxos", "POST /tx/submit"],
+			"layout": { "x": 1114, "y": 780, "w": 282, "h": 64 }
+		},
+		{
+			"id": "ogmios",
+			"label": "Ogmios / Demeter",
+			"sublabel": "node bridge + evaluator",
+			"group": "chain",
+			"tier": "remote",
+			"path": "packages/core/src/utils/providers/",
+			"desc": "A direct bridge to a cardano-node. Beyond UTxO queries and submission it can evaluate a transaction, which is what supplies TxBuilder with real Plutus execution units.",
+			"api": ["queryUtxo", "submitTransaction", "evaluateTransaction"],
+			"layout": { "x": 1114, "y": 868, "w": 282, "h": 64 }
+		}
+	],
+
+	"edges": [
+		{ "id": "app-playground>bridge-core", "from": "app-playground", "to": "bridge-core", "kind": "call", "label": "head demos" },
+		{ "id": "app-playground>txbuilder", "from": "app-playground", "to": "txbuilder", "kind": "call", "label": "builder page" },
+		{ "id": "app-playground>app-wallet", "from": "app-playground", "to": "app-wallet", "kind": "call" },
+		{ "id": "app-nodejs>bridge-core", "from": "app-nodejs", "to": "bridge-core", "kind": "call" },
+		{ "id": "app-nodejs>txbuilder", "from": "app-nodejs", "to": "txbuilder", "kind": "call", "label": "lock / unlock" },
+		{ "id": "app-nodejs>app-wallet", "from": "app-nodejs", "to": "app-wallet", "kind": "call" },
+		{ "id": "app-nodejs>cli-wallet", "from": "app-nodejs", "to": "cli-wallet", "kind": "call", "label": "key-mgmt" },
+		{ "id": "app-consumer>bridge-core", "from": "app-consumer", "to": "bridge-core", "kind": "call" },
+		{ "id": "app-consumer>txbuilder", "from": "app-consumer", "to": "txbuilder", "kind": "call" },
+		{ "id": "app-consumer>app-wallet", "from": "app-consumer", "to": "app-wallet", "kind": "call" },
+
+		{ "id": "bridge-core>ws-connector", "from": "bridge-core", "to": "ws-connector", "kind": "call", "label": "default" },
+		{ "id": "bridge-core>hex-connector", "from": "bridge-core", "to": "hex-connector", "kind": "call", "label": "opt-in" },
+		{ "id": "bridge-core>snapshot-cache", "from": "bridge-core", "to": "snapshot-cache", "kind": "own", "label": "rebuilds" },
+		{ "id": "bridge-core>event-bus", "from": "bridge-core", "to": "event-bus", "kind": "event", "label": "re-exposes" },
+		{ "id": "bridge-core>head-commands", "from": "bridge-core", "to": "head-commands", "kind": "own" },
+		{ "id": "bridge-core>converter", "from": "bridge-core", "to": "converter", "kind": "call", "label": "UTxO shapes" },
+		{ "id": "bridge-core>protocol-params", "from": "bridge-core", "to": "protocol-params", "kind": "call", "label": "toProtocol" },
+		{ "id": "bridge-core>parser-utils", "from": "bridge-core", "to": "parser-utils", "kind": "call", "label": "slot math" },
+		{ "id": "head-commands>ws-connector", "from": "head-commands", "to": "ws-connector", "kind": "call", "label": "sendCommand" },
+		{ "id": "ws-connector>event-bus", "from": "ws-connector", "to": "event-bus", "kind": "event", "label": "emit" },
+		{ "id": "ws-connector>payload-types", "from": "ws-connector", "to": "payload-types", "kind": "call", "label": "narrow by tag" },
+		{ "id": "ws-connector>await-msg", "from": "ws-connector", "to": "await-msg", "kind": "call" },
+		{ "id": "ws-connector>hydra-ws", "from": "ws-connector", "to": "hydra-ws", "kind": "net", "label": "WebSocket" },
+		{ "id": "ws-connector>hydra-rest", "from": "ws-connector", "to": "hydra-rest", "kind": "net", "label": "HTTP" },
+		{ "id": "hex-connector>payload-types", "from": "hex-connector", "to": "payload-types", "kind": "call" },
+		{ "id": "hex-connector>await-msg", "from": "hex-connector", "to": "await-msg", "kind": "call" },
+		{ "id": "hex-connector>hexcore-rest", "from": "hex-connector", "to": "hexcore-rest", "kind": "net", "label": "HTTP" },
+
+		{ "id": "txbuilder>datum-builder", "from": "txbuilder", "to": "datum-builder", "kind": "call" },
+		{ "id": "txbuilder>redeemer-builder", "from": "txbuilder", "to": "redeemer-builder", "kind": "call" },
+		{ "id": "txbuilder>tx-metadata", "from": "txbuilder", "to": "tx-metadata", "kind": "call" },
+		{ "id": "txbuilder>converter", "from": "txbuilder", "to": "converter", "kind": "call" },
+		{ "id": "txbuilder>serializer", "from": "txbuilder", "to": "serializer", "kind": "call" },
+		{ "id": "txbuilder>resolver", "from": "txbuilder", "to": "resolver", "kind": "call" },
+		{ "id": "txbuilder>protocol-params", "from": "txbuilder", "to": "protocol-params", "kind": "call", "label": "fees" },
+		{ "id": "txbuilder>core-utils", "from": "txbuilder", "to": "core-utils", "kind": "call" },
+		{ "id": "txbuilder>wasm-entry", "from": "txbuilder", "to": "wasm-entry", "kind": "call", "label": "build_tx" },
+
+		{ "id": "app-wallet>embedded-wallet", "from": "app-wallet", "to": "embedded-wallet", "kind": "call", "label": "key ops" },
+		{ "id": "app-wallet>providers", "from": "app-wallet", "to": "providers", "kind": "call", "label": "fetcher / submitter" },
+		{ "id": "app-wallet>serializer", "from": "app-wallet", "to": "serializer", "kind": "call" },
+		{ "id": "app-wallet>build-keys", "from": "app-wallet", "to": "build-keys", "kind": "call" },
+		{ "id": "embedded-wallet>build-keys", "from": "embedded-wallet", "to": "build-keys", "kind": "call", "label": "CIP-1852" },
+		{ "id": "embedded-wallet>serializer", "from": "embedded-wallet", "to": "serializer", "kind": "call" },
+		{ "id": "cli-wallet>build-keys", "from": "cli-wallet", "to": "build-keys", "kind": "call", "label": "BIP32-Ed25519" },
+		{ "id": "cli-wallet>providers", "from": "cli-wallet", "to": "providers", "kind": "call" },
+		{ "id": "core-utils>validation", "from": "core-utils", "to": "validation", "kind": "call" },
+		{ "id": "build-keys>wasm-entry", "from": "build-keys", "to": "wasm-entry", "kind": "call" },
+		{ "id": "serializer>wasm-entry", "from": "serializer", "to": "wasm-entry", "kind": "call" },
+		{ "id": "resolver>wasm-entry", "from": "resolver", "to": "wasm-entry", "kind": "call" },
+		{ "id": "converter>wasm-entry", "from": "converter", "to": "wasm-entry", "kind": "call" },
+		{ "id": "core-utils>wasm-entry", "from": "core-utils", "to": "wasm-entry", "kind": "call" },
+		{ "id": "parser-utils>wasm-entry", "from": "parser-utils", "to": "wasm-entry", "kind": "call" },
+		{ "id": "validation>wasm-entry", "from": "validation", "to": "wasm-entry", "kind": "call" },
+		{ "id": "protocol-params>wasm-entry", "from": "protocol-params", "to": "wasm-entry", "kind": "call", "label": "cost models" },
+		{ "id": "providers>blockfrost", "from": "providers", "to": "blockfrost", "kind": "net", "label": "HTTP" },
+		{ "id": "providers>ogmios", "from": "providers", "to": "ogmios", "kind": "net", "label": "HTTP / WS" },
+
+		{ "id": "wasm-entry>csl-browser", "from": "wasm-entry", "to": "csl-browser", "kind": "resolve", "label": "browser" },
+		{ "id": "wasm-entry>csl-node", "from": "wasm-entry", "to": "csl-node", "kind": "resolve", "label": "node" },
+		{ "id": "wasm-entry>csl-asmjs", "from": "wasm-entry", "to": "csl-asmjs", "kind": "resolve", "label": "/asmjs" },
+
+		{ "id": "hydra-ws>cardano-l1", "from": "hydra-ws", "to": "cardano-l1", "kind": "net", "label": "observes" },
+		{ "id": "hydra-rest>cardano-l1", "from": "hydra-rest", "to": "cardano-l1", "kind": "net", "label": "posts" },
+		{ "id": "hexcore-rest>hydra-ws", "from": "hexcore-rest", "to": "hydra-ws", "kind": "net", "label": "proxies" },
+		{ "id": "blockfrost>cardano-l1", "from": "blockfrost", "to": "cardano-l1", "kind": "net" },
+		{ "id": "ogmios>cardano-l1", "from": "ogmios", "to": "cardano-l1", "kind": "net" },
+		{ "id": "infra-offline>hydra-ws", "from": "infra-offline", "to": "hydra-ws", "kind": "host", "label": ":4002" },
+		{ "id": "infra-offline>hydra-rest", "from": "infra-offline", "to": "hydra-rest", "kind": "host" },
+		{ "id": "infra-preprod>hydra-ws", "from": "infra-preprod", "to": "hydra-ws", "kind": "host" },
+		{ "id": "infra-preprod>cardano-l1", "from": "infra-preprod", "to": "cardano-l1", "kind": "host", "label": "preprod" }
+	],
+
+	"flows": [
+		{
+			"id": "wallet-from-mnemonic",
+			"name": "Create a wallet from a mnemonic",
+			"tagline": "Twenty-four words become an account, three addresses and a signing key.",
+			"category": "keys",
+			"edges": ["app-consumer>app-wallet", "app-wallet>embedded-wallet", "embedded-wallet>build-keys", "build-keys>wasm-entry", "wasm-entry>csl-browser"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Construct the wallet", "note": "new AppWallet({ networkId, key: { type: 'mnemonic', words } }). The same constructor also takes a root bech32 key or a pair of cardano-cli keys." },
+				{ "node": "app-wallet", "title": "Pick the key strategy", "note": "The constructor switches on key.type and hands the material to the embedded layer. Nothing is derived yet." },
+				{ "node": "embedded-wallet", "title": "Mnemonic → root private key", "note": "WalletStaticMethods.mnemonicToPrivateKeyHex runs BIP39 entropy through Bip32PrivateKey.from_bip39_entropy with the supplied password." },
+				{ "node": "build-keys", "title": "Derive the account", "note": "buildKeys walks m/1852'/1815'/account'/role/index and returns the payment key, stake key and the base, enterprise and reward addresses in one object." },
+				{ "node": "wasm-entry", "title": "Cross the WASM boundary", "note": "Bip32PrivateKey, Credential and BaseAddress are CSL types; this is the only module that imports them." },
+				{ "node": "csl-browser", "title": "Resolve the right build", "note": "The bundler's browser condition selects the browser WASM build. In Node the node condition wins instead — no runtime branch is involved." }
+			]
+		},
+		{
+			"id": "l1-transaction",
+			"name": "Build, sign and submit on L1",
+			"tagline": "The ordinary Cardano path, from UTxO query to transaction id.",
+			"category": "transaction",
+			"edges": ["app-consumer>app-wallet", "app-wallet>providers", "providers>blockfrost", "app-consumer>txbuilder", "txbuilder>protocol-params", "txbuilder>wasm-entry", "txbuilder>resolver", "app-wallet>embedded-wallet", "blockfrost>cardano-l1"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Start from the wallet", "note": "One AppWallet carries the key, the fetcher and the submitter, so querying, signing and submitting all go through it." },
+				{ "node": "app-wallet", "title": "Query spendable UTxOs", "note": "queryUTxOs(address) throws unless a fetcher was supplied — the wallet never invents chain access." },
+				{ "node": "providers", "title": "Reach the chain", "note": "BlockfrostProvider satisfies both IFetcher and ISubmitter, so a single object covers reads and writes." },
+				{ "node": "blockfrost", "title": "Fetch and normalise", "note": "GET /addresses/{address}/utxos is paged until exhausted, then each entry is mapped into the SDK's UTxO shape." },
+				{ "node": "txbuilder", "title": "Stage the transaction", "note": "setInputs(utxos) → txOut(address, amount) → changeAddress(addr) → complete(). Every call stages a descriptor; nothing touches CSL yet." },
+				{ "node": "protocol-params", "title": "Size the fee", "note": "minFeeA, minFeeB, coinsPerUtxoSize and the cost models come from the protocol parameters passed to the builder." },
+				{ "node": "wasm-entry", "title": "Assemble and build", "note": "_assembleAndBuild pours the staged parts into CSL's TransactionBuilder and calls add_change_if_needed, then build_tx." },
+				{ "node": "resolver", "title": "Learn the transaction id", "note": "resolveTxHash(cborHex) gives the id before submission — worth recording, because that is the key every later event uses." },
+				{ "node": "app-wallet", "title": "Sign", "note": "signTx builds a Vkeywitness through EmbeddedWallet and re-attaches it to the FixedTransaction, preserving the original body bytes." },
+				{ "node": "blockfrost", "title": "Submit", "note": "POST /tx/submit returns the transaction id the node accepted. Compare it with step 8 as a cheap sanity check." },
+				{ "node": "cardano-l1", "title": "Settle", "note": "The transaction is in the mempool; confirmation follows chain timing, not SDK timing." }
+			]
+		},
+		{
+			"id": "connect-head",
+			"name": "Connect to a Hydra head",
+			"tagline": "One URL, a socket, and the Greetings message that seeds everything.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>bridge-core", "bridge-core>ws-connector", "ws-connector>hydra-ws", "ws-connector>payload-types", "ws-connector>event-bus", "bridge-core>snapshot-cache", "ws-connector>hydra-rest", "infra-offline>hydra-ws"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Open the bridge", "note": "new HydraBridge({ url: 'ws://localhost:4001', history: false }) — or pass your own connector instead of a url." },
+				{ "node": "bridge-core", "title": "Wire the listeners", "note": "The constructor subscribes to onConnected and onMessage before the socket opens, so no Greetings can be missed." },
+				{ "node": "ws-connector", "title": "Split the URL", "note": "parseUrl produces both a socket URL and an HTTP base URL from the one input, and appends history, snapshot-utxo and address query params." },
+				{ "node": "hydra-ws", "title": "Socket opens", "note": "The node sends Greetings immediately. Unlike every other server output it carries no seq or timestamp, and its env deliberately omits the signing key." },
+				{ "node": "payload-types", "title": "Narrow the payload", "note": "Raw JSON is narrowed to the HydraPayload union by its tag; InvalidInput is reshaped because the node sends it without one." },
+				{ "node": "event-bus", "title": "Emit", "note": "onConnected fires first, then onMessage for every payload. bridge.events is this emitter." },
+				{ "node": "snapshot-cache", "title": "Seed the state", "note": "Greetings sets nodeVersion, syncedStatus and an approximate slotZeroTimestamp, superseded later by an exact chainSlot/chainTime pair." },
+				{ "node": "hydra-rest", "title": "Cold-start fallback", "note": "querySnapshotUtxo() runs GET /snapshot/utxo in the background and is discarded if a WebSocket snapshot arrived first — lastSnapshotNumber decides." },
+				{ "node": "infra-offline", "title": "Where to try it", "note": "pnpm hydra:offline brings up a seeded offline node on :4002 with no L1 attached — enough for connect, submit and snapshot flows." }
+			]
+		},
+		{
+			"id": "commit-funds",
+			"name": "Commit funds into the head",
+			"tagline": "An incremental deposit: draft on the node, sign locally, settle on L1.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>bridge-core", "bridge-core>ws-connector", "ws-connector>hydra-rest", "app-consumer>app-wallet", "hydra-rest>cardano-l1", "ws-connector>hydra-ws", "ws-connector>payload-types", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Choose what to move in", "note": "Pick the L1 UTxOs to deposit, or supply a blueprint transaction when the commit needs a script witness." },
+				{ "node": "bridge-core", "title": "Ask the node to draft it", "note": "bridge.commit(data) forwards straight to connector.submitter.commit — the bridge adds no logic here." },
+				{ "node": "ws-connector", "title": "POST /commit", "note": "Sent on the node's HTTP port, not the socket, because the caller needs the drafted transaction back." },
+				{ "node": "hydra-rest", "title": "Receive the draft", "note": "The node returns an unsigned deposit transaction as cborHex. It is not yet valid — it has no witnesses." },
+				{ "node": "app-wallet", "title": "Sign the draft", "note": "signTx with the committing key. This is the point where custody stays on your side: the node never sees the key." },
+				{ "node": "cardano-l1", "title": "Settle the deposit", "note": "POST /cardano-transaction relays the signed deposit to L1. The node observes it and starts the deposit period." },
+				{ "node": "payload-types", "title": "Track it by tag", "note": "CommitRecorded → DepositActivated → CommitApproved → CommitFinalized arrive over the socket. A deposit that stalls stays listed in GET /commits." },
+				{ "node": "snapshot-cache", "title": "It appears in the head", "note": "Once finalised the funds show up in the next SnapshotConfirmed and land in the address index." }
+			]
+		},
+		{
+			"id": "l2-transfer",
+			"name": "Send a transaction inside the head",
+			"tagline": "No fee, no collateral, no block — confirmation in a round trip.",
+			"category": "transaction",
+			"edges": ["app-consumer>bridge-core", "bridge-core>protocol-params", "app-consumer>txbuilder", "txbuilder>wasm-entry", "app-consumer>app-wallet", "bridge-core>ws-connector", "ws-connector>hydra-ws", "ws-connector>await-msg", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Read the head's UTxO set", "note": "bridge.queryAddressUTxO(address) serves from the snapshot index; there is no L1 query in this flow at all." },
+				{ "node": "bridge-core", "title": "Take the head's parameters", "note": "getProtocolParameters() returns what the node reports, which in most head configurations means zero fees." },
+				{ "node": "txbuilder", "title": "Build for Hydra", "note": "new TxBuilder({ params, isHydra: true }) skips the L1 fee and collateral rules and lets change balance exactly." },
+				{ "node": "wasm-entry", "title": "Build the transaction", "note": "Same CSL path as L1 — a Hydra transaction is an ordinary Conway transaction, only the validation context differs." },
+				{ "node": "app-wallet", "title": "Sign", "note": "Signed by the owner of the inputs. Head parties sign the snapshot, not your transaction." },
+				{ "node": "ws-connector", "title": "Submit and wait", "note": "bridge.submitTxSync(tx) sends a NewTx command and blocks until the node answers, instead of the fire-and-forget commands.newTx." },
+				{ "node": "hydra-ws", "title": "The head agrees", "note": "The node broadcasts to the other parties; TxValid comes back keyed by transactionId." },
+				{ "node": "await-msg", "title": "Resolve or reject", "note": "Resolves on TxValid. Rejects on TxInvalid, on CommandFailed, and on RejectedInputBecauseUnsynced when the echoed client input is our own NewTx." },
+				{ "node": "snapshot-cache", "title": "Balances move", "note": "SnapshotConfirmed rebuilds the address index and balance cache, so the next getAddressBalance already reflects the transfer." }
+			]
+		},
+		{
+			"id": "snapshot-cache-read",
+			"name": "Read balances in O(1)",
+			"tagline": "Why the bridge keeps two maps instead of asking the node.",
+			"category": "state",
+			"edges": ["infra-offline>hydra-ws", "ws-connector>hydra-ws", "ws-connector>event-bus", "bridge-core>event-bus", "bridge-core>converter", "bridge-core>snapshot-cache", "app-consumer>bridge-core"],
+			"steps": [
+				{ "node": "hydra-ws", "title": "SnapshotConfirmed arrives", "note": "Carries the full confirmed UTxO set plus its snapshotNumber — a complete state, not a delta." },
+				{ "node": "ws-connector", "title": "Narrow and emit", "note": "Parsed, tagged and pushed onto the emitter. The connector holds no state of its own." },
+				{ "node": "event-bus", "title": "onMessage", "note": "Both the bridge's internal handler and any application listener see the same payload." },
+				{ "node": "bridge-core", "title": "Guard against staleness", "note": "updateSnapshot() compares snapshotNumber with lastSnapshotNumber, so a slow HTTP reply can never overwrite fresher WebSocket data." },
+				{ "node": "converter", "title": "Reshape the UTxO set", "note": "Hydra sends a keyed map; the builder wants an array. Converter owns both directions so neither side has to care." },
+				{ "node": "snapshot-cache", "title": "Rebuild both indexes", "note": "One O(n) pass produces address → txHash → UTxO and address → assetUnit → bigint. The cost is paid once per snapshot, not once per query." },
+				{ "node": "app-consumer", "title": "Query for free", "note": "getAddressBalance(addr) is a map lookup. null means the cache is cold — fall back to your own store; an empty Map means the address is in the head with nothing in it." }
+			]
+		},
+		{
+			"id": "plutus-spend",
+			"name": "Spend a Plutus script UTxO",
+			"tagline": "Two build passes, because the fee depends on the execution units.",
+			"category": "plutus",
+			"edges": ["app-consumer>txbuilder", "txbuilder>datum-builder", "txbuilder>redeemer-builder", "txbuilder>core-utils", "txbuilder>wasm-entry", "providers>ogmios", "app-consumer>app-wallet", "app-wallet>providers", "providers>blockfrost"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Locate the locked UTxO", "note": "The script address holds the value; you supply the datum it was locked with and the redeemer that unlocks it." },
+				{ "node": "datum-builder", "title": "Compose the datum", "note": "datumBuilder() assembles constr, list, map, int and bytes into PlutusData without hand-writing CSL calls." },
+				{ "node": "redeemer-builder", "title": "Compose the redeemer", "note": "buildRedeemer(value, { tag: 'SPEND', index }) — or emptyRedeemer() for a validator that ignores its argument." },
+				{ "node": "txbuilder", "title": "Stage the script spend", "note": "spendingPlutusScript('V3') → txInScript(cbor) or txInReference(txHash, ix) → txInRedeemerValue(r) → txInCollateral(...) → requiredSignerHash(...)." },
+				{ "node": "core-utils", "title": "Cost models and script data", "note": "The language view and cost models feed the script data hash; a mismatch here is the classic cause of an unexplained script failure." },
+				{ "node": "wasm-entry", "title": "First pass", "note": "A draft transaction is built with the placeholder execution units carried on the staged redeemers." },
+				{ "node": "ogmios", "title": "Evaluate", "note": "evaluator.evaluateTx(txHex) returns the real mem and steps budget for each redeemer pointer. Without an evaluator the single-pass build is returned as is — which is the normal case inside a head." },
+				{ "node": "txbuilder", "title": "Second pass", "note": "_applyEvaluatedExUnits remaps SPEND results by input and MINT results by policy id, scales them by txEvaluationMultiplier, then rebuilds so CSL computes the correct fee." },
+				{ "node": "app-wallet", "title": "Sign", "note": "Including every key named by requiredSignerHash, or the validator's signature check fails." },
+				{ "node": "blockfrost", "title": "Submit", "note": "On L1 the script runs at validation time; the collateral is only consumed if it fails." }
+			]
+		},
+		{
+			"id": "decommit",
+			"name": "Move funds back out of the head",
+			"tagline": "A decommit leaves the head open — unlike closing it.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>txbuilder", "app-consumer>bridge-core", "bridge-core>head-commands", "head-commands>ws-connector", "ws-connector>hydra-ws", "ws-connector>await-msg", "hydra-ws>cardano-l1", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Decide what leaves", "note": "A decommit withdraws specific UTxOs to L1 while everyone else keeps transacting inside the head." },
+				{ "node": "txbuilder", "title": "Build the decommit transaction", "note": "Its outputs are the UTxOs you want back on L1. Build it against the head's parameters, then sign it." },
+				{ "node": "bridge-core", "title": "Request the decommit", "note": "bridge.commands.decommit({ cborHex, txId, timeout }) — or POST /decommit through the connector's submitter when you want the HTTP form." },
+				{ "node": "ws-connector", "title": "Send it", "note": "The Decommit client input goes out on the socket alongside everything else." },
+				{ "node": "hydra-ws", "title": "The head decides", "note": "DecommitRequested → DecommitApproved → DecommitFinalized. DecommitInvalid means the transaction was never accepted." },
+				{ "node": "await-msg", "title": "Wait for approval", "note": "Resolves on DecommitApproved matching our txId, so the caller gets a promise instead of an event subscription." },
+				{ "node": "cardano-l1", "title": "Decrement on chain", "note": "The node posts a decrement transaction that reduces the head's script UTxO and pays out the withdrawn value." },
+				{ "node": "snapshot-cache", "title": "The head shrinks", "note": "The next snapshot no longer contains those UTxOs, and the balance cache reflects it on the same pass." }
+			]
+		},
+		{
+			"id": "close-fanout",
+			"name": "Close the head and fan out",
+			"tagline": "The contestation window, then everything settles back to L1.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>bridge-core", "bridge-core>head-commands", "head-commands>ws-connector", "ws-connector>hydra-ws", "ws-connector>payload-types", "hydra-ws>cardano-l1", "ws-connector>hydra-rest"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Decide to wind down", "note": "close() posts the latest snapshot on chain. safeClose() refuses when the node believes it is behind." },
+				{ "node": "head-commands", "title": "Send Close", "note": "bridge.commands.close(). From here the head is no longer accepting new transactions." },
+				{ "node": "hydra-ws", "title": "HeadIsClosed", "note": "Carries a contestation deadline. Until it passes, any party can contest with a newer snapshot." },
+				{ "node": "payload-types", "title": "Watch the window", "note": "HeadIsContested restarts the clock; ReadyToFanout means the deadline has passed and the head can be settled." },
+				{ "node": "head-commands", "title": "Fan out", "note": "commands.fanout() distributes the whole final snapshot. commands.partialFanout(utxo) settles a subset when the full set is too large for one transaction." },
+				{ "node": "cardano-l1", "title": "Settle", "note": "The fanout transaction pays every UTxO in the final snapshot back to its owner on L1." },
+				{ "node": "hydra-rest", "title": "Confirm it is finished", "note": "HeadIsFinalized arrives on the socket, and GET /head reports Idle again — the node is ready for a new head." }
+			]
+		},
+		{
+			"id": "recover-deposit",
+			"name": "Recover a stuck deposit",
+			"tagline": "Funds committed but never absorbed are still yours.",
+			"category": "recovery",
+			"edges": ["app-consumer>bridge-core", "bridge-core>ws-connector", "ws-connector>hydra-rest", "hydra-rest>cardano-l1"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Look for orphaned deposits", "note": "Deposits stay recoverable after a head closes, so this is also how you reclaim funds from a previous head." },
+				{ "node": "bridge-core", "title": "List them", "note": "pendingDeposits() calls GET /commits and throws a clear error when the connector does not implement it, rather than failing obscurely." },
+				{ "node": "hydra-rest", "title": "The node answers", "note": "Returns the txIds of deposits observed on chain but not yet included in any snapshot." },
+				{ "node": "ws-connector", "title": "Recover one", "note": "recoverDeposit(txId) issues DELETE /commits/{txId}. It falls back to the Recover socket command when the connector has no HTTP form — but only the HTTP form reports the outcome." },
+				{ "node": "cardano-l1", "title": "Funds return", "note": "The deposit is spent back to the committing address on L1." }
+			]
+		},
+		{
+			"id": "swap-connector",
+			"name": "Swap the node for a gateway",
+			"tagline": "The connector seam: the same bridge against a different backend.",
+			"category": "architecture",
+			"edges": ["app-consumer>bridge-core", "bridge-core>hex-connector", "hex-connector>hexcore-rest", "hexcore-rest>hydra-ws", "hex-connector>payload-types", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Pass a connector, not a URL", "note": "new HydraBridge({ connector: new HexcoreConnector({ ... }) }). Everything downstream of this line is unchanged." },
+				{ "node": "bridge-core", "title": "The bridge cannot tell", "note": "HydraBridge only ever touches connector.fetcher, connector.submitter, connector.eventEmitter and sendCommand — the whole HydraConnector contract." },
+				{ "node": "hex-connector", "title": "Same contract, different routes", "note": "Every route is prefixed /hydra and an API-key header is attached; the method signatures are identical to the WebSocket connector's." },
+				{ "node": "hexcore-rest", "title": "The gateway", "note": "GET /hydra/snapshot/utxo, POST /hydra/submit-tx, POST /hydra/transaction, DELETE /hydra/commits/{txId}." },
+				{ "node": "hydra-ws", "title": "Still the same node", "note": "The gateway proxies a real hydra node, so the payload union and its tags are unchanged." },
+				{ "node": "snapshot-cache", "title": "Caching is unaffected", "note": "The cache lives in the bridge, above the seam, so it works identically whichever connector is underneath. Your own connector only has to satisfy HydraConnector." }
+			]
+		},
+		{
+			"id": "cli-keys",
+			"name": "Sign with cardano-cli key files",
+			"tagline": "The envelope format a devnet hands you, read directly.",
+			"category": "keys",
+			"edges": ["app-nodejs>cli-wallet", "cli-wallet>build-keys", "build-keys>wasm-entry", "app-wallet>serializer", "serializer>wasm-entry", "infra-preprod>hydra-ws"],
+			"steps": [
+				{ "node": "app-nodejs", "title": "Read the envelope", "note": "The key-mgmt scripts load .skey files straight out of a devnet's credentials directory — no mnemonic involved." },
+				{ "node": "cli-wallet", "title": "Construct the wallet", "note": "new CardanoCliWallet({ key: { payment, stake } }) takes the cborHex from the envelope, not a bech32 string." },
+				{ "node": "build-keys", "title": "Derive as extended keys", "note": "Since core 1.5.0 cardano-cli keys are derived as BIP32-Ed25519 extended keys. Treating them as plain Ed25519 produced signatures the node rejected." },
+				{ "node": "wasm-entry", "title": "Cross into CSL", "note": "The extended private key and its public key both come from CSL, as does the witness." },
+				{ "node": "serializer", "title": "Witness without touching the body", "note": "deserializeTx returns a FixedTransaction, so the witness is attached while the original body bytes — and therefore the transaction id — stay exactly as built." },
+				{ "node": "infra-preprod", "title": "Where these keys come from", "note": "infra/hydra-preprod and infra/hydra-offline both ship credentials in this format, which is why the SDK supports it at all." }
+			]
+		},
+		{
+			"id": "mint-burn",
+			"name": "Mint and burn a native asset",
+			"tagline": "One policy, a positive quantity to mint and a negative one to burn.",
+			"category": "transaction",
+			"edges": ["app-nodejs>txbuilder", "txbuilder>core-utils", "txbuilder>redeemer-builder", "txbuilder>tx-metadata", "core-utils>validation", "txbuilder>wasm-entry", "app-nodejs>app-wallet", "app-wallet>providers", "providers>blockfrost"],
+			"steps": [
+				{ "node": "app-nodejs", "title": "Start from the reference script", "note": "apps/nodejs-playground/src/mint-burn-token.ts runs this end to end against a real node." },
+				{ "node": "core-utils", "title": "Derive the policy id", "note": "PolicyUtils turns a native script or a Plutus script into its policy id — the first half of every asset unit." },
+				{ "node": "txbuilder", "title": "Stage the mint", "note": "mintingScript(script) → mint(quantity, policyId, assetName). A negative quantity burns; the burnt asset must be present in the inputs." },
+				{ "node": "redeemer-builder", "title": "Only for Plutus policies", "note": "A Plutus minting policy needs a MINT redeemer indexed by the canonical policy-id ordering. A native script needs none." },
+				{ "node": "tx-metadata", "title": "Attach CIP-25", "note": "metadataValue(721, { ... }) encodes the token metadata; nested objects, Maps and bigints are all handled." },
+				{ "node": "validation", "title": "Fail readably", "note": "Outputs are checked before CSL sees them, so a malformed asset unit surfaces as an error message rather than an opaque WASM panic." },
+				{ "node": "wasm-entry", "title": "Build", "note": "The MintBuilder assembles the mint field and its witnesses, and the minted value is balanced into the change output." },
+				{ "node": "app-wallet", "title": "Sign", "note": "With the policy key as well as the input keys, when the policy is a native script requiring a signature." },
+				{ "node": "blockfrost", "title": "Submit", "note": "After confirmation the asset exists under policyId.assetName and can be spent like any other value." }
+			]
+		},
+		{
+			"id": "wasm-lifecycle",
+			"name": "Keep WASM memory flat",
+			"tagline": "Why TxBuilder tracks and frees instead of trusting the collector.",
+			"category": "performance",
+			"edges": ["app-consumer>txbuilder", "txbuilder>wasm-entry", "wasm-entry>csl-node", "wasm-entry>csl-browser"],
+			"steps": [
+				{ "node": "app-consumer", "title": "The symptom", "note": "Under a burst of builds, memory climbs and throughput drops. The Node playground's leak harnesses reproduce it deliberately." },
+				{ "node": "wasm-entry", "title": "Where it comes from", "note": "CSL objects live in WASM linear memory. FinalizationRegistry does free them eventually, but not fast enough to keep up with a spike." },
+				{ "node": "csl-node", "title": "Same on both builds", "note": "The browser and Node builds share the allocation model, so the fix has to live above the boundary." },
+				{ "node": "txbuilder", "title": "Track, then free", "note": "_track() records every transient object allocated during a build; _freeScratch() releases them in the finally block; the TransactionBuilder itself is freed after build_tx. Transaction 1.2.0 measured 0 KB per iteration after this." },
+				{ "node": "app-consumer", "title": "What you have to do", "note": "Reuse one builder with reset() between transactions, or call dispose() when you are finished with it. A per-request builder that is never disposed reintroduces the problem." }
+			]
+		}
+	]
+}
+</script>
+
+<script>
+	;(function () {
+		'use strict'
+
+		const DATA = JSON.parse(document.getElementById('graph-data').textContent)
+		const NODE = new Map(DATA.nodes.map(n => [n.id, n]))
+		const EDGE = new Map(DATA.edges.map(e => [e.id, e]))
+
+		const CANVAS = { w: 1460, h: 1000 }
+		const $ = id => document.getElementById(id)
+
+		/* ── which flows touch which node ─────────────────────── */
+		const flowsByNode = new Map()
+		DATA.flows.forEach(f => {
+			new Set(f.steps.map(s => s.node)).forEach(id => {
+				if (!flowsByNode.has(id)) flowsByNode.set(id, [])
+				flowsByNode.get(id).push(f)
+			})
+		})
+
+		/* ── header chips ─────────────────────────────────────── */
+		$('chips').innerHTML = Object.entries(DATA.meta.packages)
+			.map(([name, v]) => `<span class="chip">${name.replace('@hydra-sdk/', '')} <b>${v}</b></span>`)
+			.join('')
+
+		/* ── theme ────────────────────────────────────────────── */
+		const themeBtn = $('themeBtn')
+		themeBtn.addEventListener('click', () => {
+			const root = document.documentElement
+			const dark = root.getAttribute('data-theme')
+				? root.getAttribute('data-theme') === 'dark'
+				: matchMedia('(prefers-color-scheme: dark)').matches
+			root.setAttribute('data-theme', dark ? 'light' : 'dark')
+			redrawEdgeLabels()
+		})
+
+		/* ── render group panels ──────────────────────────────── */
+		const SVGNS = 'http://www.w3.org/2000/svg'
+		const svg = $('wires')
+		svg.setAttribute('width', CANVAS.w)
+		svg.setAttribute('height', CANVAS.h)
+		$('world').style.width = CANVAS.w + 'px'
+		$('world').style.height = CANVAS.h + 'px'
+
+		const gGroups = $('layerGroups')
+		DATA.groups.forEach(g => {
+			const el = document.createElementNS(SVGNS, 'g')
+			el.setAttribute('class', 'grp t-' + g.tier)
+			const r = document.createElementNS(SVGNS, 'rect')
+			r.setAttribute('x', g.layout.x)
+			r.setAttribute('y', g.layout.y)
+			r.setAttribute('width', g.layout.w)
+			r.setAttribute('height', g.layout.h)
+			r.setAttribute('rx', 14)
+			el.appendChild(r)
+			const t = document.createElementNS(SVGNS, 'text')
+			t.setAttribute('class', 'grp-label')
+			t.setAttribute('x', g.layout.x + 16)
+			t.setAttribute('y', g.layout.y + 22)
+			t.textContent = g.label
+			el.appendChild(t)
+			gGroups.appendChild(el)
+			if (g.version) {
+				const v = document.createElementNS(SVGNS, 'text')
+				v.setAttribute('class', 'grp-ver')
+				// Measured, not estimated — the label is set in a stack whose
+				// metrics differ per platform.
+				v.setAttribute('x', g.layout.x + 16 + t.getComputedTextLength() + 10)
+				v.setAttribute('y', g.layout.y + 22)
+				v.textContent = 'v' + g.version
+				el.appendChild(v)
+			}
+		})
+
+		/* ── render nodes ─────────────────────────────────────── */
+		const layerNodes = $('layerNodes')
+		const nodeEls = new Map()
+		DATA.nodes.forEach(n => {
+			const b = document.createElement('button')
+			b.type = 'button'
+			b.className = 'node t-' + n.tier
+			b.dataset.id = n.id
+			b.style.left = n.layout.x + 'px'
+			b.style.top = n.layout.y + 'px'
+			b.style.width = n.layout.w + 'px'
+			b.style.height = n.layout.h + 'px'
+			b.innerHTML =
+				'<span class="stripe"></span><span class="txt">' +
+				'<span class="lbl"></span><span class="sub"></span></span>' +
+				'<span class="badge"></span>'
+			b.querySelector('.lbl').textContent = n.label
+			b.querySelector('.sub').textContent = n.sublabel
+			layerNodes.appendChild(b)
+			nodeEls.set(n.id, b)
+		})
+
+		/* ── edge geometry ────────────────────────────────────── */
+		const rectOf = id => {
+			const l = NODE.get(id).layout
+			return { x: l.x, y: l.y, w: l.w, h: l.h, cx: l.x + l.w / 2, cy: l.y + l.h / 2 }
+		}
+
+		// Decide a side per endpoint, then spread the anchors that share a side
+		// so parallel edges do not stack on one point.
+		const plan = DATA.edges.map(e => {
+			const a = rectOf(e.from)
+			const b = rectOf(e.to)
+			const dx = b.cx - a.cx
+			const dy = b.cy - a.cy
+			const horiz = Math.abs(dx) > Math.abs(dy) * 1.15
+			return {
+				edge: e,
+				a,
+				b,
+				horiz,
+				fromSide: horiz ? (dx > 0 ? 'r' : 'l') : dy > 0 ? 'b' : 't',
+				toSide: horiz ? (dx > 0 ? 'l' : 'r') : dy > 0 ? 't' : 'b'
+			}
+		})
+
+		const slots = new Map()
+		const enrol = (nodeId, side, key, cross) => {
+			const k = nodeId + side
+			if (!slots.has(k)) slots.set(k, [])
+			slots.get(k).push({ key, cross })
+		}
+		plan.forEach(p => {
+			const horizFrom = p.fromSide === 'l' || p.fromSide === 'r'
+			enrol(p.edge.from, p.fromSide, p.edge.id, horizFrom ? p.b.cy : p.b.cx)
+			const horizTo = p.toSide === 'l' || p.toSide === 'r'
+			enrol(p.edge.to, p.toSide, p.edge.id, horizTo ? p.a.cy : p.a.cx)
+		})
+		const slotIndex = new Map()
+		slots.forEach((list, k) => {
+			list.sort((m, n) => m.cross - n.cross)
+			list.forEach((item, i) => slotIndex.set(k + '|' + item.key, { i, n: list.length }))
+		})
+
+		const anchor = (r, side, nodeId, edgeId) => {
+			const s = slotIndex.get(nodeId + side + '|' + edgeId) || { i: 0, n: 1 }
+			const t = (s.i + 1) / (s.n + 1)
+			const spanX = r.w * 0.72
+			const spanY = r.h * 0.6
+			if (side === 'l') return { x: r.x, y: r.y + r.h / 2 + (t - 0.5) * spanY }
+			if (side === 'r') return { x: r.x + r.w, y: r.y + r.h / 2 + (t - 0.5) * spanY }
+			if (side === 't') return { x: r.x + r.w / 2 + (t - 0.5) * spanX, y: r.y }
+			return { x: r.x + r.w / 2 + (t - 0.5) * spanX, y: r.y + r.h }
+		}
+
+		const gEdges = $('layerEdges')
+		const gLabels = $('layerLabels')
+		const edgeEls = new Map()
+		const labelEls = new Map()
+
+		plan.forEach(p => {
+			const p1 = anchor(p.a, p.fromSide, p.edge.from, p.edge.id)
+			const p2 = anchor(p.b, p.toSide, p.edge.to, p.edge.id)
+			let d
+			if (p.horiz) {
+				const k = Math.max(44, Math.abs(p2.x - p1.x) * 0.42)
+				const s1 = p.fromSide === 'r' ? k : -k
+				const s2 = p.toSide === 'l' ? -k : k
+				d = `M${p1.x},${p1.y} C${p1.x + s1},${p1.y} ${p2.x + s2},${p2.y} ${p2.x},${p2.y}`
+			} else {
+				const k = Math.max(30, Math.abs(p2.y - p1.y) * 0.5)
+				const s1 = p.fromSide === 'b' ? k : -k
+				const s2 = p.toSide === 't' ? -k : k
+				d = `M${p1.x},${p1.y} C${p1.x},${p1.y + s1} ${p2.x},${p2.y + s2} ${p2.x},${p2.y}`
+			}
+			const path = document.createElementNS(SVGNS, 'path')
+			path.setAttribute('class', 'edge k-' + (p.edge.kind || 'call'))
+			path.setAttribute('d', d)
+			path.setAttribute('marker-end', 'url(#ar)')
+			gEdges.appendChild(path)
+			edgeEls.set(p.edge.id, path)
+
+			if (p.edge.label) {
+				const mid = path.getPointAtLength(path.getTotalLength() / 2)
+				// Wrapped in a <g> so the label can be counter-scaled against the
+				// viewport zoom — 9.5px type would be unreadable at 0.6×.
+				const g = document.createElementNS(SVGNS, 'g')
+				g.dataset.x = mid.x
+				g.dataset.y = mid.y - 6
+				const t = document.createElementNS(SVGNS, 'text')
+				t.setAttribute('class', 'elabel')
+				t.textContent = p.edge.label
+				g.appendChild(t)
+				gLabels.appendChild(g)
+				labelEls.set(p.edge.id, t)
+			}
+		})
+
+		// Keep edge labels at a constant on-screen size, and repaint their halo
+		// in the current stage colour when the theme flips.
+		function redrawEdgeLabels() {
+			const stageColor = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim()
+			const s = Math.min(1.8, Math.max(0.75, 1 / view.k))
+			labelEls.forEach(t => {
+				t.style.stroke = stageColor
+				const g = t.parentNode
+				g.setAttribute('transform', `translate(${g.dataset.x}, ${g.dataset.y}) scale(${s})`)
+			})
+		}
+
+		/* ── pan & zoom ───────────────────────────────────────── */
+		const viewport = $('viewport')
+		const world = $('world')
+		const view = { x: 0, y: 0, k: 1 }
+
+		function applyView() {
+			world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.k})`
+			redrawEdgeLabels()
+		}
+		function clampK(k) {
+			return Math.min(2.2, Math.max(0.3, k))
+		}
+		function fit(animate) {
+			const r = viewport.getBoundingClientRect()
+			const pad = 34
+			const k = clampK(Math.min((r.width - pad * 2) / CANVAS.w, (r.height - pad * 2) / CANVAS.h))
+			view.k = k
+			view.x = (r.width - CANVAS.w * k) / 2
+			view.y = (r.height - CANVAS.h * k) / 2
+			world.style.transition = animate ? 'transform 0.35s cubic-bezier(.22,.61,.36,1)' : 'none'
+			applyView()
+			if (animate) setTimeout(() => (world.style.transition = 'none'), 380)
+		}
+		function zoomAt(cx, cy, factor) {
+			const k2 = clampK(view.k * factor)
+			const s = k2 / view.k
+			view.x = cx - (cx - view.x) * s
+			view.y = cy - (cy - view.y) * s
+			view.k = k2
+			applyView()
+		}
+		function focusNode(id, animate) {
+			const l = NODE.get(id).layout
+			const r = viewport.getBoundingClientRect()
+			const k = Math.max(view.k, 0.78)
+			view.k = k
+			view.x = r.width / 2 - (l.x + l.w / 2) * k
+			view.y = r.height / 2 - (l.y + l.h / 2) * k
+			world.style.transition = animate ? 'transform 0.4s cubic-bezier(.22,.61,.36,1)' : 'none'
+			applyView()
+			if (animate) setTimeout(() => (world.style.transition = 'none'), 440)
+		}
+
+		viewport.addEventListener(
+			'wheel',
+			ev => {
+				ev.preventDefault()
+				const r = viewport.getBoundingClientRect()
+				zoomAt(ev.clientX - r.left, ev.clientY - r.top, Math.pow(0.999, ev.deltaY * 1.6))
+			},
+			{ passive: false }
+		)
+
+		let drag = null
+		viewport.addEventListener('pointerdown', ev => {
+			if (ev.target.closest('.node')) return
+			drag = { px: ev.clientX, py: ev.clientY, x: view.x, y: view.y }
+			viewport.classList.add('dragging')
+			viewport.setPointerCapture(ev.pointerId)
+		})
+		viewport.addEventListener('pointermove', ev => {
+			if (!drag) return
+			view.x = drag.x + (ev.clientX - drag.px)
+			view.y = drag.y + (ev.clientY - drag.py)
+			applyView()
+		})
+		const endDrag = () => {
+			drag = null
+			viewport.classList.remove('dragging')
+		}
+		viewport.addEventListener('pointerup', endDrag)
+		viewport.addEventListener('pointercancel', endDrag)
+
+		$('zoomIn').addEventListener('click', () => {
+			const r = viewport.getBoundingClientRect()
+			zoomAt(r.width / 2, r.height / 2, 1.25)
+		})
+		$('zoomOut').addEventListener('click', () => {
+			const r = viewport.getBoundingClientRect()
+			zoomAt(r.width / 2, r.height / 2, 0.8)
+		})
+		$('zoomFit').addEventListener('click', () => fit(true))
+
+		/* ── tooltip ──────────────────────────────────────────── */
+		const tip = $('tip')
+		let tipNode = null
+
+		function showTip(id, cx, cy) {
+			const n = NODE.get(id)
+			const fl = flowsByNode.get(id) || []
+			tip.className = 'tip on t-' + n.tier
+			tip.innerHTML =
+				'<div class="tip-top"><h4></h4><span class="tier"></span></div>' +
+				'<code class="path"></code><p></p>' +
+				(n.api && n.api.length ? '<ul></ul>' : '') +
+				(fl.length ? '<div class="inflows"></div>' : '')
+			tip.querySelector('h4').textContent = n.label
+			tip.querySelector('.tier').textContent = n.tier
+			tip.querySelector('.path').textContent = n.path
+			tip.querySelector('p').textContent = n.desc
+			if (n.api && n.api.length) {
+				tip.querySelector('ul').innerHTML = n.api
+					.map(a => '<li></li>')
+					.join('')
+				tip.querySelectorAll('ul li').forEach((li, i) => (li.textContent = n.api[i]))
+			}
+			if (fl.length) {
+				const el = tip.querySelector('.inflows')
+				el.innerHTML = 'Appears in <b></b> '
+				el.querySelector('b').textContent = fl.length + (fl.length === 1 ? ' flow' : ' flows')
+				el.append(document.createTextNode('— ' + fl.map(f => f.name).join(' · ')))
+			}
+			const r = tip.getBoundingClientRect()
+			let x = cx + 18
+			let y = cy + 16
+			if (x + r.width > innerWidth - 12) x = cx - r.width - 18
+			if (y + r.height > innerHeight - 12) y = Math.max(12, cy - r.height - 16)
+			tip.style.left = Math.max(12, x) + 'px'
+			tip.style.top = y + 'px'
+			tipNode = id
+		}
+		function hideTip() {
+			tip.classList.remove('on')
+			tipNode = null
+		}
+
+		layerNodes.addEventListener('pointerover', ev => {
+			const b = ev.target.closest('.node')
+			if (!b || b.dataset.id === tipNode) return
+			showTip(b.dataset.id, ev.clientX, ev.clientY)
+		})
+		layerNodes.addEventListener('pointermove', ev => {
+			const b = ev.target.closest('.node')
+			if (!b) return
+			if (b.dataset.id !== tipNode) showTip(b.dataset.id, ev.clientX, ev.clientY)
+		})
+		layerNodes.addEventListener('pointerout', ev => {
+			if (!ev.relatedTarget || !ev.relatedTarget.closest || !ev.relatedTarget.closest('.node')) hideTip()
+		})
+		layerNodes.addEventListener('focusin', ev => {
+			const b = ev.target.closest('.node')
+			if (!b) return
+			const r = b.getBoundingClientRect()
+			showTip(b.dataset.id, r.right, r.top)
+		})
+		layerNodes.addEventListener('focusout', hideTip)
+
+		// Hovering a node also lifts the edges attached to it.
+		layerNodes.addEventListener('pointerover', ev => {
+			const b = ev.target.closest('.node')
+			if (!b) return
+			DATA.edges.forEach(e => {
+				if (e.from === b.dataset.id || e.to === b.dataset.id) {
+					edgeEls.get(e.id).classList.add('hovered')
+					const l = labelEls.get(e.id)
+					if (l) l.classList.add('shown')
+				}
+			})
+		})
+		layerNodes.addEventListener('pointerout', ev => {
+			const b = ev.target.closest('.node')
+			if (!b) return
+			DATA.edges.forEach(e => {
+				edgeEls.get(e.id).classList.remove('hovered')
+				const l = labelEls.get(e.id)
+				if (l && !edgeEls.get(e.id).classList.contains('on')) l.classList.remove('shown')
+			})
+		})
+
+		/* ── flow state ───────────────────────────────────────── */
+		const stage = $('stage')
+		const rail = $('rail')
+		let active = null
+		let stepIx = 0
+
+		function pathEdgesOf(flow) {
+			const set = new Set(flow.edges || [])
+			for (let i = 0; i < flow.steps.length - 1; i++) {
+				const a = flow.steps[i].node
+				const b = flow.steps[i + 1].node
+				if (EDGE.has(a + '>' + b)) set.add(a + '>' + b)
+				else if (EDGE.has(b + '>' + a)) set.add(b + '>' + a)
+			}
+			return set
+		}
+
+		function paint() {
+			nodeEls.forEach(el => {
+				el.classList.remove('on', 'cur', 'transit')
+				el.querySelector('.badge').textContent = ''
+			})
+			edgeEls.forEach(el => {
+				el.classList.remove('on')
+				el.setAttribute('marker-end', 'url(#ar)')
+			})
+			labelEls.forEach(el => el.classList.remove('shown'))
+
+			if (!active) {
+				stage.classList.remove('flowing')
+				$('stageNote').textContent = 'Hover a component · drag to pan · scroll to zoom'
+				return
+			}
+			stage.classList.add('flowing')
+
+			const order = new Map()
+			active.steps.forEach((s, i) => {
+				if (!order.has(s.node)) order.set(s.node, [])
+				order.get(s.node).push(i + 1)
+			})
+			order.forEach((nums, id) => {
+				const el = nodeEls.get(id)
+				if (!el) return
+				el.classList.add('on')
+				el.querySelector('.badge').textContent = nums.join('·')
+			})
+
+			pathEdgesOf(active).forEach(eid => {
+				const el = edgeEls.get(eid)
+				if (!el) return
+				el.classList.add('on')
+				el.setAttribute('marker-end', 'url(#ar-hot)')
+				const l = labelEls.get(eid)
+				if (l) l.classList.add('shown')
+				// Light the endpoints too, so a path never appears to run through
+				// a box that is dimmed out.
+				const e = EDGE.get(eid)
+				;[e.from, e.to].forEach(id => {
+					if (order.has(id)) return
+					const nd = nodeEls.get(id)
+					if (nd) nd.classList.add('on', 'transit')
+				})
+			})
+
+			const cur = active.steps[stepIx]
+			if (cur) nodeEls.get(cur.node).classList.add('cur')
+			$('stageNote').textContent = active.name + ' · step ' + (stepIx + 1) + ' of ' + active.steps.length
+		}
+
+		/* ── rail: list view ──────────────────────────────────── */
+		const CAT_ORDER = ['lifecycle', 'transaction', 'plutus', 'keys', 'state', 'recovery', 'architecture', 'performance']
+		const CAT_LABEL = {
+			lifecycle: 'Head lifecycle',
+			transaction: 'Building transactions',
+			plutus: 'Plutus',
+			keys: 'Keys & wallets',
+			state: 'State & caching',
+			recovery: 'Recovery',
+			architecture: 'Extension points',
+			performance: 'Performance'
+		}
+
+		function renderList() {
+			const cats = CAT_ORDER.filter(c => DATA.flows.some(f => f.category === c))
+			const unknown = [...new Set(DATA.flows.map(f => f.category))].filter(c => !CAT_ORDER.includes(c))
+
+			rail.innerHTML =
+				'<div class="overview">' +
+				'<div class="eyebrow">How to read this</div>' +
+				'<p>Every box is a real module, service or endpoint in this repository, positioned inside the package that owns it. ' +
+				'Colour marks the tier: who consumes, what ships on npm, where WASM begins, and what lives across the network. ' +
+				'Pick a flow below and the map dims to just the path that flow takes.</p>' +
+				'<div class="stats">' +
+				`<div class="stat"><b>${DATA.nodes.length}</b><span>components</span></div>` +
+				`<div class="stat"><b>${DATA.edges.length}</b><span>links</span></div>` +
+				`<div class="stat"><b>${DATA.flows.length}</b><span>flows</span></div>` +
+				'</div></div>' +
+				'<div class="flow-head"><div class="eyebrow">Flows</div></div>' +
+				cats
+					.concat(unknown)
+					.map(cat => {
+						const items = DATA.flows.filter(f => f.category === cat)
+						return (
+							`<div class="cat-head">${CAT_LABEL[cat] || cat}</div><div class="flow-list">` +
+							items
+								.map(
+									f =>
+										`<button class="flow-card" type="button" data-flow="${f.id}">` +
+										`<span class="fname">${esc(f.name)}</span>` +
+										`<span class="ftag">${esc(f.tagline)}</span>` +
+										`<span class="fmeta">${f.steps.length} steps · ${
+											new Set(f.steps.map(s => NODE.get(s.node).group)).size
+										} packages</span>` +
+										'</button>'
+								)
+								.join('') +
+							'</div>'
+						)
+					})
+					.join('') +
+				'<div class="hint">Tip: hover any box for its file path and public surface. Inside a flow, <kbd>←</kbd> <kbd>→</kbd> walk the steps and <kbd>Esc</kbd> returns here.</div>'
+		}
+
+		/* ── rail: detail view ────────────────────────────────── */
+		function renderDetail() {
+			const f = active
+			rail.innerHTML =
+				'<div class="detail"><div class="detail-head">' +
+				'<button class="back" type="button" id="backBtn">← All flows</button>' +
+				`<div class="eyebrow">${CAT_LABEL[f.category] || f.category}</div>` +
+				`<h2>${esc(f.name)}</h2>` +
+				`<p class="ftag">${esc(f.tagline)}</p>` +
+				'<div class="stepper">' +
+				`<span class="count">Step <b id="stepNo"></b> of ${f.steps.length}</span>` +
+				'<button type="button" id="prevBtn" aria-label="Previous step">←</button>' +
+				'<button type="button" id="nextBtn" aria-label="Next step">→</button>' +
+				'</div></div>' +
+				'<ol class="steps" id="stepList">' +
+				f.steps
+					.map((s, i) => {
+						const n = NODE.get(s.node)
+						return (
+							`<li class="step-item t-${n.tier}" data-ix="${i}">` +
+							'<button class="step-btn" type="button">' +
+							`<span class="step-num">${i + 1}</span>` +
+							`<span><span class="step-node">${esc(n.label)}</span>` +
+							`<span class="step-title">${esc(s.title)}</span>` +
+							`<span class="step-note">${esc(s.note)}</span></span>` +
+							'</button></li>'
+						)
+					})
+					.join('') +
+				'</ol></div>'
+
+			$('backBtn').addEventListener('click', () => closeFlow())
+			$('prevBtn').addEventListener('click', () => goStep(stepIx - 1))
+			$('nextBtn').addEventListener('click', () => goStep(stepIx + 1))
+			$('stepList').addEventListener('click', ev => {
+				const li = ev.target.closest('.step-item')
+				if (li) goStep(Number(li.dataset.ix))
+			})
+			syncStepUi()
+		}
+
+		function syncStepUi(scroll) {
+			const no = $('stepNo')
+			if (!no) return
+			no.textContent = stepIx + 1
+			$('prevBtn').disabled = stepIx === 0
+			$('nextBtn').disabled = stepIx === active.steps.length - 1
+			document.querySelectorAll('.step-item').forEach(li => {
+				li.classList.toggle('cur', Number(li.dataset.ix) === stepIx)
+			})
+			// Only chase the current step once the reader is actually stepping —
+			// scrolling on open would hide the flow's own title.
+			if (!scroll) return
+			const cur = document.querySelector('.step-item.cur')
+			if (cur) cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+		}
+
+		function goStep(i) {
+			if (!active) return
+			stepIx = Math.max(0, Math.min(active.steps.length - 1, i))
+			syncStepUi(true)
+			paint()
+			focusNode(active.steps[stepIx].node, true)
+		}
+
+		function openFlow(id) {
+			active = DATA.flows.find(f => f.id === id)
+			stepIx = 0
+			hideTip()
+			renderDetail()
+			paint()
+			fitFlow()
+		}
+
+		function closeFlow() {
+			active = null
+			renderList()
+			paint()
+			fit(true)
+		}
+
+		// Frame just the nodes this flow touches.
+		function fitFlow() {
+			const ids = [...new Set(active.steps.map(s => s.node))]
+			let x1 = Infinity,
+				y1 = Infinity,
+				x2 = -Infinity,
+				y2 = -Infinity
+			ids.forEach(id => {
+				const l = NODE.get(id).layout
+				x1 = Math.min(x1, l.x)
+				y1 = Math.min(y1, l.y)
+				x2 = Math.max(x2, l.x + l.w)
+				y2 = Math.max(y2, l.y + l.h)
+			})
+			const pad = 70
+			const r = viewport.getBoundingClientRect()
+			const k = clampK(Math.min((r.width - pad * 2) / (x2 - x1), (r.height - pad * 2) / (y2 - y1), 1.05))
+			view.k = k
+			view.x = r.width / 2 - ((x1 + x2) / 2) * k
+			view.y = r.height / 2 - ((y1 + y2) / 2) * k
+			world.style.transition = 'transform 0.45s cubic-bezier(.22,.61,.36,1)'
+			applyView()
+			setTimeout(() => (world.style.transition = 'none'), 480)
+		}
+
+		rail.addEventListener('click', ev => {
+			const card = ev.target.closest('.flow-card')
+			if (card) openFlow(card.dataset.flow)
+		})
+
+		// Clicking a node jumps to that step when it is on the active path,
+		// otherwise it opens the first flow that uses it.
+		layerNodes.addEventListener('click', ev => {
+			const b = ev.target.closest('.node')
+			if (!b) return
+			const id = b.dataset.id
+			if (active) {
+				const ix = active.steps.findIndex(s => s.node === id)
+				if (ix >= 0) return goStep(ix)
+			}
+			const fl = flowsByNode.get(id)
+			if (fl && fl.length) openFlow(fl[0].id)
+		})
+
+		addEventListener('keydown', ev => {
+			if (ev.key === 'Escape' && active) return closeFlow()
+			if (!active) return
+			if (ev.key === 'ArrowRight') {
+				ev.preventDefault()
+				goStep(stepIx + 1)
+			}
+			if (ev.key === 'ArrowLeft') {
+				ev.preventDefault()
+				goStep(stepIx - 1)
+			}
+		})
+
+		function esc(s) {
+			return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+		}
+
+		let rt
+		addEventListener('resize', () => {
+			clearTimeout(rt)
+			rt = setTimeout(() => (active ? fitFlow() : fit(false)), 140)
+		})
+
+		renderList()
+		redrawEdgeLabels()
+		fit(false)
+	})()
+</script>

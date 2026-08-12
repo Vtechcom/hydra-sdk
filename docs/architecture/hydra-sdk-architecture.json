@@ -1,0 +1,798 @@
+{
+	"$schema": "https://hydrasdk.com/schemas/architecture-map.v1.json",
+	"meta": {
+		"name": "Hydra SDK",
+		"description": "Architecture map of the Hydra SDK monorepo: a TypeScript toolkit for building Cardano + Hydra Layer 2 wallet applications.",
+		"repository": "Vtechcom/opensource-hydra-sdk",
+		"generatedFrom": "static analysis of packages/*, apps/*, infra/* on branch master",
+		"generatedAt": "2026-08-04",
+		"packages": {
+			"@hydra-sdk/core": "1.5.0",
+			"@hydra-sdk/bridge": "2.0.2",
+			"@hydra-sdk/transaction": "1.2.3",
+			"@hydra-sdk/cardano-wasm": "1.0.0"
+		},
+		"dependencyChain": [
+			"@hydra-sdk/transaction → @hydra-sdk/core → @hydra-sdk/cardano-wasm → @emurgo/cardano-serialization-lib",
+			"@hydra-sdk/bridge → @hydra-sdk/core → @hydra-sdk/cardano-wasm"
+		],
+		"tiers": {
+			"app": "Applications and consumers of the SDK",
+			"sdk": "Published SDK packages",
+			"wasm": "WASM boundary — cardano-serialization-lib",
+			"remote": "Remote services reached over the network",
+			"infra": "Local test infrastructure checked into the repo"
+		}
+	},
+
+	"groups": [
+		{ "id": "apps", "label": "Applications & consumers", "tier": "app", "layout": { "x": 40, "y": 44, "w": 1000, "h": 112 } },
+		{ "id": "bridge", "label": "@hydra-sdk/bridge", "version": "2.0.2", "tier": "sdk", "layout": { "x": 40, "y": 188, "w": 1000, "h": 192 } },
+		{ "id": "transaction", "label": "@hydra-sdk/transaction", "version": "1.2.3", "tier": "sdk", "layout": { "x": 40, "y": 400, "w": 1000, "h": 116 } },
+		{ "id": "core", "label": "@hydra-sdk/core", "version": "1.5.0", "tier": "sdk", "layout": { "x": 40, "y": 536, "w": 1000, "h": 272 } },
+		{ "id": "wasm", "label": "@hydra-sdk/cardano-wasm", "version": "1.0.0", "tier": "wasm", "layout": { "x": 40, "y": 828, "w": 1000, "h": 116 } },
+		{ "id": "endpoints", "label": "Hydra endpoints", "tier": "remote", "layout": { "x": 1090, "y": 44, "w": 330, "h": 316 } },
+		{ "id": "testnets", "label": "Local test networks", "tier": "infra", "layout": { "x": 1090, "y": 384, "w": 330, "h": 232 } },
+		{ "id": "chain", "label": "Chain access", "tier": "remote", "layout": { "x": 1090, "y": 640, "w": 330, "h": 316 } }
+	],
+
+	"nodes": [
+		{
+			"id": "app-playground",
+			"label": "Nuxt playground",
+			"sublabel": "apps/playground",
+			"group": "apps",
+			"tier": "app",
+			"path": "apps/playground",
+			"desc": "Nuxt 3 + Vue 3 interactive demo deployed to playground.hydrasdk.com. Pages cover the transaction builder, a Hydra tx trace viewer and raw cardano-wasm checks. Merging to master deploys it — never commit .output.",
+			"api": ["pages/transaction-builder.vue", "pages/hydra-tx-trace.vue", "composables/useWalletConfig.ts"],
+			"layout": { "x": 64, "y": 88, "w": 200, "h": 52 }
+		},
+		{
+			"id": "app-nodejs",
+			"label": "Node.js playground",
+			"sublabel": "apps/nodejs-playground",
+			"group": "apps",
+			"tier": "app",
+			"path": "apps/nodejs-playground/src",
+			"desc": "Integration scripts run against a real node: lock/unlock Plutus validators, mint and burn, key management, and the memory-leak harnesses that drove the WASM free-after-build work in TxBuilder.",
+			"api": ["contract/hydra-lock.ts", "contract/hydra-unlock.ts", "test-memory-leak-long.ts"],
+			"layout": { "x": 288, "y": 88, "w": 200, "h": 52 }
+		},
+		{
+			"id": "app-docs",
+			"label": "Docs site",
+			"sublabel": "apps/docs-v2",
+			"group": "apps",
+			"tier": "app",
+			"path": "apps/docs-v2/content/en",
+			"desc": "Nuxt 4 + Nuxt UI documentation at hydrasdk.com, English only, organised in five Diátaxis sections. apps/docs is the deprecated v1 site kept only for its URLs.",
+			"api": ["1.getting-started", "2.guides", "3.concepts", "4.api", "5.resources"],
+			"layout": { "x": 512, "y": 88, "w": 200, "h": 52 }
+		},
+		{
+			"id": "app-consumer",
+			"label": "Your application",
+			"sublabel": "npm consumer",
+			"group": "apps",
+			"tier": "app",
+			"path": "—",
+			"desc": "Any wallet or dApp installing the published packages. Imports only through @hydra-sdk/* — the SDK never asks you to touch @emurgo/cardano-serialization-lib directly.",
+			"api": ["@hydra-sdk/core", "@hydra-sdk/bridge", "@hydra-sdk/transaction"],
+			"layout": { "x": 736, "y": 88, "w": 200, "h": 52 }
+		},
+
+		{
+			"id": "bridge-core",
+			"label": "HydraBridge",
+			"sublabel": "head lifecycle facade",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/bridge.ts",
+			"desc": "The single entry point to a Hydra head. Owns the connector, the snapshot caches, slot-zero derivation from Greetings, protocol parameters, auto-reconnect, and the whole command surface.",
+			"api": ["connect()", "headInfo()", "commands.*", "submitTxSync()", "getProtocolParameters()", "queryAddressUTxO()", "getAddressBalance()", "pendingDeposits()", "recoverDeposit()"],
+			"layout": { "x": 64, "y": 228, "w": 232, "h": 56 }
+		},
+		{
+			"id": "ws-connector",
+			"label": "WebsocketConnector",
+			"sublabel": "WS + node REST",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/connector/websocket.ts",
+			"desc": "Default connector. Parses one URL into a socket URL and an HTTP base URL, appends history / snapshot-utxo / address query params, and ships a fetcher and submitter that hit the hydra-node REST API directly.",
+			"api": ["connect()", "sendCommand()", "submitTxSync()", "defaultWsFetcher", "defaultWsSubmitter"],
+			"layout": { "x": 320, "y": 228, "w": 216, "h": 56 }
+		},
+		{
+			"id": "hex-connector",
+			"label": "HexcoreConnector",
+			"sublabel": "REST gateway",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/connector/hexcore.ts",
+			"desc": "Alternative connector for a Hexcore gateway in front of the node. Implements the same HydraConnector contract with every route prefixed /hydra, so HydraBridge cannot tell the difference.",
+			"api": ["GET /hydra/snapshot/utxo", "POST /hydra/submit-tx", "POST /hydra/commit", "DELETE /hydra/commits/{txId}"],
+			"layout": { "x": 560, "y": 228, "w": 216, "h": 56 }
+		},
+		{
+			"id": "event-bus",
+			"label": "Event bus",
+			"sublabel": "mitt emitter",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/types/hydra-connector.type.ts",
+			"desc": "The connector's mitt emitter, re-exposed as bridge.events. Emits onConnected, onDisconnected, onConnectError and onMessage — every server payload arrives here already narrowed by tag.",
+			"api": ["onConnected", "onDisconnected", "onConnectError", "onMessage"],
+			"layout": { "x": 800, "y": 228, "w": 216, "h": 56 }
+		},
+		{
+			"id": "snapshot-cache",
+			"label": "Snapshot cache",
+			"sublabel": "O(1) address index",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/bridge.ts",
+			"desc": "Two maps rebuilt O(n) once per snapshot: address → txHash → UTxO, and address → assetUnit → bigint. lastSnapshotNumber guards them so a slow HTTP reply can never overwrite fresher WebSocket data.",
+			"api": ["addressUtxoIndex", "balanceCache", "lastSnapshotNumber", "updateSnapshot()"],
+			"layout": { "x": 64, "y": 308, "w": 232, "h": 56 }
+		},
+		{
+			"id": "payload-types",
+			"label": "Payload & tags",
+			"sublabel": "HydraPayload union",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/types/payload.type.ts",
+			"desc": "The discriminated union for every hydra-node server output, plus the HydraCommand and HydraHeadStatus enums. Derived from the Haskell source and verified against a live 2.3.0 node by the e2e suite.",
+			"api": ["Greetings", "SnapshotConfirmed", "TxValid / TxInvalid", "HeadIsOpen / HeadIsClosed", "ReadyToFanout", "CommitFinalized", "DecommitApproved"],
+			"layout": { "x": 320, "y": 308, "w": 216, "h": 56 }
+		},
+		{
+			"id": "await-msg",
+			"label": "awaitHydraMessage",
+			"sublabel": "request/response bridge",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/utils/await-hydra-message.ts",
+			"desc": "Turns the node's fire-and-forget socket into promises: subscribes to onMessage, resolves on the matching success tag, rejects on TxInvalid, CommandFailed, PostTxOnChainFailed or RejectedInputBecauseUnsynced, and always clears its timer.",
+			"api": ["awaitHydraMessage(emitter, matcher, timeout)"],
+			"layout": { "x": 560, "y": 308, "w": 216, "h": 56 }
+		},
+		{
+			"id": "head-commands",
+			"label": "Head commands",
+			"sublabel": "bridge.commands",
+			"group": "bridge",
+			"tier": "sdk",
+			"path": "packages/hydra-bridge/src/bridge.ts",
+			"desc": "The client-input surface of the head, serialised onto the socket: open it, move value inside it, take value out, or wind it down.",
+			"api": ["init()", "newTx()", "decommit()", "recover()", "close()", "safeClose()", "contest()", "fanout()", "partialFanout()", "sideLoadSnapshot()"],
+			"layout": { "x": 800, "y": 308, "w": 216, "h": 56 }
+		},
+
+		{
+			"id": "txbuilder",
+			"label": "TxBuilder",
+			"sublabel": "chainable tx assembly",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/tx-builder/index.ts",
+			"desc": "Stages inputs, outputs, mints, certificates, withdrawals, validity and metadata as plain descriptors, then assembles them into CSL in one pass at complete(). Knows about Hydra: isHydra skips the L1 fee and collateral rules.",
+			"api": ["setInputs()", "txIn() / txOut()", "spendingPlutusScript()", "mint()", "changeAddress()", "complete()", "completeCbor()", "reset()", "dispose()"],
+			"layout": { "x": 64, "y": 444, "w": 232, "h": 56 }
+		},
+		{
+			"id": "datum-builder",
+			"label": "datumBuilder",
+			"sublabel": "PlutusData composer",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/utils/datum-builder.ts",
+			"desc": "Fluent construction of PlutusData from primitives (int, bytes), collections (list, map) and structured constr values, without hand-rolling CSL calls.",
+			"api": ["datumBuilder()"],
+			"layout": { "x": 320, "y": 444, "w": 216, "h": 56 }
+		},
+		{
+			"id": "redeemer-builder",
+			"label": "buildRedeemer",
+			"sublabel": "redeemer + ExUnits",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/utils/redeemer-builder.ts",
+			"desc": "Builds a Redeemer from a JS value with an explicit tag (SPEND, MINT, CERT, REWARD), pointer index and execution-unit budget. emptyRedeemer() covers validators that ignore their argument.",
+			"api": ["buildRedeemer(jsValue, options)", "emptyRedeemer(options)"],
+			"layout": { "x": 560, "y": 444, "w": 216, "h": 56 }
+		},
+		{
+			"id": "tx-metadata",
+			"label": "Metadata encoder",
+			"sublabel": "metadataObjToMetadatum",
+			"group": "transaction",
+			"tier": "sdk",
+			"path": "packages/hydra-transaction/src/utils/metadata.ts",
+			"desc": "Recursively converts JS values — strings, numbers, bigints, byte arrays, arrays, objects and Maps — into TransactionMetadatum, with bigint-safe JSON helpers alongside.",
+			"api": ["metadataObjToMetadatum()", "bigIntReplacer()", "bigIntReviver()"],
+			"layout": { "x": 800, "y": 444, "w": 216, "h": 56 }
+		},
+
+		{
+			"id": "app-wallet",
+			"label": "AppWallet",
+			"sublabel": "ISigner + ISubmitter",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/wallet.ts",
+			"desc": "The wallet most applications use. Accepts a root bech32 key, cardano-cli key files or a mnemonic; holds an optional fetcher and submitter so querying and submitting go through one object.",
+			"api": ["getAccount()", "getPaymentAddress()", "getRewardAddress()", "signTx()", "signData()", "submitTx()", "queryUTxOs()", "AppWallet.brew()"],
+			"layout": { "x": 64, "y": 576, "w": 232, "h": 56 }
+		},
+		{
+			"id": "embedded-wallet",
+			"label": "EmbeddedWallet",
+			"sublabel": "key material + signing",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/embedded.ts",
+			"desc": "The key-handling layer AppWallet delegates to. WalletStaticMethods turns a mnemonic into a root private key and cardano-cli hex keys into signing keys; the instance derives accounts and returns raw Vkeywitnesses.",
+			"api": ["mnemonicToPrivateKeyHex()", "signingKeyToHexes()", "getAddresses()", "generateMnemonic()", "getAccount()", "signTx()", "signData()"],
+			"layout": { "x": 320, "y": 576, "w": 216, "h": 56 }
+		},
+		{
+			"id": "cli-wallet",
+			"label": "CardanoCliWallet",
+			"sublabel": "cardano-cli key files",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/cardanocli-wallet.ts",
+			"desc": "Wallet backed by cardano-cli .skey envelopes. Since core 1.5.0 those keys are derived as BIP32-Ed25519 extended keys so signatures match what the node expects.",
+			"api": ["getNetworkId()", "signTx()", "submitTx()", "queryUTxOs()"],
+			"layout": { "x": 560, "y": 576, "w": 216, "h": 56 }
+		},
+		{
+			"id": "build-keys",
+			"label": "BuildKeys",
+			"sublabel": "derivation + addresses",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/build-keys.ts",
+			"desc": "CIP-1852 derivation (m/1852'/1815'/account'/role/index) and address construction: base, enterprise, reward and DRep identifiers, plus scalar clamping and extended-key stripping.",
+			"api": ["buildKeys()", "buildBaseAddress()", "buildEnterpriseAddress()", "buildRewardAddress()", "buildDRepID()", "clampScalar()", "stripExtendedKey()"],
+			"layout": { "x": 800, "y": 576, "w": 216, "h": 56 }
+		},
+		{
+			"id": "serializer",
+			"label": "Serializer / Deserializer",
+			"sublabel": "CBOR ⇄ typed values",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/",
+			"desc": "The CBOR boundary. Reads transactions, addresses, Plutus scripts and Plutus data out of hex, writes asset units back, and extracts the amounts a transaction moves.",
+			"api": ["deserializeTx()", "deserializeAddress()", "deserializePlutusScript()", "deserializePlutusData()", "deserializeAmountsFromTx()", "serializeAssetUnit()"],
+			"layout": { "x": 64, "y": 656, "w": 232, "h": 56 }
+		},
+		{
+			"id": "resolver",
+			"label": "Resolver",
+			"sublabel": "transaction hashes",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/resolver.ts",
+			"desc": "Computes the transaction id from a CBOR hex string or a TransactionBody — the identity every Hydra event is keyed by, available before the transaction is ever submitted.",
+			"api": ["resolveTxHash()", "resolveTxBodyHash()"],
+			"layout": { "x": 320, "y": 656, "w": 216, "h": 56 }
+		},
+		{
+			"id": "converter",
+			"label": "Converter",
+			"sublabel": "UTxO ⇄ UTxOObject",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/cardano-wasm/converter.ts",
+			"desc": "Translates between the array shape the builder wants and the keyed map shape Hydra snapshots use, and turns a TxOutput descriptor into a CSL TransactionOutput.",
+			"api": ["convertUTxOToUTxOObject()", "convertUTxOObjectToUTxO()", "convertUTxOObjectToUTxOWithOptions()", "convertTxOutputToWasm()"],
+			"layout": { "x": 560, "y": 656, "w": 216, "h": 56 }
+		},
+		{
+			"id": "core-utils",
+			"label": "Domain helpers",
+			"sublabel": "datum · policy · plutus · address",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/",
+			"desc": "The namespaced helpers re-exported from the package root: datum hashing, policy ids and native scripts, applying parameters to Plutus scripts, and address derivation and inspection.",
+			"api": ["DatumUtils", "PolicyUtils", "PlutusUtils", "AddressUtils", "KeysUtils", "RedeemerUtils"],
+			"layout": { "x": 800, "y": 656, "w": 216, "h": 56 }
+		},
+		{
+			"id": "providers",
+			"label": "Providers",
+			"sublabel": "IFetcher + ISubmitter",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/providers/",
+			"desc": "Chain access behind two small interfaces. BaseWalletProvider fixes the contract; Blockfrost, Ogmios and Demeter implementations ship with the package, and anything satisfying IFetcher/ISubmitter can replace them.",
+			"api": ["BlockfrostProvider", "OgmiosProvider", "DemeterProvider", "IFetcher.fetchAddressUTxOs()", "ISubmitter.submitTx()"],
+			"layout": { "x": 64, "y": 736, "w": 232, "h": 56 }
+		},
+		{
+			"id": "protocol-params",
+			"label": "Protocol & constants",
+			"sublabel": "fees, cost models, eras",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/constants/",
+			"desc": "Default protocol parameters, Plutus cost models and network ids. defaultCostModels is a getter, not a constant — building it eagerly would run WASM while core is still being imported and race the bundler's async instantiation.",
+			"api": ["DEFAULT_PROTOCOL_PARAMETERS", "CostModels.defaultCostModels", "CostModels.buildCostModels()", "NETWORK_ID"],
+			"layout": { "x": 320, "y": 736, "w": 216, "h": 56 }
+		},
+		{
+			"id": "parser-utils",
+			"label": "Parser · Time · Metadata",
+			"sublabel": "encoding + slot math",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/",
+			"desc": "Hex, byte and text conversion; slot-to-time arithmetic the bridge uses once slot zero is known; and transaction metadata helpers.",
+			"api": ["ParserUtils.hexToBytes()", "ParserUtils.toBytes()", "TimeUtils", "MetadataUtils"],
+			"layout": { "x": 560, "y": 736, "w": 216, "h": 56 }
+		},
+		{
+			"id": "validation",
+			"label": "Validation",
+			"sublabel": "guards",
+			"group": "core",
+			"tier": "sdk",
+			"path": "packages/core/src/utils/validation.ts",
+			"desc": "Address and output checks used before a transaction reaches CSL, where a bad value costs an opaque WASM panic instead of a readable error. ValidatorUtils is the deprecated alias.",
+			"api": ["isValidAddress()", "isValidTxOutput()"],
+			"layout": { "x": 800, "y": 736, "w": 216, "h": 56 }
+		},
+
+		{
+			"id": "wasm-entry",
+			"label": "@hydra-sdk/cardano-wasm",
+			"sublabel": "single WASM boundary",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "packages/cardano-wasm/src/index.ts",
+			"desc": "The only module allowed to import @emurgo/cardano-serialization-lib. package.json export conditions pick the build — the consumer's bundler or runtime decides, not a runtime branch.",
+			"api": ["CardanoWASM", "@hydra-sdk/cardano-wasm/asmjs"],
+			"layout": { "x": 64, "y": 872, "w": 304, "h": 56 }
+		},
+		{
+			"id": "csl-browser",
+			"label": "CSL · browser",
+			"sublabel": "browser condition",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "@emurgo/cardano-serialization-lib-browser@14.1.2",
+			"desc": "Resolved by the browser export condition. WASM is instantiated asynchronously by the bundler, which is why core must not touch it at import time.",
+			"api": [],
+			"layout": { "x": 392, "y": 872, "w": 200, "h": 56 }
+		},
+		{
+			"id": "csl-node",
+			"label": "CSL · Node.js",
+			"sublabel": "node condition",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "@emurgo/cardano-serialization-lib-nodejs@14.1.2",
+			"desc": "Resolved by the node export condition, via src/index.node.ts. Used by the Node playground, the test suite and any server-side consumer.",
+			"api": [],
+			"layout": { "x": 616, "y": 872, "w": 200, "h": 56 }
+		},
+		{
+			"id": "csl-asmjs",
+			"label": "CSL · asm.js",
+			"sublabel": "opt-in subpath",
+			"group": "wasm",
+			"tier": "wasm",
+			"path": "@emurgo/cardano-serialization-lib-asmjs@14.1.2",
+			"desc": "Fallback for environments that cannot instantiate WASM. Opt-in only, through the /asmjs subpath — never selected automatically.",
+			"api": [],
+			"layout": { "x": 840, "y": 872, "w": 176, "h": 56 }
+		},
+
+		{
+			"id": "hydra-ws",
+			"label": "hydra-node · WebSocket",
+			"sublabel": "ws://host:4001",
+			"group": "endpoints",
+			"tier": "remote",
+			"path": "hydra-node 1.3.0 / 2.x API",
+			"desc": "The head's live channel. Greetings on connect, then a stream of TimedServerOutput payloads; client inputs go back the same way. Query params control history, snapshot-utxo and address filtering.",
+			"api": ["Greetings", "SnapshotConfirmed", "TxValid / TxInvalid", "HeadIsOpen / HeadIsClosed", "ReadyToFanout", "NewTx / Close / Fanout"],
+			"layout": { "x": 1114, "y": 96, "w": 282, "h": 64 }
+		},
+		{
+			"id": "hydra-rest",
+			"label": "hydra-node · REST",
+			"sublabel": "http://host:4001",
+			"group": "endpoints",
+			"tier": "remote",
+			"path": "hydra-node HTTP API",
+			"desc": "The node's request/response surface, used for cold-start reads and for anything that needs a reported outcome rather than a fire-and-forget command.",
+			"api": ["GET /protocol-parameters", "GET /snapshot/utxo", "GET /head", "GET /commits", "POST /commit", "POST /cardano-transaction", "DELETE /commits/{txId}"],
+			"layout": { "x": 1114, "y": 184, "w": 282, "h": 64 }
+		},
+		{
+			"id": "hexcore-rest",
+			"label": "Hexcore · REST",
+			"sublabel": "/hydra/* gateway",
+			"group": "endpoints",
+			"tier": "remote",
+			"path": "Hexcore gateway",
+			"desc": "A gateway that fronts one or more hydra nodes with the same routes under a /hydra prefix, plus API-key headers. Swapping to it is a connector change, not an application change.",
+			"api": ["GET /hydra/snapshot/utxo", "GET /hydra/head", "POST /hydra/submit-tx", "POST /hydra/transaction", "POST /hydra/decommit"],
+			"layout": { "x": 1114, "y": 272, "w": 282, "h": 64 }
+		},
+
+		{
+			"id": "infra-offline",
+			"label": "hydra-offline devnet",
+			"sublabel": "infra/hydra-offline",
+			"group": "testnets",
+			"tier": "infra",
+			"path": "infra/hydra-offline/run-offline.sh",
+			"desc": "A hydra-node in offline mode with a seeded UTxO set — no L1 at all. The e2e suite runs against it on port 4002. Commit, decommit, fanout and contest cannot be exercised here; those need a devnet with a cardano-node.",
+			"api": ["pnpm hydra:offline", "pnpm e2e:node", "pnpm test:e2e"],
+			"layout": { "x": 1114, "y": 436, "w": 282, "h": 64 }
+		},
+		{
+			"id": "infra-preprod",
+			"label": "hydra-preprod",
+			"sublabel": "infra/hydra-preprod",
+			"group": "testnets",
+			"tier": "infra",
+			"path": "infra/hydra-preprod/run-online.sh",
+			"desc": "An online head on the preprod network, backed by a real cardano-node. This is where the L1-facing half of the lifecycle — commit, fanout, contest — is actually testable.",
+			"api": ["pnpm hydra:preprod", "pnpm hydra:preprod:bridge"],
+			"layout": { "x": 1114, "y": 524, "w": 282, "h": 64 }
+		},
+
+		{
+			"id": "cardano-l1",
+			"label": "Cardano L1",
+			"sublabel": "cardano-node",
+			"group": "chain",
+			"tier": "remote",
+			"path": "cardano-node",
+			"desc": "The settlement layer. Commits deposit into the head's script, decommits decrement it, and fanout distributes the final snapshot. The SDK never speaks to it directly — the hydra node or a provider does.",
+			"api": ["head script UTxO", "deposit / decrement / fanout transactions"],
+			"layout": { "x": 1114, "y": 692, "w": 282, "h": 64 }
+		},
+		{
+			"id": "blockfrost",
+			"label": "Blockfrost",
+			"sublabel": "hosted chain API",
+			"group": "chain",
+			"tier": "remote",
+			"path": "packages/core/src/utils/providers/blockfrost.provider.ts",
+			"desc": "The default L1 provider. Pages address UTxOs, normalises them into the SDK's UTxO shape, and submits signed transactions.",
+			"api": ["GET /addresses/{address}/utxos", "POST /tx/submit"],
+			"layout": { "x": 1114, "y": 780, "w": 282, "h": 64 }
+		},
+		{
+			"id": "ogmios",
+			"label": "Ogmios / Demeter",
+			"sublabel": "node bridge + evaluator",
+			"group": "chain",
+			"tier": "remote",
+			"path": "packages/core/src/utils/providers/",
+			"desc": "A direct bridge to a cardano-node. Beyond UTxO queries and submission it can evaluate a transaction, which is what supplies TxBuilder with real Plutus execution units.",
+			"api": ["queryUtxo", "submitTransaction", "evaluateTransaction"],
+			"layout": { "x": 1114, "y": 868, "w": 282, "h": 64 }
+		}
+	],
+
+	"edges": [
+		{ "id": "app-playground>bridge-core", "from": "app-playground", "to": "bridge-core", "kind": "call", "label": "head demos" },
+		{ "id": "app-playground>txbuilder", "from": "app-playground", "to": "txbuilder", "kind": "call", "label": "builder page" },
+		{ "id": "app-playground>app-wallet", "from": "app-playground", "to": "app-wallet", "kind": "call" },
+		{ "id": "app-nodejs>bridge-core", "from": "app-nodejs", "to": "bridge-core", "kind": "call" },
+		{ "id": "app-nodejs>txbuilder", "from": "app-nodejs", "to": "txbuilder", "kind": "call", "label": "lock / unlock" },
+		{ "id": "app-nodejs>app-wallet", "from": "app-nodejs", "to": "app-wallet", "kind": "call" },
+		{ "id": "app-nodejs>cli-wallet", "from": "app-nodejs", "to": "cli-wallet", "kind": "call", "label": "key-mgmt" },
+		{ "id": "app-consumer>bridge-core", "from": "app-consumer", "to": "bridge-core", "kind": "call" },
+		{ "id": "app-consumer>txbuilder", "from": "app-consumer", "to": "txbuilder", "kind": "call" },
+		{ "id": "app-consumer>app-wallet", "from": "app-consumer", "to": "app-wallet", "kind": "call" },
+
+		{ "id": "bridge-core>ws-connector", "from": "bridge-core", "to": "ws-connector", "kind": "call", "label": "default" },
+		{ "id": "bridge-core>hex-connector", "from": "bridge-core", "to": "hex-connector", "kind": "call", "label": "opt-in" },
+		{ "id": "bridge-core>snapshot-cache", "from": "bridge-core", "to": "snapshot-cache", "kind": "own", "label": "rebuilds" },
+		{ "id": "bridge-core>event-bus", "from": "bridge-core", "to": "event-bus", "kind": "event", "label": "re-exposes" },
+		{ "id": "bridge-core>head-commands", "from": "bridge-core", "to": "head-commands", "kind": "own" },
+		{ "id": "bridge-core>converter", "from": "bridge-core", "to": "converter", "kind": "call", "label": "UTxO shapes" },
+		{ "id": "bridge-core>protocol-params", "from": "bridge-core", "to": "protocol-params", "kind": "call", "label": "toProtocol" },
+		{ "id": "bridge-core>parser-utils", "from": "bridge-core", "to": "parser-utils", "kind": "call", "label": "slot math" },
+		{ "id": "head-commands>ws-connector", "from": "head-commands", "to": "ws-connector", "kind": "call", "label": "sendCommand" },
+		{ "id": "ws-connector>event-bus", "from": "ws-connector", "to": "event-bus", "kind": "event", "label": "emit" },
+		{ "id": "ws-connector>payload-types", "from": "ws-connector", "to": "payload-types", "kind": "call", "label": "narrow by tag" },
+		{ "id": "ws-connector>await-msg", "from": "ws-connector", "to": "await-msg", "kind": "call" },
+		{ "id": "ws-connector>hydra-ws", "from": "ws-connector", "to": "hydra-ws", "kind": "net", "label": "WebSocket" },
+		{ "id": "ws-connector>hydra-rest", "from": "ws-connector", "to": "hydra-rest", "kind": "net", "label": "HTTP" },
+		{ "id": "hex-connector>payload-types", "from": "hex-connector", "to": "payload-types", "kind": "call" },
+		{ "id": "hex-connector>await-msg", "from": "hex-connector", "to": "await-msg", "kind": "call" },
+		{ "id": "hex-connector>hexcore-rest", "from": "hex-connector", "to": "hexcore-rest", "kind": "net", "label": "HTTP" },
+
+		{ "id": "txbuilder>datum-builder", "from": "txbuilder", "to": "datum-builder", "kind": "call" },
+		{ "id": "txbuilder>redeemer-builder", "from": "txbuilder", "to": "redeemer-builder", "kind": "call" },
+		{ "id": "txbuilder>tx-metadata", "from": "txbuilder", "to": "tx-metadata", "kind": "call" },
+		{ "id": "txbuilder>converter", "from": "txbuilder", "to": "converter", "kind": "call" },
+		{ "id": "txbuilder>serializer", "from": "txbuilder", "to": "serializer", "kind": "call" },
+		{ "id": "txbuilder>resolver", "from": "txbuilder", "to": "resolver", "kind": "call" },
+		{ "id": "txbuilder>protocol-params", "from": "txbuilder", "to": "protocol-params", "kind": "call", "label": "fees" },
+		{ "id": "txbuilder>core-utils", "from": "txbuilder", "to": "core-utils", "kind": "call" },
+		{ "id": "txbuilder>wasm-entry", "from": "txbuilder", "to": "wasm-entry", "kind": "call", "label": "build_tx" },
+
+		{ "id": "app-wallet>embedded-wallet", "from": "app-wallet", "to": "embedded-wallet", "kind": "call", "label": "key ops" },
+		{ "id": "app-wallet>providers", "from": "app-wallet", "to": "providers", "kind": "call", "label": "fetcher / submitter" },
+		{ "id": "app-wallet>serializer", "from": "app-wallet", "to": "serializer", "kind": "call" },
+		{ "id": "app-wallet>build-keys", "from": "app-wallet", "to": "build-keys", "kind": "call" },
+		{ "id": "embedded-wallet>build-keys", "from": "embedded-wallet", "to": "build-keys", "kind": "call", "label": "CIP-1852" },
+		{ "id": "embedded-wallet>serializer", "from": "embedded-wallet", "to": "serializer", "kind": "call" },
+		{ "id": "cli-wallet>build-keys", "from": "cli-wallet", "to": "build-keys", "kind": "call", "label": "BIP32-Ed25519" },
+		{ "id": "cli-wallet>providers", "from": "cli-wallet", "to": "providers", "kind": "call" },
+		{ "id": "core-utils>validation", "from": "core-utils", "to": "validation", "kind": "call" },
+		{ "id": "build-keys>wasm-entry", "from": "build-keys", "to": "wasm-entry", "kind": "call" },
+		{ "id": "serializer>wasm-entry", "from": "serializer", "to": "wasm-entry", "kind": "call" },
+		{ "id": "resolver>wasm-entry", "from": "resolver", "to": "wasm-entry", "kind": "call" },
+		{ "id": "converter>wasm-entry", "from": "converter", "to": "wasm-entry", "kind": "call" },
+		{ "id": "core-utils>wasm-entry", "from": "core-utils", "to": "wasm-entry", "kind": "call" },
+		{ "id": "parser-utils>wasm-entry", "from": "parser-utils", "to": "wasm-entry", "kind": "call" },
+		{ "id": "validation>wasm-entry", "from": "validation", "to": "wasm-entry", "kind": "call" },
+		{ "id": "protocol-params>wasm-entry", "from": "protocol-params", "to": "wasm-entry", "kind": "call", "label": "cost models" },
+		{ "id": "providers>blockfrost", "from": "providers", "to": "blockfrost", "kind": "net", "label": "HTTP" },
+		{ "id": "providers>ogmios", "from": "providers", "to": "ogmios", "kind": "net", "label": "HTTP / WS" },
+
+		{ "id": "wasm-entry>csl-browser", "from": "wasm-entry", "to": "csl-browser", "kind": "resolve", "label": "browser" },
+		{ "id": "wasm-entry>csl-node", "from": "wasm-entry", "to": "csl-node", "kind": "resolve", "label": "node" },
+		{ "id": "wasm-entry>csl-asmjs", "from": "wasm-entry", "to": "csl-asmjs", "kind": "resolve", "label": "/asmjs" },
+
+		{ "id": "hydra-ws>cardano-l1", "from": "hydra-ws", "to": "cardano-l1", "kind": "net", "label": "observes" },
+		{ "id": "hydra-rest>cardano-l1", "from": "hydra-rest", "to": "cardano-l1", "kind": "net", "label": "posts" },
+		{ "id": "hexcore-rest>hydra-ws", "from": "hexcore-rest", "to": "hydra-ws", "kind": "net", "label": "proxies" },
+		{ "id": "blockfrost>cardano-l1", "from": "blockfrost", "to": "cardano-l1", "kind": "net" },
+		{ "id": "ogmios>cardano-l1", "from": "ogmios", "to": "cardano-l1", "kind": "net" },
+		{ "id": "infra-offline>hydra-ws", "from": "infra-offline", "to": "hydra-ws", "kind": "host", "label": ":4002" },
+		{ "id": "infra-offline>hydra-rest", "from": "infra-offline", "to": "hydra-rest", "kind": "host" },
+		{ "id": "infra-preprod>hydra-ws", "from": "infra-preprod", "to": "hydra-ws", "kind": "host" },
+		{ "id": "infra-preprod>cardano-l1", "from": "infra-preprod", "to": "cardano-l1", "kind": "host", "label": "preprod" }
+	],
+
+	"flows": [
+		{
+			"id": "wallet-from-mnemonic",
+			"name": "Create a wallet from a mnemonic",
+			"tagline": "Twenty-four words become an account, three addresses and a signing key.",
+			"category": "keys",
+			"edges": ["app-consumer>app-wallet", "app-wallet>embedded-wallet", "embedded-wallet>build-keys", "build-keys>wasm-entry", "wasm-entry>csl-browser"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Construct the wallet", "note": "new AppWallet({ networkId, key: { type: 'mnemonic', words } }). The same constructor also takes a root bech32 key or a pair of cardano-cli keys." },
+				{ "node": "app-wallet", "title": "Pick the key strategy", "note": "The constructor switches on key.type and hands the material to the embedded layer. Nothing is derived yet." },
+				{ "node": "embedded-wallet", "title": "Mnemonic → root private key", "note": "WalletStaticMethods.mnemonicToPrivateKeyHex runs BIP39 entropy through Bip32PrivateKey.from_bip39_entropy with the supplied password." },
+				{ "node": "build-keys", "title": "Derive the account", "note": "buildKeys walks m/1852'/1815'/account'/role/index and returns the payment key, stake key and the base, enterprise and reward addresses in one object." },
+				{ "node": "wasm-entry", "title": "Cross the WASM boundary", "note": "Bip32PrivateKey, Credential and BaseAddress are CSL types; this is the only module that imports them." },
+				{ "node": "csl-browser", "title": "Resolve the right build", "note": "The bundler's browser condition selects the browser WASM build. In Node the node condition wins instead — no runtime branch is involved." }
+			]
+		},
+		{
+			"id": "l1-transaction",
+			"name": "Build, sign and submit on L1",
+			"tagline": "The ordinary Cardano path, from UTxO query to transaction id.",
+			"category": "transaction",
+			"edges": ["app-consumer>app-wallet", "app-wallet>providers", "providers>blockfrost", "app-consumer>txbuilder", "txbuilder>protocol-params", "txbuilder>wasm-entry", "txbuilder>resolver", "app-wallet>embedded-wallet", "blockfrost>cardano-l1"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Start from the wallet", "note": "One AppWallet carries the key, the fetcher and the submitter, so querying, signing and submitting all go through it." },
+				{ "node": "app-wallet", "title": "Query spendable UTxOs", "note": "queryUTxOs(address) throws unless a fetcher was supplied — the wallet never invents chain access." },
+				{ "node": "providers", "title": "Reach the chain", "note": "BlockfrostProvider satisfies both IFetcher and ISubmitter, so a single object covers reads and writes." },
+				{ "node": "blockfrost", "title": "Fetch and normalise", "note": "GET /addresses/{address}/utxos is paged until exhausted, then each entry is mapped into the SDK's UTxO shape." },
+				{ "node": "txbuilder", "title": "Stage the transaction", "note": "setInputs(utxos) → txOut(address, amount) → changeAddress(addr) → complete(). Every call stages a descriptor; nothing touches CSL yet." },
+				{ "node": "protocol-params", "title": "Size the fee", "note": "minFeeA, minFeeB, coinsPerUtxoSize and the cost models come from the protocol parameters passed to the builder." },
+				{ "node": "wasm-entry", "title": "Assemble and build", "note": "_assembleAndBuild pours the staged parts into CSL's TransactionBuilder and calls add_change_if_needed, then build_tx." },
+				{ "node": "resolver", "title": "Learn the transaction id", "note": "resolveTxHash(cborHex) gives the id before submission — worth recording, because that is the key every later event uses." },
+				{ "node": "app-wallet", "title": "Sign", "note": "signTx builds a Vkeywitness through EmbeddedWallet and re-attaches it to the FixedTransaction, preserving the original body bytes." },
+				{ "node": "blockfrost", "title": "Submit", "note": "POST /tx/submit returns the transaction id the node accepted. Compare it with step 8 as a cheap sanity check." },
+				{ "node": "cardano-l1", "title": "Settle", "note": "The transaction is in the mempool; confirmation follows chain timing, not SDK timing." }
+			]
+		},
+		{
+			"id": "connect-head",
+			"name": "Connect to a Hydra head",
+			"tagline": "One URL, a socket, and the Greetings message that seeds everything.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>bridge-core", "bridge-core>ws-connector", "ws-connector>hydra-ws", "ws-connector>payload-types", "ws-connector>event-bus", "bridge-core>snapshot-cache", "ws-connector>hydra-rest", "infra-offline>hydra-ws"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Open the bridge", "note": "new HydraBridge({ url: 'ws://localhost:4001', history: false }) — or pass your own connector instead of a url." },
+				{ "node": "bridge-core", "title": "Wire the listeners", "note": "The constructor subscribes to onConnected and onMessage before the socket opens, so no Greetings can be missed." },
+				{ "node": "ws-connector", "title": "Split the URL", "note": "parseUrl produces both a socket URL and an HTTP base URL from the one input, and appends history, snapshot-utxo and address query params." },
+				{ "node": "hydra-ws", "title": "Socket opens", "note": "The node sends Greetings immediately. Unlike every other server output it carries no seq or timestamp, and its env deliberately omits the signing key." },
+				{ "node": "payload-types", "title": "Narrow the payload", "note": "Raw JSON is narrowed to the HydraPayload union by its tag; InvalidInput is reshaped because the node sends it without one." },
+				{ "node": "event-bus", "title": "Emit", "note": "onConnected fires first, then onMessage for every payload. bridge.events is this emitter." },
+				{ "node": "snapshot-cache", "title": "Seed the state", "note": "Greetings sets nodeVersion, syncedStatus and an approximate slotZeroTimestamp, superseded later by an exact chainSlot/chainTime pair." },
+				{ "node": "hydra-rest", "title": "Cold-start fallback", "note": "querySnapshotUtxo() runs GET /snapshot/utxo in the background and is discarded if a WebSocket snapshot arrived first — lastSnapshotNumber decides." },
+				{ "node": "infra-offline", "title": "Where to try it", "note": "pnpm hydra:offline brings up a seeded offline node on :4002 with no L1 attached — enough for connect, submit and snapshot flows." }
+			]
+		},
+		{
+			"id": "commit-funds",
+			"name": "Commit funds into the head",
+			"tagline": "An incremental deposit: draft on the node, sign locally, settle on L1.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>bridge-core", "bridge-core>ws-connector", "ws-connector>hydra-rest", "app-consumer>app-wallet", "hydra-rest>cardano-l1", "ws-connector>hydra-ws", "ws-connector>payload-types", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Choose what to move in", "note": "Pick the L1 UTxOs to deposit, or supply a blueprint transaction when the commit needs a script witness." },
+				{ "node": "bridge-core", "title": "Ask the node to draft it", "note": "bridge.commit(data) forwards straight to connector.submitter.commit — the bridge adds no logic here." },
+				{ "node": "ws-connector", "title": "POST /commit", "note": "Sent on the node's HTTP port, not the socket, because the caller needs the drafted transaction back." },
+				{ "node": "hydra-rest", "title": "Receive the draft", "note": "The node returns an unsigned deposit transaction as cborHex. It is not yet valid — it has no witnesses." },
+				{ "node": "app-wallet", "title": "Sign the draft", "note": "signTx with the committing key. This is the point where custody stays on your side: the node never sees the key." },
+				{ "node": "cardano-l1", "title": "Settle the deposit", "note": "POST /cardano-transaction relays the signed deposit to L1. The node observes it and starts the deposit period." },
+				{ "node": "payload-types", "title": "Track it by tag", "note": "CommitRecorded → DepositActivated → CommitApproved → CommitFinalized arrive over the socket. A deposit that stalls stays listed in GET /commits." },
+				{ "node": "snapshot-cache", "title": "It appears in the head", "note": "Once finalised the funds show up in the next SnapshotConfirmed and land in the address index." }
+			]
+		},
+		{
+			"id": "l2-transfer",
+			"name": "Send a transaction inside the head",
+			"tagline": "No fee, no collateral, no block — confirmation in a round trip.",
+			"category": "transaction",
+			"edges": ["app-consumer>bridge-core", "bridge-core>protocol-params", "app-consumer>txbuilder", "txbuilder>wasm-entry", "app-consumer>app-wallet", "bridge-core>ws-connector", "ws-connector>hydra-ws", "ws-connector>await-msg", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Read the head's UTxO set", "note": "bridge.queryAddressUTxO(address) serves from the snapshot index; there is no L1 query in this flow at all." },
+				{ "node": "bridge-core", "title": "Take the head's parameters", "note": "getProtocolParameters() returns what the node reports, which in most head configurations means zero fees." },
+				{ "node": "txbuilder", "title": "Build for Hydra", "note": "new TxBuilder({ params, isHydra: true }) skips the L1 fee and collateral rules and lets change balance exactly." },
+				{ "node": "wasm-entry", "title": "Build the transaction", "note": "Same CSL path as L1 — a Hydra transaction is an ordinary Conway transaction, only the validation context differs." },
+				{ "node": "app-wallet", "title": "Sign", "note": "Signed by the owner of the inputs. Head parties sign the snapshot, not your transaction." },
+				{ "node": "ws-connector", "title": "Submit and wait", "note": "bridge.submitTxSync(tx) sends a NewTx command and blocks until the node answers, instead of the fire-and-forget commands.newTx." },
+				{ "node": "hydra-ws", "title": "The head agrees", "note": "The node broadcasts to the other parties; TxValid comes back keyed by transactionId." },
+				{ "node": "await-msg", "title": "Resolve or reject", "note": "Resolves on TxValid. Rejects on TxInvalid, on CommandFailed, and on RejectedInputBecauseUnsynced when the echoed client input is our own NewTx." },
+				{ "node": "snapshot-cache", "title": "Balances move", "note": "SnapshotConfirmed rebuilds the address index and balance cache, so the next getAddressBalance already reflects the transfer." }
+			]
+		},
+		{
+			"id": "snapshot-cache-read",
+			"name": "Read balances in O(1)",
+			"tagline": "Why the bridge keeps two maps instead of asking the node.",
+			"category": "state",
+			"edges": ["infra-offline>hydra-ws", "ws-connector>hydra-ws", "ws-connector>event-bus", "bridge-core>event-bus", "bridge-core>converter", "bridge-core>snapshot-cache", "app-consumer>bridge-core"],
+			"steps": [
+				{ "node": "hydra-ws", "title": "SnapshotConfirmed arrives", "note": "Carries the full confirmed UTxO set plus its snapshotNumber — a complete state, not a delta." },
+				{ "node": "ws-connector", "title": "Narrow and emit", "note": "Parsed, tagged and pushed onto the emitter. The connector holds no state of its own." },
+				{ "node": "event-bus", "title": "onMessage", "note": "Both the bridge's internal handler and any application listener see the same payload." },
+				{ "node": "bridge-core", "title": "Guard against staleness", "note": "updateSnapshot() compares snapshotNumber with lastSnapshotNumber, so a slow HTTP reply can never overwrite fresher WebSocket data." },
+				{ "node": "converter", "title": "Reshape the UTxO set", "note": "Hydra sends a keyed map; the builder wants an array. Converter owns both directions so neither side has to care." },
+				{ "node": "snapshot-cache", "title": "Rebuild both indexes", "note": "One O(n) pass produces address → txHash → UTxO and address → assetUnit → bigint. The cost is paid once per snapshot, not once per query." },
+				{ "node": "app-consumer", "title": "Query for free", "note": "getAddressBalance(addr) is a map lookup. null means the cache is cold — fall back to your own store; an empty Map means the address is in the head with nothing in it." }
+			]
+		},
+		{
+			"id": "plutus-spend",
+			"name": "Spend a Plutus script UTxO",
+			"tagline": "Two build passes, because the fee depends on the execution units.",
+			"category": "plutus",
+			"edges": ["app-consumer>txbuilder", "txbuilder>datum-builder", "txbuilder>redeemer-builder", "txbuilder>core-utils", "txbuilder>wasm-entry", "providers>ogmios", "app-consumer>app-wallet", "app-wallet>providers", "providers>blockfrost"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Locate the locked UTxO", "note": "The script address holds the value; you supply the datum it was locked with and the redeemer that unlocks it." },
+				{ "node": "datum-builder", "title": "Compose the datum", "note": "datumBuilder() assembles constr, list, map, int and bytes into PlutusData without hand-writing CSL calls." },
+				{ "node": "redeemer-builder", "title": "Compose the redeemer", "note": "buildRedeemer(value, { tag: 'SPEND', index }) — or emptyRedeemer() for a validator that ignores its argument." },
+				{ "node": "txbuilder", "title": "Stage the script spend", "note": "spendingPlutusScript('V3') → txInScript(cbor) or txInReference(txHash, ix) → txInRedeemerValue(r) → txInCollateral(...) → requiredSignerHash(...)." },
+				{ "node": "core-utils", "title": "Cost models and script data", "note": "The language view and cost models feed the script data hash; a mismatch here is the classic cause of an unexplained script failure." },
+				{ "node": "wasm-entry", "title": "First pass", "note": "A draft transaction is built with the placeholder execution units carried on the staged redeemers." },
+				{ "node": "ogmios", "title": "Evaluate", "note": "evaluator.evaluateTx(txHex) returns the real mem and steps budget for each redeemer pointer. Without an evaluator the single-pass build is returned as is — which is the normal case inside a head." },
+				{ "node": "txbuilder", "title": "Second pass", "note": "_applyEvaluatedExUnits remaps SPEND results by input and MINT results by policy id, scales them by txEvaluationMultiplier, then rebuilds so CSL computes the correct fee." },
+				{ "node": "app-wallet", "title": "Sign", "note": "Including every key named by requiredSignerHash, or the validator's signature check fails." },
+				{ "node": "blockfrost", "title": "Submit", "note": "On L1 the script runs at validation time; the collateral is only consumed if it fails." }
+			]
+		},
+		{
+			"id": "decommit",
+			"name": "Move funds back out of the head",
+			"tagline": "A decommit leaves the head open — unlike closing it.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>txbuilder", "app-consumer>bridge-core", "bridge-core>head-commands", "head-commands>ws-connector", "ws-connector>hydra-ws", "ws-connector>await-msg", "hydra-ws>cardano-l1", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Decide what leaves", "note": "A decommit withdraws specific UTxOs to L1 while everyone else keeps transacting inside the head." },
+				{ "node": "txbuilder", "title": "Build the decommit transaction", "note": "Its outputs are the UTxOs you want back on L1. Build it against the head's parameters, then sign it." },
+				{ "node": "bridge-core", "title": "Request the decommit", "note": "bridge.commands.decommit({ cborHex, txId, timeout }) — or POST /decommit through the connector's submitter when you want the HTTP form." },
+				{ "node": "ws-connector", "title": "Send it", "note": "The Decommit client input goes out on the socket alongside everything else." },
+				{ "node": "hydra-ws", "title": "The head decides", "note": "DecommitRequested → DecommitApproved → DecommitFinalized. DecommitInvalid means the transaction was never accepted." },
+				{ "node": "await-msg", "title": "Wait for approval", "note": "Resolves on DecommitApproved matching our txId, so the caller gets a promise instead of an event subscription." },
+				{ "node": "cardano-l1", "title": "Decrement on chain", "note": "The node posts a decrement transaction that reduces the head's script UTxO and pays out the withdrawn value." },
+				{ "node": "snapshot-cache", "title": "The head shrinks", "note": "The next snapshot no longer contains those UTxOs, and the balance cache reflects it on the same pass." }
+			]
+		},
+		{
+			"id": "close-fanout",
+			"name": "Close the head and fan out",
+			"tagline": "The contestation window, then everything settles back to L1.",
+			"category": "lifecycle",
+			"edges": ["app-consumer>bridge-core", "bridge-core>head-commands", "head-commands>ws-connector", "ws-connector>hydra-ws", "ws-connector>payload-types", "hydra-ws>cardano-l1", "ws-connector>hydra-rest"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Decide to wind down", "note": "close() posts the latest snapshot on chain. safeClose() refuses when the node believes it is behind." },
+				{ "node": "head-commands", "title": "Send Close", "note": "bridge.commands.close(). From here the head is no longer accepting new transactions." },
+				{ "node": "hydra-ws", "title": "HeadIsClosed", "note": "Carries a contestation deadline. Until it passes, any party can contest with a newer snapshot." },
+				{ "node": "payload-types", "title": "Watch the window", "note": "HeadIsContested restarts the clock; ReadyToFanout means the deadline has passed and the head can be settled." },
+				{ "node": "head-commands", "title": "Fan out", "note": "commands.fanout() distributes the whole final snapshot. commands.partialFanout(utxo) settles a subset when the full set is too large for one transaction." },
+				{ "node": "cardano-l1", "title": "Settle", "note": "The fanout transaction pays every UTxO in the final snapshot back to its owner on L1." },
+				{ "node": "hydra-rest", "title": "Confirm it is finished", "note": "HeadIsFinalized arrives on the socket, and GET /head reports Idle again — the node is ready for a new head." }
+			]
+		},
+		{
+			"id": "recover-deposit",
+			"name": "Recover a stuck deposit",
+			"tagline": "Funds committed but never absorbed are still yours.",
+			"category": "recovery",
+			"edges": ["app-consumer>bridge-core", "bridge-core>ws-connector", "ws-connector>hydra-rest", "hydra-rest>cardano-l1"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Look for orphaned deposits", "note": "Deposits stay recoverable after a head closes, so this is also how you reclaim funds from a previous head." },
+				{ "node": "bridge-core", "title": "List them", "note": "pendingDeposits() calls GET /commits and throws a clear error when the connector does not implement it, rather than failing obscurely." },
+				{ "node": "hydra-rest", "title": "The node answers", "note": "Returns the txIds of deposits observed on chain but not yet included in any snapshot." },
+				{ "node": "ws-connector", "title": "Recover one", "note": "recoverDeposit(txId) issues DELETE /commits/{txId}. It falls back to the Recover socket command when the connector has no HTTP form — but only the HTTP form reports the outcome." },
+				{ "node": "cardano-l1", "title": "Funds return", "note": "The deposit is spent back to the committing address on L1." }
+			]
+		},
+		{
+			"id": "swap-connector",
+			"name": "Swap the node for a gateway",
+			"tagline": "The connector seam: the same bridge against a different backend.",
+			"category": "architecture",
+			"edges": ["app-consumer>bridge-core", "bridge-core>hex-connector", "hex-connector>hexcore-rest", "hexcore-rest>hydra-ws", "hex-connector>payload-types", "bridge-core>snapshot-cache"],
+			"steps": [
+				{ "node": "app-consumer", "title": "Pass a connector, not a URL", "note": "new HydraBridge({ connector: new HexcoreConnector({ ... }) }). Everything downstream of this line is unchanged." },
+				{ "node": "bridge-core", "title": "The bridge cannot tell", "note": "HydraBridge only ever touches connector.fetcher, connector.submitter, connector.eventEmitter and sendCommand — the whole HydraConnector contract." },
+				{ "node": "hex-connector", "title": "Same contract, different routes", "note": "Every route is prefixed /hydra and an API-key header is attached; the method signatures are identical to the WebSocket connector's." },
+				{ "node": "hexcore-rest", "title": "The gateway", "note": "GET /hydra/snapshot/utxo, POST /hydra/submit-tx, POST /hydra/transaction, DELETE /hydra/commits/{txId}." },
+				{ "node": "hydra-ws", "title": "Still the same node", "note": "The gateway proxies a real hydra node, so the payload union and its tags are unchanged." },
+				{ "node": "snapshot-cache", "title": "Caching is unaffected", "note": "The cache lives in the bridge, above the seam, so it works identically whichever connector is underneath. Your own connector only has to satisfy HydraConnector." }
+			]
+		},
+		{
+			"id": "cli-keys",
+			"name": "Sign with cardano-cli key files",
+			"tagline": "The envelope format a devnet hands you, read directly.",
+			"category": "keys",
+			"edges": ["app-nodejs>cli-wallet", "cli-wallet>build-keys", "build-keys>wasm-entry", "app-wallet>serializer", "serializer>wasm-entry", "infra-preprod>hydra-ws"],
+			"steps": [
+				{ "node": "app-nodejs", "title": "Read the envelope", "note": "The key-mgmt scripts load .skey files straight out of a devnet's credentials directory — no mnemonic involved." },
+				{ "node": "cli-wallet", "title": "Construct the wallet", "note": "new CardanoCliWallet({ key: { payment, stake } }) takes the cborHex from the envelope, not a bech32 string." },
+				{ "node": "build-keys", "title": "Derive as extended keys", "note": "Since core 1.5.0 cardano-cli keys are derived as BIP32-Ed25519 extended keys. Treating them as plain Ed25519 produced signatures the node rejected." },
+				{ "node": "wasm-entry", "title": "Cross into CSL", "note": "The extended private key and its public key both come from CSL, as does the witness." },
+				{ "node": "serializer", "title": "Witness without touching the body", "note": "deserializeTx returns a FixedTransaction, so the witness is attached while the original body bytes — and therefore the transaction id — stay exactly as built." },
+				{ "node": "infra-preprod", "title": "Where these keys come from", "note": "infra/hydra-preprod and infra/hydra-offline both ship credentials in this format, which is why the SDK supports it at all." }
+			]
+		},
+		{
+			"id": "mint-burn",
+			"name": "Mint and burn a native asset",
+			"tagline": "One policy, a positive quantity to mint and a negative one to burn.",
+			"category": "transaction",
+			"edges": ["app-nodejs>txbuilder", "txbuilder>core-utils", "txbuilder>redeemer-builder", "txbuilder>tx-metadata", "core-utils>validation", "txbuilder>wasm-entry", "app-nodejs>app-wallet", "app-wallet>providers", "providers>blockfrost"],
+			"steps": [
+				{ "node": "app-nodejs", "title": "Start from the reference script", "note": "apps/nodejs-playground/src/mint-burn-token.ts runs this end to end against a real node." },
+				{ "node": "core-utils", "title": "Derive the policy id", "note": "PolicyUtils turns a native script or a Plutus script into its policy id — the first half of every asset unit." },
+				{ "node": "txbuilder", "title": "Stage the mint", "note": "mintingScript(script) → mint(quantity, policyId, assetName). A negative quantity burns; the burnt asset must be present in the inputs." },
+				{ "node": "redeemer-builder", "title": "Only for Plutus policies", "note": "A Plutus minting policy needs a MINT redeemer indexed by the canonical policy-id ordering. A native script needs none." },
+				{ "node": "tx-metadata", "title": "Attach CIP-25", "note": "metadataValue(721, { ... }) encodes the token metadata; nested objects, Maps and bigints are all handled." },
+				{ "node": "validation", "title": "Fail readably", "note": "Outputs are checked before CSL sees them, so a malformed asset unit surfaces as an error message rather than an opaque WASM panic." },
+				{ "node": "wasm-entry", "title": "Build", "note": "The MintBuilder assembles the mint field and its witnesses, and the minted value is balanced into the change output." },
+				{ "node": "app-wallet", "title": "Sign", "note": "With the policy key as well as the input keys, when the policy is a native script requiring a signature." },
+				{ "node": "blockfrost", "title": "Submit", "note": "After confirmation the asset exists under policyId.assetName and can be spent like any other value." }
+			]
+		},
+		{
+			"id": "wasm-lifecycle",
+			"name": "Keep WASM memory flat",
+			"tagline": "Why TxBuilder tracks and frees instead of trusting the collector.",
+			"category": "performance",
+			"edges": ["app-consumer>txbuilder", "txbuilder>wasm-entry", "wasm-entry>csl-node", "wasm-entry>csl-browser"],
+			"steps": [
+				{ "node": "app-consumer", "title": "The symptom", "note": "Under a burst of builds, memory climbs and throughput drops. The Node playground's leak harnesses reproduce it deliberately." },
+				{ "node": "wasm-entry", "title": "Where it comes from", "note": "CSL objects live in WASM linear memory. FinalizationRegistry does free them eventually, but not fast enough to keep up with a spike." },
+				{ "node": "csl-node", "title": "Same on both builds", "note": "The browser and Node builds share the allocation model, so the fix has to live above the boundary." },
+				{ "node": "txbuilder", "title": "Track, then free", "note": "_track() records every transient object allocated during a build; _freeScratch() releases them in the finally block; the TransactionBuilder itself is freed after build_tx. Transaction 1.2.0 measured 0 KB per iteration after this." },
+				{ "node": "app-consumer", "title": "What you have to do", "note": "Reuse one builder with reset() between transactions, or call dispose() when you are finished with it. A per-request builder that is never disposed reintroduces the problem." }
+			]
+		}
+	]
+}

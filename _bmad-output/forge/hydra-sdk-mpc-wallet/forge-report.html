@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARDENED - Hydra SDK MPC Wallet</title>
+  <style>
+    :root {
+      --ink: #092f2a;
+      --paper: #f3f0e4;
+      --green: #0b7a55;
+      --acid: #b9dc39;
+      --rust: #c95832;
+      --muted: #60716c;
+      --line: rgba(9, 47, 42, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(185, 220, 57, 0.3), transparent 24rem),
+        radial-gradient(circle at 86% 18%, rgba(11, 122, 85, 0.18), transparent 30rem),
+        linear-gradient(135deg, #f7f2e6, #e8f0df 60%, #f2e4d8);
+      font-family: Georgia, "Times New Roman", serif;
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+    main { width: min(1100px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 72px; }
+    .mono { font-family: "SFMono-Regular", Consolas, monospace; }
+    .hero {
+      min-height: 520px;
+      padding: clamp(30px, 7vw, 78px);
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background: rgba(255, 253, 246, 0.78);
+      box-shadow: 0 28px 80px rgba(9, 47, 42, 0.14);
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 36px;
+      align-items: center;
+    }
+    .eyebrow { color: var(--green); font: 800 0.72rem/1.3 "SFMono-Regular", Consolas, monospace; letter-spacing: 0.16em; text-transform: uppercase; }
+    h1 { margin: 18px 0; font-size: clamp(3.2rem, 8vw, 7.3rem); line-height: 0.86; letter-spacing: -0.07em; }
+    h1 em { display: block; color: var(--green); }
+    .lead { max-width: 670px; color: var(--muted); font-size: 1.2rem; line-height: 1.65; }
+    .seal-wrap { display: grid; place-items: center; }
+    .seal { width: min(310px, 100%); filter: drop-shadow(0 20px 25px rgba(95, 38, 24, 0.22)); transform: rotate(4deg); }
+    section { margin-top: 58px; }
+    h2 { margin: 7px 0 24px; font-size: clamp(2rem, 5vw, 4rem); line-height: 0.95; letter-spacing: -0.045em; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card { padding: 24px; border-radius: 22px; border: 1px solid var(--line); background: rgba(255, 253, 246, 0.82); }
+    .card b { display: block; margin-bottom: 14px; color: var(--green); font: 800 0.75rem/1.3 "SFMono-Regular", Consolas, monospace; }
+    .card h3 { margin: 0 0 10px; font-size: 1.35rem; }
+    .card p, .card li { color: var(--muted); line-height: 1.55; }
+    .card ul { padding-left: 18px; margin-bottom: 0; }
+    .topology { padding: clamp(28px, 6vw, 60px); color: white; border-radius: 30px; background: linear-gradient(135deg, #0b7659, #092f2a 62%, #123f46); box-shadow: 0 24px 65px rgba(9, 47, 42, 0.2); }
+    .topology .eyebrow { color: var(--acid); }
+    .shares { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 28px 0; }
+    .share { min-height: 180px; padding: 24px; border: 1px solid rgba(255,255,255,0.18); border-radius: 20px; background: rgba(255,255,255,0.07); }
+    .share strong { display: block; color: var(--acid); font: 900 2.6rem/1 "SFMono-Regular", Consolas, monospace; }
+    .share h3 { margin: 14px 0 8px; }
+    .share p { color: #c8d7d2; line-height: 1.5; }
+    .flows { display: flex; flex-wrap: wrap; gap: 9px; }
+    .flows span { padding: 10px 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 99px; font: 700 0.74rem/1 "SFMono-Regular", Consolas, monospace; }
+    .verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .lock, .reject { padding: 28px; border-radius: 24px; }
+    .lock { background: #e5edcb; border: 1px solid rgba(80, 112, 31, 0.25); }
+    .reject { background: #f1ddd3; border: 1px solid rgba(135, 53, 31, 0.2); }
+    .verdict h3 { margin-top: 0; font-size: 1.45rem; }
+    .verdict li { margin: 9px 0; line-height: 1.45; }
+    .voices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .voice { padding: 20px; border-left: 4px solid var(--green); background: rgba(255,255,255,0.52); }
+    .voice b { font-family: "SFMono-Regular", Consolas, monospace; }
+    .voice p { color: var(--muted); line-height: 1.5; }
+    footer { margin-top: 38px; color: var(--muted); font: 650 0.72rem/1.6 "SFMono-Regular", Consolas, monospace; }
+    @media (max-width: 800px) {
+      .hero, .verdict { grid-template-columns: 1fr; }
+      .seal { max-width: 240px; }
+      .grid, .shares { grid-template-columns: 1fr; }
+      .voices { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      main { width: calc(100% - 16px); padding-top: 8px; }
+      .hero { padding: 27px 20px; border-radius: 22px; }
+      .voices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <div class="eyebrow">BMad Forge · Hydra SDK · 2026-08-11</div>
+        <h1>Social login.<br><em>No seed phrase.</em><br>No custodian.</h1>
+        <p class="lead">Một MPC wallet riêng cho từng DApp, ký được transaction có UTxO trong Hydra Head, onboarding bằng OAuth + passkey và bắt buộc topology 2-of-3.</p>
+      </div>
+      <div class="seal-wrap">
+        <svg class="seal" viewBox="0 0 320 320" role="img" aria-label="Hardened seal">
+          <defs><filter id="rough"><feTurbulence baseFrequency="0.035" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5"/></filter></defs>
+          <circle cx="160" cy="160" r="133" fill="#a64026" filter="url(#rough)"/>
+          <circle cx="160" cy="160" r="108" fill="none" stroke="#f2d0a9" stroke-width="5" stroke-dasharray="8 7"/>
+          <circle cx="160" cy="160" r="89" fill="#8f321f" stroke="#d98558" stroke-width="3"/>
+          <text x="160" y="138" text-anchor="middle" fill="#f9e5ca" font-family="Georgia" font-size="24" font-weight="700">IDEA</text>
+          <text x="160" y="177" text-anchor="middle" fill="#fff3df" font-family="monospace" font-size="31" font-weight="900">HARDENED</text>
+          <text x="160" y="208" text-anchor="middle" fill="#f9e5ca" font-family="Georgia" font-size="15">2 OF 3 · NON-CUSTODIAL</text>
+        </svg>
+      </div>
+    </header>
+
+    <section>
+      <div class="eyebrow">Locked product</div>
+      <h2>Không phải wallet extension mới.</h2>
+      <div class="grid">
+        <article class="card"><b>01 / SCOPE</b><h3>Mỗi DApp một wallet</h3><p>Identity và aggregate address được cô lập theo tenant, network và OIDC issuer/subject. Compromise một DApp không lan sang DApp khác.</p></article>
+        <article class="card"><b>02 / EXPERIENCE</b><h3>OAuth + passkey</h3><p>OAuth nhận diện tài khoản. Passkey bảo vệ quyền sở hữu và recovery. Không seed phrase, không password recovery, không OAuth-only.</p></article>
+        <article class="card"><b>03 / DELIVERY</b><h3>Hybrid coordinator</h3><p>Một open implementation chạy managed hoặc self-host. Cùng protocol, schema, conformance suite và đường migration.</p></article>
+      </div>
+    </section>
+
+    <section class="topology">
+      <div class="eyebrow">Mandatory topology</div>
+      <h2>Hai share để hành động.<br>Không ai có quyền lực một mình.</h2>
+      <div class="shares">
+        <article class="share"><strong>A</strong><h3>Device</h3><p>Share hoạt động trên thiết bị, được bảo vệ bởi secure storage và passkey-gated session.</p></article>
+        <article class="share"><strong>B</strong><h3>Coordinator</h3><p>Share trong managed hoặc self-host service, chỉ tham gia sau OAuth, policy và replay validation.</p></article>
+        <article class="share"><strong>C</strong><h3>Recovery</h3><p>Share portable được mã hóa bằng passkey-derived protection, dùng khi mất thiết bị hoặc rotate coordinator.</p></article>
+      </div>
+      <div class="flows"><span>Routine: A + B</span><span>Device recovery: B + C</span><span>Coordinator rotation: A + C</span><span>Emergency exit: A + C</span></div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Evidence</div>
+      <h2>Rủi ro tương thích đã được loại bỏ.</h2>
+      <div class="grid">
+        <article class="card"><b>PROVEN</b><h3>FROST → Cardano</h3><p>HydraOne đã lấy aggregate Ed25519 public key, dựng Cardano address và tạo VKey witness từ FROST signature.</p></article>
+        <article class="card"><b>PROVEN</b><h3>Foreign Hydra UTxO</h3><p>Signer ký transaction-body hash mà không phụ thuộc L1 wallet policy hoặc việc input có xuất hiện trên Cardano L1.</p></article>
+        <article class="card"><b>PROVEN</b><h3>Hydra submission</h3><p>Witness được ghép vào CBOR và các game flow submit transaction qua Hydra bridge.</p></article>
+      </div>
+    </section>
+
+    <section class="verdict">
+      <article class="lock"><h3>Locked</h3><ul><li>Production 2-of-3 only</li><li>Passkey enrollment before funds/signing</li><li>Open hybrid coordinator</li><li>Web3Auth optional adapter</li><li>Resharing without address change</li><li>Transaction policy and audit trail</li></ul></article>
+      <article class="reject"><h3>Rejected</h3><ul><li>Generic portable wallet across DApps</li><li>OAuth-only recovery</li><li>Password-derived recovery share</li><li>Production 1-of-1 or 2-of-2</li><li>Mandatory Web3Auth dependency</li><li>HD/BIP32 derivation in V1</li></ul></article>
+    </section>
+
+    <section>
+      <div class="eyebrow">Pressure-test voices</div>
+      <h2>Ai đã cố làm nó vỡ?</h2>
+      <div class="voices">
+        <article class="voice"><b>🏗️ Winston</b><p>Ép managed và self-host dùng chung implementation, tránh hai sản phẩm drift.</p></article>
+        <article class="voice"><b>🔒 Vex</b><p>Loại OAuth-only recovery, 1-of-1 bootstrap và coordinator outage lock-in.</p></article>
+        <article class="voice"><b>🧪 Murat</b><p>Đòi conformance, concurrent signing, retry, revoke và recovery E2E.</p></article>
+        <article class="voice"><b>🔑 Nora</b><p>Buộc capability-gate WebAuthn PRF và không giả định mọi passkey đều unwrap được share.</p></article>
+      </div>
+    </section>
+
+    <footer>Outcome: HARDENED · Source of truth: `_bmad-output/forge/hydra-sdk-mpc-wallet/.memlog.md`</footer>
+  </main>
+</body>
+</html>

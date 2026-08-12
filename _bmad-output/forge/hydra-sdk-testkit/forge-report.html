@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARDENED - Hydra SDK Testkit</title>
+  <style>
+    :root {
+      --ink: #10213a;
+      --paper: #f7f1df;
+      --blue: #1b5b83;
+      --cyan: #37b9c6;
+      --orange: #f06f3b;
+      --yellow: #f2c94c;
+      --muted: #657080;
+      --line: rgba(16, 33, 58, 0.16);
+      --panel: rgba(255, 252, 242, 0.88);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 84% 5%, rgba(55, 185, 198, 0.24), transparent 29rem),
+        radial-gradient(circle at 5% 34%, rgba(240, 111, 59, 0.16), transparent 25rem),
+        linear-gradient(145deg, #f9f2df, #edf3eb 54%, #e6eef3);
+      font-family: "Avenir Next", "Gill Sans", sans-serif;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.28;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px),
+        radial-gradient(circle, var(--blue) 1px, transparent 1.5px);
+      background-size: 48px 48px, 48px 48px, 24px 24px;
+    }
+    main { width: min(1160px, calc(100% - 30px)); margin: 0 auto; padding: 30px 0 72px; }
+    .mono { font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace; }
+    .hero {
+      min-height: 560px;
+      padding: clamp(30px, 7vw, 78px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background: var(--panel);
+      box-shadow: 0 30px 90px rgba(16, 33, 58, 0.16);
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 42px;
+      align-items: center;
+      position: relative;
+    }
+    .hero::after {
+      content: "TEST / REPLAY / VERIFY";
+      position: absolute;
+      right: -72px;
+      bottom: 48px;
+      color: rgba(27, 91, 131, 0.08);
+      font: 900 clamp(2.4rem, 7vw, 6.4rem)/1 "IBM Plex Mono", monospace;
+      transform: rotate(-9deg);
+      white-space: nowrap;
+    }
+    .eyebrow {
+      color: var(--blue);
+      font: 800 0.72rem/1.35 "IBM Plex Mono", "SFMono-Regular", monospace;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 760px;
+      margin: 20px 0;
+      font: 900 clamp(3.35rem, 8.3vw, 7.7rem)/0.86 "Avenir Next", "Gill Sans", sans-serif;
+      letter-spacing: -0.075em;
+    }
+    h1 em { display: block; color: var(--orange); font-style: normal; }
+    .lead { max-width: 690px; color: var(--muted); font-size: 1.22rem; line-height: 1.65; }
+    .seal-wrap { z-index: 1; display: grid; place-items: center; }
+    .seal { width: min(318px, 100%); filter: drop-shadow(0 22px 28px rgba(27, 91, 131, 0.25)); transform: rotate(3deg); }
+    section { margin-top: 60px; }
+    h2 {
+      max-width: 900px;
+      margin: 9px 0 26px;
+      font-size: clamp(2.15rem, 5.4vw, 4.5rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .card {
+      min-height: 225px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: 0 12px 34px rgba(16, 33, 58, 0.06);
+    }
+    .card b { display: block; margin-bottom: 16px; color: var(--orange); font: 850 0.73rem/1.3 "IBM Plex Mono", monospace; }
+    .card h3 { margin: 0 0 11px; font-size: 1.42rem; }
+    .card p, .card li { color: var(--muted); line-height: 1.58; }
+    .architecture {
+      padding: clamp(30px, 6vw, 64px);
+      color: white;
+      border-radius: 32px;
+      background:
+        linear-gradient(118deg, rgba(55,185,198,0.16), transparent 38%),
+        linear-gradient(145deg, #143c59, #10213a 62%, #172c3a);
+      box-shadow: 0 26px 70px rgba(16, 33, 58, 0.22);
+    }
+    .architecture .eyebrow { color: var(--yellow); }
+    .architecture h2 { max-width: 1000px; }
+    .tiers { display: grid; grid-template-columns: 1fr 90px 1fr; align-items: stretch; gap: 16px; margin-top: 32px; }
+    .tier { padding: 28px; border: 1px solid rgba(255,255,255,0.17); border-radius: 22px; background: rgba(255,255,255,0.07); }
+    .tier .number { color: var(--yellow); font: 900 3.3rem/1 "IBM Plex Mono", monospace; }
+    .tier h3 { margin: 16px 0 9px; font-size: 1.6rem; }
+    .tier p { color: #c6d6de; line-height: 1.58; }
+    .arrow { display: grid; place-items: center; color: var(--cyan); font: 900 2rem/1 "IBM Plex Mono", monospace; }
+    .truth { margin-top: 18px; padding: 16px 18px; border-left: 5px solid var(--yellow); background: rgba(242,201,76,0.1); color: #e8f1f4; line-height: 1.55; }
+    .api {
+      overflow: hidden;
+      border: 1px solid rgba(16, 33, 58, 0.22);
+      border-radius: 26px;
+      background: #0e1c2b;
+      box-shadow: 0 20px 55px rgba(16, 33, 58, 0.2);
+    }
+    .api-bar { padding: 13px 18px; color: #a9beca; border-bottom: 1px solid rgba(255,255,255,0.1); font: 700 0.72rem/1 "IBM Plex Mono", monospace; }
+    pre { margin: 0; padding: 26px; overflow-x: auto; color: #d8e6eb; font: 0.9rem/1.7 "IBM Plex Mono", "SFMono-Regular", monospace; }
+    .kw { color: #f2c94c; } .fn { color: #67d2db; } .str { color: #f59a72; } .cm { color: #78909c; }
+    .verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .lock, .reject { padding: 30px; border-radius: 25px; }
+    .lock { background: #dcebe6; border: 1px solid rgba(21, 105, 98, 0.25); }
+    .reject { background: #f4dfd3; border: 1px solid rgba(151, 62, 31, 0.2); }
+    .verdict h3 { margin-top: 0; font-size: 1.55rem; }
+    .verdict li { margin: 10px 0; line-height: 1.47; }
+    .limits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .limit { padding: 24px; border-top: 5px solid var(--orange); background: rgba(255,255,255,0.55); }
+    .limit b { font-family: "IBM Plex Mono", monospace; }
+    .limit p { color: var(--muted); line-height: 1.55; }
+    .voices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .voice { padding: 21px; border: 1px solid var(--line); border-bottom: 5px solid var(--blue); background: rgba(255,255,255,0.62); }
+    .voice b { font-family: "IBM Plex Mono", monospace; }
+    .voice p { color: var(--muted); line-height: 1.5; }
+    footer { margin-top: 42px; color: var(--muted); font: 650 0.72rem/1.6 "IBM Plex Mono", monospace; }
+    @media (max-width: 840px) {
+      .hero, .verdict { grid-template-columns: 1fr; }
+      .seal { max-width: 245px; }
+      .grid, .limits { grid-template-columns: 1fr; }
+      .tiers { grid-template-columns: 1fr; }
+      .arrow { min-height: 44px; transform: rotate(90deg); }
+      .voices { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      main { width: calc(100% - 16px); padding-top: 8px; }
+      .hero, .architecture { padding: 27px 21px; border-radius: 22px; }
+      .voices { grid-template-columns: 1fr; }
+      pre { padding: 20px 16px; font-size: 0.77rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <div class="eyebrow">BMad Forge · Hydra SDK · 2026-08-11</div>
+        <h1>Mock fast.<br><em>Verify real.</em></h1>
+        <p class="lead">Một testkit dev-only cho Hydra SDK và DApps: scenario deterministic khi cần tốc độ, hydra-node offline thật khi cần niềm tin, cùng một contract không drift.</p>
+      </div>
+      <div class="seal-wrap">
+        <svg class="seal" viewBox="0 0 320 320" role="img" aria-label="Hardened seal">
+          <defs>
+            <filter id="rough"><feTurbulence baseFrequency="0.028" numOctaves="4" seed="13" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="5"/></filter>
+          </defs>
+          <path d="M160 19 198 35 238 33 263 65 298 83 301 124 319 160 301 196 298 237 263 255 238 287 198 285 160 301 122 285 82 287 57 255 22 237 19 196 1 160 19 124 22 83 57 65 82 33 122 35Z" fill="#1b5b83" filter="url(#rough)"/>
+          <circle cx="160" cy="160" r="111" fill="#123e5d" stroke="#67d2db" stroke-width="4" stroke-dasharray="5 8"/>
+          <circle cx="160" cy="160" r="88" fill="none" stroke="#f2c94c" stroke-width="3"/>
+          <text x="160" y="137" text-anchor="middle" fill="#dcecf2" font-family="Avenir Next" font-size="21" font-weight="800">IDEA</text>
+          <text x="160" y="179" text-anchor="middle" fill="#fff5d0" font-family="monospace" font-size="31" font-weight="900">HARDENED</text>
+          <text x="160" y="208" text-anchor="middle" fill="#67d2db" font-family="monospace" font-size="14" font-weight="700">REAL NODE IS TRUTH</text>
+        </svg>
+      </div>
+    </header>
+
+    <section>
+      <div class="eyebrow">Product lock</div>
+      <h2>Không phải thêm một bộ mocks. Là một contract test có đường lên node thật.</h2>
+      <div class="grid">
+        <article class="card"><b>01 / JOB</b><h3>Stop rebuilding test plumbing</h3><p>DApp và SDK maintainer dùng chung connector mock, fixtures, seeded UTxO, process lifecycle và Vitest helpers thay vì copy từng mảnh vào mỗi package.</p></article>
+        <article class="card"><b>02 / CONFIDENCE</b><h3>One scenario, two confidence levels</h3><p>Unit tests replay nhanh và deterministic. Contract/E2E chạy đúng hydra-node binary để kiểm tra wire format, submission và snapshot behavior.</p></article>
+        <article class="card"><b>03 / BOUNDARY</b><h3>No protocol fork</h3><p>Testkit không tự viết ledger hoặc state machine Hydra. Fixture phải có provenance theo node version và được conformance suite xác nhận.</p></article>
+      </div>
+    </section>
+
+    <section class="architecture">
+      <div class="eyebrow">Two-tier architecture</div>
+      <h2>Tốc độ ở tầng một.<br>Niềm tin ở tầng hai.</h2>
+      <div class="tiers">
+        <article class="tier"><div class="number">01</div><h3>Mock + Replay</h3><p><code>MockHydraConnector</code>, typed scenario builder, controllable clock, command assertions và fault injection. Chạy in-process, không binary, không socket.</p></article>
+        <div class="arrow">→</div>
+        <article class="tier"><div class="number">02</div><h3>Offline Real Node</h3><p><code>HydraTestHead</code> boot hydra-node thật với dynamic ports, isolated persistence, deterministic UTxO và reliable cleanup.</p></article>
+      </div>
+      <div class="truth"><strong>Source of truth:</strong> real-node conformance. Mock failures giúp debug nhanh; real-node failures quyết định compatibility.</div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Proposed surface</div>
+      <h2>Bốn subpath, mỗi subpath một trách nhiệm.</h2>
+      <div class="grid">
+        <article class="card"><b>/FIXTURES</b><h3>Versioned payloads</h3><p>Greetings, TxValid, TxInvalid, SnapshotConfirmed và edge payloads được capture theo hydra-node release.</p></article>
+        <article class="card"><b>/MOCK</b><h3>Strict scenarios</h3><p>Replay events, validate outbound commands, inject disconnects, delays, malformed messages và out-of-order snapshots.</p></article>
+        <article class="card"><b>/OFFLINE + /VITEST</b><h3>Process and lifecycle</h3><p>Start/stop isolated Heads; adapter lo hooks, timeout, diagnostics và artifact dump mà không làm core phụ thuộc Vitest.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <div class="eyebrow">API direction, not implementation</div>
+      <h2>Surface đủ nhỏ để nhớ.</h2>
+      <div class="api">
+        <div class="api-bar">hydra-test.example.ts</div>
+        <pre><span class="kw">import</span> { <span class="fn">hydraTest</span> } <span class="kw">from</span> <span class="str">'@hydra-sdk/testkit/vitest'</span>
+<span class="kw">import</span> { <span class="fn">fundedWallet</span> } <span class="kw">from</span> <span class="str">'@hydra-sdk/testkit/offline'</span>
+
+<span class="fn">hydraTest</span>(<span class="str">'submits an L2 transaction'</span>, <span class="kw">async</span> ({ head, bridge }) =&gt; {
+  <span class="kw">const</span> wallet = <span class="fn">fundedWallet</span>()
+  <span class="cm">// build, sign, submit, expect SnapshotConfirmed</span>
+})
+
+<span class="kw">const</span> connector = <span class="fn">createHydraScenario</span>()
+  .<span class="fn">greetings</span>({ headStatus: <span class="str">'Open'</span> })
+  .<span class="fn">txValid</span>({ transactionId: <span class="str">'tx-1'</span> })
+  .<span class="fn">snapshotConfirmed</span>({ number: 7 })
+  .<span class="fn">connector</span>()</pre>
+      </div>
+    </section>
+
+    <section class="verdict">
+      <article class="lock"><h3>Locked</h3><ul><li>Dev-only package</li><li>Mock/replay + real offline node</li><li>Parallel-safe isolated instances</li><li>Versioned fixture provenance</li><li>Explicit binary resolution</li><li>Bridge-major compatibility matrix</li><li>Deterministic test wallet/UTxO builders</li></ul></article>
+      <article class="reject"><h3>Rejected</h3><ul><li>Mock-only test library: wire format sẽ drift</li><li>Bundled 428 MB binary: package quá nặng</li><li>Surprise network download: CI không reproducible</li><li>Shared singleton Head: snapshot và UTxO race</li><li>Hydra protocol simulator: tạo source of truth thứ hai</li><li>L1 devnet, consensus và load harness trong V1</li></ul></article>
+    </section>
+
+    <section>
+      <div class="eyebrow">Surviving limits</div>
+      <h2>Những điều package này cố ý không hứa.</h2>
+      <div class="limits">
+        <article class="limit"><b>NO L1</b><p>Offline mode không test deposit, decommit, close, contest, fanout hoặc unsynced states. Các đường này vẫn cần devnet riêng.</p></article>
+        <article class="limit"><b>BINARY REQUIRED</b><p>Real-node tier cần hydra-node phù hợp platform. Downloader nếu có phải explicit, checksum-pinned và cacheable.</p></article>
+        <article class="limit"><b>FIXTURES AGE</b><p>Mỗi Hydra release có thể đổi payload. Fixture matrix và conformance CI là chi phí duy trì bắt buộc, không phải việc làm một lần.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Pressure-test voices</div>
+      <h2>Ai đã cố làm nó vỡ?</h2>
+      <div class="voices">
+        <article class="voice"><b>🧪 Murat</b><p>Buộc tách test pyramid thành mock deterministic và real-node conformance, mỗi tầng có mục đích rõ.</p></article>
+        <article class="voice"><b>🏗️ Winston</b><p>Giữ process controller độc lập framework, chia subpath và không tạo protocol implementation thứ hai.</p></article>
+        <article class="voice"><b>🌶️ Boundary</b><p>Đánh vào parallel workers, port collision, stale persistence, double stop và orphan child process.</p></article>
+        <article class="voice"><b>🚢 Dana</b><p>Cắt L1 devnet, multi-node và performance khỏi V1 để extraction có thể ship theo từng lớp.</p></article>
+      </div>
+    </section>
+
+    <footer>Outcome: HARDENED · Documentation only · Source of truth: `_bmad-output/forge/hydra-sdk-testkit/.memlog.md`</footer>
+  </main>
+</body>
+</html>
