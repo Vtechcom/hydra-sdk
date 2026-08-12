@@ -72,6 +72,28 @@
 				</div>
 			</el-card>
 
+			<el-card shadow="hover" class="lg:col-span-2">
+				<template #header>
+					<div class="flex items-center gap-2">
+						<Icon name="mdi:cash-multiple" size="24" class="inline-block text-primary-300" />
+						<span class="text-lg font-semibold">Fee Lab</span>
+					</div>
+				</template>
+
+				<div class="space-y-4">
+					<p class="text-sm text-gray-600">Visualize how a Cardano script transaction's fee is built — size, script execution and reference components — computed offline with no provider or API key.</p>
+					<div class="flex gap-2 flex-wrap">
+						<el-tag size="small" type="success">offline</el-tag>
+						<el-tag size="small" type="warning">exUnits</el-tag>
+						<el-tag size="small" type="info">fee breakdown</el-tag>
+					</div>
+					<el-button @click="$router.push('/fee-lab')" type="primary" size="large" class="w-full">
+						<Icon name="mdi:play" size="20" class="inline-block mr-1" />
+						Open Fee Lab
+					</el-button>
+				</div>
+			</el-card>
+
 			<!-- Test Results Card -->
 			<el-card shadow="hover" class="lg:col-span-2">
 				<template #header>
