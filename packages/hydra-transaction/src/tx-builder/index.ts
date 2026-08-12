@@ -389,9 +389,7 @@ export class TxBuilder {
 								this._track(
 									CardanoWASM.Value.new(
 										this._track(
-											CardanoWASM.BigNum.from_str(
-												this._collateralReturn.amount.find(a => a.unit === 'lovelace')?.quantity || '0'
-											)
+											CardanoWASM.BigNum.from_str(this._collateralReturn.amount.find(a => a.unit === 'lovelace')?.quantity || '0')
 										)
 									)
 								)
@@ -889,7 +887,7 @@ export class TxBuilder {
 	 * Without an evaluator (e.g. for Hydra), the single-pass build is returned
 	 * unchanged.
 	 */
-	async complete(): Promise<CardanoWASM.Transaction> {
+	async complete(options?: { fastRebalance?: boolean }): Promise<CardanoWASM.Transaction> {
 		let tx = await this._assembleAndBuild()
 
 		if (this._evaluator && this._hasRedeemers()) {
@@ -903,14 +901,21 @@ export class TxBuilder {
 			}
 			const changed = this._applyEvaluatedExUnits(tx, evals)
 			if (changed) {
-				// Rebuild with the evaluated exUnits so CSL computes the correct fee.
+				// The evaluated exUnits change the fee, so the transaction must be
+				// rebalanced. `fastRebalance` reuses the inputs the first pass already
+				// selected — adding them explicitly and letting CSL recompute
+				// fee/change/script_data_hash via add_change_if_needed — which skips a
+				// second (expensive) coin-selection pass. Only valid for a real
+				// (non-Hydra) build with a change address.
+				const canFastRebalance = options?.fastRebalance && !this._isHydra && !!this._changeAddress
+				const selectedRefs = canFastRebalance ? this._collectInputRefs(tx) : undefined
 				try {
 					tx.free()
 				} catch {
 					/* ignore */
 				}
 				this._resetTxBuilderForRebuild()
-				tx = await this._assembleAndBuild()
+				tx = await this._assembleAndBuild(selectedRefs ? { explicitInputRefs: selectedRefs } : undefined)
 			} else {
 				// Free the transient WASM objects _applyEvaluatedExUnits allocated.
 				this._freeScratch()
@@ -918,6 +923,18 @@ export class TxBuilder {
 		}
 
 		return tx
+	}
+
+	/** Collect `${txHash}#${index}` for every input of a built transaction. */
+	private _collectInputRefs(tx: CardanoWASM.Transaction): Set<string> {
+		const refs = new Set<string>()
+		const body = this._track(tx.body())
+		const inputs = this._track(body.inputs())
+		for (let i = 0; i < inputs.len(); i++) {
+			const input = this._track(inputs.get(i))
+			refs.add(`${this._track(input.transaction_id()).to_hex()}#${input.index()}`)
+		}
+		return refs
 	}
 
 	/** True if any staged input or mint carries a Plutus redeemer to evaluate. */
@@ -979,7 +996,10 @@ export class TxBuilder {
 	}
 
 	/** Clone a redeemer, replacing only its execution units. */
-	private _redeemerWithExUnits(redeemer: CardanoWASM.Redeemer, budget: { mem: number; steps: number }): CardanoWASM.Redeemer {
+	private _redeemerWithExUnits(
+		redeemer: CardanoWASM.Redeemer,
+		budget: { mem: number; steps: number }
+	): CardanoWASM.Redeemer {
 		const tag = this._track(redeemer.tag())
 		const index = this._track(redeemer.index())
 		const data = this._track(redeemer.data())
@@ -1011,7 +1031,7 @@ export class TxBuilder {
 	 * the transaction. Freeing of transient WASM objects happens here (see
 	 * _freeScratch in the finally block).
 	 */
-	private async _assembleAndBuild(): Promise<CardanoWASM.Transaction> {
+	private async _assembleAndBuild(rebalance?: { explicitInputRefs: Set<string> }): Promise<CardanoWASM.Transaction> {
 		// Add all outputs to the transaction builder
 		for (const output of this._outputs) {
 			this._addOutputToBuilder(output)
@@ -1075,7 +1095,7 @@ export class TxBuilder {
 
 		// Add all inputs to the transaction builder
 		this._verbose && console.log('[🛠️][TxBuilder] [Input Before]: ', safeStringify(this._inputs, 2))
-		this._addInputsToBuilder(this._inputs, 'LargestFirstMultiAsset')
+		this._addInputsToBuilder(this._inputs, 'LargestFirstMultiAsset', rebalance)
 		this._verbose &&
 			console.log('[🛠️][TxBuilder] [Input After]: ', safeStringify(this._txBuilder.get_total_input().to_js_value()))
 
@@ -1278,7 +1298,11 @@ export class TxBuilder {
 		this._verbose && console.log('[🛠️][TxBuilder] [Output]: ', txOutput.to_json())
 	}
 
-	private _addInputsToBuilder(inputs: TxIn[], strategy: CoinSelectionStrategy = 'LargestFirstMultiAsset'): void {
+	private _addInputsToBuilder(
+		inputs: TxIn[],
+		strategy: CoinSelectionStrategy = 'LargestFirstMultiAsset',
+		rebalance?: { explicitInputRefs: Set<string> }
+	): void {
 		const scriptInputs = inputs.filter(input => input.scriptRef || input.datum || input.redeemer || input.inlineDatum)
 		const normalInputs = inputs.filter(input => !input.scriptRef && !input.datum && !input.redeemer && !input.inlineDatum)
 		const rawUTxOs: UTxO[] = normalInputs.map(input => {
@@ -1340,6 +1364,21 @@ export class TxBuilder {
 			this._txBuilder.remove_script_data_hash()
 			this._txBuilder.calc_script_data_hash(costMdls)
 		}
+
+		// Fast-rebalance pass: reuse the inputs the first build already chose instead
+		// of running coin selection again. Add them explicitly, then let CSL balance
+		// fee + change via add_change_if_needed. Only reached when complete() decided a
+		// rebalance is valid (non-Hydra, change address set).
+		if (rebalance) {
+			this._addExplicitInputsAndChange(rawUTxOs, rebalance.explicitInputRefs)
+			if (recalculateScriptDataHash) {
+				const costMdls = this._buildCostModels()
+				this._txBuilder.remove_script_data_hash()
+				this._txBuilder.calc_script_data_hash(costMdls)
+			}
+			return
+		}
+
 		// Coin selection is only needed when there are NORMAL inputs to select from.
 		// A script-only spend whose script input already funds the outputs (common in Hydra —
 		// e.g. a session/state UTxO that continues to an equal-value output) has no normal
@@ -1348,6 +1387,25 @@ export class TxBuilder {
 		// invalidates it.
 		if (rawUTxOs.length > 0) {
 			this.selectUtxosFrom(rawUTxOs, strategy, { recalculateScriptDataHash })
+		}
+	}
+
+	/**
+	 * Add the given normal inputs explicitly (no coin selection) and let CSL compute
+	 * the change + fee via add_change_if_needed. `explicitInputRefs` restricts the
+	 * set to the inputs the first build actually used, so the rebalanced transaction
+	 * keeps the same input shape with only the fee/change corrected.
+	 */
+	private _addExplicitInputsAndChange(rawUTxOs: UTxO[], explicitInputRefs: Set<string>): void {
+		const selected = rawUTxOs.filter(u => explicitInputRefs.has(`${u.input.txHash}#${u.input.outputIndex}`))
+		for (const utxo of selected) {
+			const { txInput, txOutput } = this.buildSimpleUtxo(utxo)
+			const address = this._track(CardanoWASM.Address.from_bech32(utxo.output.address))
+			this._txBuilder.add_regular_input(address, txInput, this._track(txOutput.amount()))
+		}
+		if (this._changeAddress) {
+			const changeAddr = this._track(CardanoWASM.Address.from_bech32(this._changeAddress))
+			this._txBuilder.add_change_if_needed(changeAddr)
 		}
 	}
 
@@ -1410,11 +1468,17 @@ export class TxBuilder {
 				throw new Error('Mint policy script is required')
 			}
 			if (_mint.policyScript?.type === 'PlutusV1') {
-				mintPolicyScript = this._track(CardanoWASM.PlutusScript.from_bytes(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex)))
+				mintPolicyScript = this._track(
+					CardanoWASM.PlutusScript.from_bytes(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex))
+				)
 			} else if (_mint.policyScript?.type === 'PlutusV2') {
-				mintPolicyScript = this._track(CardanoWASM.PlutusScript.from_bytes_v2(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex)))
+				mintPolicyScript = this._track(
+					CardanoWASM.PlutusScript.from_bytes_v2(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex))
+				)
 			} else if (_mint.policyScript?.type === 'PlutusV3') {
-				mintPolicyScript = this._track(CardanoWASM.PlutusScript.from_bytes_v3(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex)))
+				mintPolicyScript = this._track(
+					CardanoWASM.PlutusScript.from_bytes_v3(ParserUtils.hexToBytes(_mint.policyScript.scriptCborHex))
+				)
 			} else if (_mint.policyScript?.type === 'Native') {
 				mintPolicyScript = this._track(CardanoWASM.NativeScript.from_hex(_mint.policyScript.scriptCborHex))
 			} else {
