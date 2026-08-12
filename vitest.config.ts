@@ -20,7 +20,8 @@ export default defineConfig({
 			'@hydra-sdk/cardano-wasm': path.resolve(__dirname, 'packages/cardano-wasm/src/index.node.ts'),
 			'@hydra-sdk/core': path.resolve(__dirname, 'packages/core/src/index.ts'),
 			'@hydra-sdk/transaction': path.resolve(__dirname, 'packages/hydra-transaction/src/index.ts'),
-			'@hydra-sdk/bridge': path.resolve(__dirname, 'packages/hydra-bridge/src/index.ts')
+			'@hydra-sdk/bridge': path.resolve(__dirname, 'packages/hydra-bridge/src/index.ts'),
+			'@hydra-sdk/evaluator': path.resolve(__dirname, 'packages/evaluator/src/index.ts')
 		},
 
 		coverage: {

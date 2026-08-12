@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hydra SDK Package Constellation</title>
+  <style>
+    :root {
+      --ink: #102a2a;
+      --muted: #58706d;
+      --paper: #f4f0e5;
+      --panel: rgba(255, 253, 246, 0.86);
+      --green: #087f5b;
+      --lime: #b7db36;
+      --orange: #f08c46;
+      --blue: #1c6c83;
+      --line: rgba(16, 42, 42, 0.14);
+      --shadow: 0 24px 70px rgba(24, 59, 54, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 8%, rgba(183, 219, 54, 0.28), transparent 24rem),
+        radial-gradient(circle at 90% 22%, rgba(28, 108, 131, 0.18), transparent 28rem),
+        linear-gradient(135deg, #f7f3e8 0%, #eaf1df 55%, #f5e8d9 100%);
+      font-family: Georgia, "Times New Roman", serif;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black, transparent 85%);
+    }
+
+    main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 80px; }
+    .mono { font-family: "SFMono-Regular", Consolas, monospace; }
+    .eyebrow { letter-spacing: 0.15em; text-transform: uppercase; font: 700 0.72rem/1.3 "SFMono-Regular", Consolas, monospace; color: var(--green); }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 540px;
+      padding: clamp(32px, 7vw, 86px);
+      border: 1px solid rgba(16, 42, 42, 0.18);
+      border-radius: 34px;
+      background: rgba(255, 253, 246, 0.72);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    h1 { margin: 18px 0; font-size: clamp(3.3rem, 9vw, 8rem); line-height: 0.82; letter-spacing: -0.075em; font-weight: 700; }
+    h1 span { display: block; color: var(--green); font-style: italic; }
+    .lede { max-width: 680px; font-size: clamp(1.05rem, 2vw, 1.35rem); line-height: 1.65; color: var(--muted); }
+    .hero-note { margin-top: 26px; padding-left: 18px; border-left: 4px solid var(--orange); font: 600 0.92rem/1.6 "SFMono-Regular", Consolas, monospace; }
+
+    .orbit { position: relative; aspect-ratio: 1; min-width: 250px; }
+    .orbit::before, .orbit::after { content: ""; position: absolute; border: 1px dashed rgba(8, 127, 91, 0.45); border-radius: 50%; inset: 8%; animation: spin 28s linear infinite; }
+    .orbit::after { inset: 24%; animation-direction: reverse; animation-duration: 18s; }
+    .core { position: absolute; inset: 34%; border-radius: 50%; display: grid; place-items: center; text-align: center; color: white; background: var(--ink); box-shadow: 0 0 0 18px rgba(183, 219, 54, 0.25); font: 800 0.85rem/1.25 "SFMono-Regular", Consolas, monospace; }
+    .sat { position: absolute; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; text-align: center; padding: 8px; color: white; font: 700 0.7rem/1.15 "SFMono-Regular", Consolas, monospace; box-shadow: 0 12px 35px rgba(16, 42, 42, 0.22); }
+    .sat:nth-child(2) { top: 2%; left: 38%; background: var(--green); }
+    .sat:nth-child(3) { top: 36%; right: 0; background: var(--blue); }
+    .sat:nth-child(4) { bottom: 2%; left: 40%; background: var(--orange); }
+    .sat:nth-child(5) { top: 38%; left: 0; background: #7b6334; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    section { margin-top: 70px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+    h2 { margin: 7px 0 0; font-size: clamp(2.1rem, 5vw, 4.2rem); line-height: 0.95; letter-spacing: -0.05em; }
+    .section-head p { max-width: 540px; margin: 0; color: var(--muted); line-height: 1.6; }
+
+    .techniques { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .technique { min-height: 190px; padding: 24px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
+    .technique b { display: block; margin-bottom: 28px; font: 800 0.75rem/1.2 "SFMono-Regular", Consolas, monospace; color: var(--green); }
+    .technique h3 { margin: 0 0 10px; font-size: 1.35rem; }
+    .technique p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .field { padding: clamp(24px, 5vw, 54px); border-radius: 30px; background: var(--ink); color: #eff7e8; box-shadow: var(--shadow); }
+    .field-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 28px; }
+    .spark { min-height: 110px; padding: 14px; border: 1px solid rgba(255,255,255,0.14); border-radius: 16px; background: rgba(255,255,255,0.06); font: 650 0.73rem/1.45 "SFMono-Regular", Consolas, monospace; transition: transform 180ms ease, background 180ms ease; }
+    .spark:hover { transform: translateY(-4px) rotate(-1deg); background: rgba(183, 219, 54, 0.14); }
+    .field .eyebrow { color: var(--lime); }
+    .field h2 { color: white; }
+    .field .caption { color: #b9cbc6; }
+
+    .shortlist { display: grid; gap: 16px; counter-reset: rank; }
+    .candidate { counter-increment: rank; display: grid; grid-template-columns: 76px 1.4fr 0.8fr; gap: 24px; align-items: center; padding: 25px; border-radius: 24px; border: 1px solid var(--line); background: var(--panel); box-shadow: 0 10px 30px rgba(24, 59, 54, 0.06); }
+    .candidate::before { content: counter(rank, decimal-leading-zero); font: 800 2rem/1 "SFMono-Regular", Consolas, monospace; color: var(--green); }
+    .candidate h3 { margin: 0 0 8px; font: 800 clamp(1.05rem, 2vw, 1.4rem)/1.2 "SFMono-Regular", Consolas, monospace; }
+    .candidate p { margin: 0; color: var(--muted); line-height: 1.55; }
+    .score { display: grid; gap: 7px; font: 700 0.72rem/1.3 "SFMono-Regular", Consolas, monospace; text-transform: uppercase; }
+    .bar { height: 8px; border-radius: 99px; background: #dce4d4; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: var(--w); background: linear-gradient(90deg, var(--green), var(--lime)); }
+
+    .climax { position: relative; overflow: hidden; padding: clamp(32px, 7vw, 80px); border-radius: 34px; background: linear-gradient(135deg, #0b5144, #102a2a 58%, #173f49); color: white; box-shadow: var(--shadow); }
+    .climax::after { content: "primitive → product"; position: absolute; right: -32px; bottom: -22px; opacity: 0.08; font: 900 clamp(3rem, 9vw, 9rem)/1 "SFMono-Regular", Consolas, monospace; white-space: nowrap; }
+    .climax blockquote { position: relative; z-index: 1; max-width: 900px; margin: 20px 0 0; font-size: clamp(1.7rem, 4vw, 3.6rem); line-height: 1.13; letter-spacing: -0.035em; }
+    .climax strong { color: var(--lime); }
+    .sequence { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+    .sequence span { padding: 10px 14px; border: 1px solid rgba(255,255,255,0.18); border-radius: 99px; font: 700 0.75rem/1 "SFMono-Regular", Consolas, monospace; background: rgba(255,255,255,0.06); }
+
+    footer { margin-top: 38px; color: var(--muted); font: 600 0.74rem/1.6 "SFMono-Regular", Consolas, monospace; display: flex; justify-content: space-between; gap: 20px; }
+
+    @media (max-width: 850px) {
+      .hero { grid-template-columns: 1fr; }
+      .orbit { max-width: 380px; width: 100%; margin: 0 auto; }
+      .techniques { grid-template-columns: 1fr 1fr; }
+      .field-grid { grid-template-columns: repeat(3, 1fr); }
+      .candidate { grid-template-columns: 52px 1fr; }
+      .score { grid-column: 2; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+
+    @media (max-width: 540px) {
+      main { width: min(100% - 18px, 1180px); padding-top: 9px; }
+      .hero { border-radius: 22px; padding: 28px 22px; }
+      .techniques, .field-grid { grid-template-columns: 1fr; }
+      .orbit { min-width: 0; }
+      .sat { width: 74px; height: 74px; font-size: 0.6rem; }
+      .candidate { padding: 19px; gap: 14px; }
+      footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <div class="eyebrow">Hydra SDK · package constellation · 11.08.2026</div>
+        <h1>From primitives <span>to products.</span></h1>
+        <p class="lede">Codebase đã có một lõi kỹ thuật tốt: ví, transaction builder, Hydra bridge và WASM. Khoảng trống lớn nhất không nằm ở thêm primitive, mà ở những package giúp người dùng đi từ “API hoạt động” tới “sản phẩm vận hành được”.</p>
+        <div class="hero-note">104 ý tưởng → 6 ứng viên → 3 package nên ưu tiên.</div>
+      </div>
+      <div class="orbit" aria-label="Kiến trúc package hiện tại">
+        <div class="core">HYDRA<br>SDK</div>
+        <div class="sat">CORE<br>wallet</div>
+        <div class="sat">BRIDGE<br>events</div>
+        <div class="sat">TX<br>builder</div>
+        <div class="sat">WASM<br>runtime</div>
+      </div>
+    </header>
+
+    <section>
+      <div class="section-head">
+        <div><div class="eyebrow">Divergence</div><h2>Bốn lăng kính</h2></div>
+        <p>Phiên tự chạy qua nhu cầu thật của người dùng, khai thác những gì repo đã làm tốt, đảo ngược giả định và nhìn theo nhiều mốc thời gian.</p>
+      </div>
+      <div class="techniques">
+        <article class="technique"><b>01 / USER NEED</b><h3>Job to Be Done</h3><p>Người dùng “thuê” SDK để hoàn tất lifecycle, giao dịch an toàn và ship ứng dụng — không phải để tự nối event.</p></article>
+        <article class="technique"><b>02 / LEVERAGE</b><h3>Build on What Works</h3><p>Biến bridge cache, offline infra, fixtures, evaluator contract và playground thành sản phẩm tái sử dụng.</p></article>
+        <article class="technique"><b>03 / INVERSION</b><h3>Assumption Reversal</h3><p>Điều gì xảy ra nếu app không giữ mnemonic, không có node thật, dùng nhiều Head hoặc không hiểu UTxO?</p></article>
+        <article class="technique"><b>04 / HORIZON</b><h3>Time Horizon Ladder</h3><p>Tách quick win ba tháng khỏi nền tảng chiến lược multi-head trong một đến ba năm.</p></article>
+      </div>
+    </section>
+
+    <section class="field">
+      <div class="eyebrow">Idea field</div>
+      <h2>Những tín hiệu lặp lại</h2>
+      <p class="caption">Một lát cắt của trường ý tưởng; các biến thể gần nhau được gom thành capability.</p>
+      <div class="field-grid">
+        <div class="spark">head-session<br>state machine<br>receipts</div><div class="spark">testkit<br>devnet<br>chaos</div><div class="spark">offline evaluator<br>real exUnits<br>determinism</div><div class="spark">CIP-30<br>external signers<br>browser wallets</div><div class="spark">observability<br>health<br>traces</div>
+        <div class="spark">router<br>multi-head<br>failover</div><div class="spark">provider pool<br>typed errors<br>circuit breaker</div><div class="spark">protocol codegen<br>runtime schema<br>compat</div><div class="spark">Aiken codecs<br>blueprint<br>type safety</div><div class="spark">indexer<br>history<br>projections</div>
+        <div class="spark">tx inspector<br>human-readable<br>sign safely</div><div class="spark">worker runtime<br>lazy WASM<br>responsive UI</div><div class="spark">payments<br>invoice<br>streaming</div><div class="spark">settlement<br>L1 ↔ L2<br>recovery</div><div class="spark">session keys<br>policy<br>limits</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div><div class="eyebrow">Convergence</div><h2>Shortlist ưu tiên</h2></div>
+        <p>Xếp hạng kết hợp tác động, effort, mức mới, tính hữu dụng và khả thi. Điểm là công cụ quyết định tương đối, không phải estimate delivery.</p>
+      </div>
+      <div class="shortlist">
+        <article class="candidate"><div><h3>@hydra-sdk/testkit</h3><p>Đóng gói offline Head, seeded fixtures, mock/replay connector và assertion helpers. Tận dụng trực tiếp hạ tầng e2e đang có.</p></div><div class="score">NUF 26/30<div class="bar"><i style="--w:87%"></i></div>Tác động cao · effort thấp-vừa</div></article>
+        <article class="candidate"><div><h3>@hydra-sdk/head-session</h3><p>State machine và workflow cấp cao cho connect, deposit, submit, confirm, decommit, close và fanout; trả receipt thay vì buộc app tự nối event.</p></div><div class="score">NUF 25/30<div class="bar"><i style="--w:83%"></i></div>Tác động rất cao · effort vừa</div></article>
+        <article class="candidate"><div><h3>@hydra-sdk/evaluator</h3><p>Offline implementation của IEvaluator cho Plutus, giúp TxBuilder tự tính exUnits mà không phụ thuộc provider bên ngoài.</p></div><div class="score">NUF 24/30<div class="bar"><i style="--w:80%"></i></div>Tác động cao · effort vừa-cao</div></article>
+        <article class="candidate"><div><h3>@hydra-sdk/cip30</h3><p>Adapter ví trình duyệt cho signer, UTxO, submit và witness merge; mở đường cho deposit/decommit mà không quản lý mnemonic trong app.</p></div><div class="score">NUF 23/30<div class="bar"><i style="--w:77%"></i></div>Tác động cao · effort vừa</div></article>
+        <article class="candidate"><div><h3>@hydra-sdk/observability</h3><p>Metrics, tracing và health report từ sync drift, peer state, snapshot age, reconnects và transaction latency.</p></div><div class="score">NUF 22/30<div class="bar"><i style="--w:73%"></i></div>Tác động cao · effort vừa</div></article>
+        <article class="candidate"><div><h3>@hydra-sdk/router</h3><p>Discovery và lựa chọn Head theo asset, balance, participant, health và latency. Hướng chiến lược, nên xây sau head-session và observability.</p></div><div class="score">NUF 20/30<div class="bar"><i style="--w:67%"></i></div>Tiềm năng rất cao · effort cao</div></article>
+      </div>
+    </section>
+
+    <section class="climax">
+      <div class="eyebrow">Synthesis</div>
+      <blockquote>Hydra SDK không thiếu thêm một “hộp công cụ”. Nó cần một <strong>đường ray sản phẩm</strong>: test được, điều phối được, quan sát được — rồi mới định tuyến được.</blockquote>
+      <div class="sequence"><span>1 · testkit</span><span>2 · head-session</span><span>3 · evaluator</span><span>4 · CIP-30</span><span>5 · observability</span><span>6 · router</span></div>
+    </section>
+
+    <footer><span>Nguồn: .memlog.md · 104 ý tưởng · Impact–Effort + NUF</span><span>opensource-hydra-sdk / BMad Brainstorming</span></footer>
+  </main>
+</body>
+</html>

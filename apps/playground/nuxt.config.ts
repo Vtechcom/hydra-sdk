@@ -101,9 +101,16 @@ export default defineNuxtConfig({
 			tsconfigPaths()
 		],
 		esbuild: {
+			// The app relies on top-level await and WASM imports, so it targets modern
+			// browsers only. Pin esbuild to esnext: with the default es2020/chrome87
+			// target, vite-plugin-top-level-await's generated wrapper trips esbuild's
+			// "Transforming destructuring to the configured target ... is not supported
+			// yet" error and the build fails.
+			target: 'esnext'
 			// drop: ['console', 'debugger'] // drop hết console.* và debugger
 		},
 		build: {
+			target: 'esnext',
 			rollupOptions: {
 				output: {}
 			}
@@ -112,6 +119,7 @@ export default defineNuxtConfig({
 			exclude: ['@hydra-sdk/cardano-wasm'],
 			include: ['reka-ui'],
 			esbuildOptions: {
+				target: 'esnext',
 				supported: {
 					'top-level-await': true
 				}
@@ -148,8 +156,10 @@ export default defineNuxtConfig({
 		}
 	},
 
-	// CSS configuration
-	css: ['~/assets/scss/main.scss', '~/assets/css/tailwind.css'],
+	// CSS configuration.
+	// element-plus dark css-vars make el-* components (el-card, el-button, el-tag,
+	// el-input) follow the app's `.dark` class instead of staying light.
+	css: ['element-plus/theme-chalk/dark/css-vars.css', '~/assets/scss/main.scss', '~/assets/css/tailwind.css'],
 	shadcn: {
 		/**
 		 * Prefix for all the imported component

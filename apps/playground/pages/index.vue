@@ -72,6 +72,30 @@
 				</div>
 			</el-card>
 
+			<el-card shadow="hover" class="lg:col-span-2">
+				<template #header>
+					<div class="flex items-center gap-2">
+						<Icon name="mdi:cash-multiple" size="24" class="inline-block text-primary-300" />
+						<span class="text-lg font-semibold">Fee Lab</span>
+					</div>
+				</template>
+
+				<div class="space-y-4">
+					<p class="text-sm text-gray-600">
+						Visualize how a Cardano script transaction's fee is built — size, script execution and reference components — computed offline with no provider or API key.
+					</p>
+					<div class="flex gap-2 flex-wrap">
+						<el-tag size="small" type="success">offline</el-tag>
+						<el-tag size="small" type="warning">exUnits</el-tag>
+						<el-tag size="small" type="info">fee breakdown</el-tag>
+					</div>
+					<el-button @click="$router.push('/fee-lab')" type="primary" size="large" class="w-full">
+						<Icon name="mdi:play" size="20" class="inline-block mr-1" />
+						Open Fee Lab
+					</el-button>
+				</div>
+			</el-card>
+
 			<!-- Test Results Card -->
 			<el-card shadow="hover" class="lg:col-span-2">
 				<template #header>
@@ -91,9 +115,9 @@
 						:key="index"
 						class="p-4 rounded-lg border"
 						:class="{
-							'bg-green-50 border-green-200': result.status === 'success',
-							'bg-red-50 border-red-200': result.status === 'error',
-							'bg-blue-50 border-blue-200': result.status === 'info'
+							'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900': result.status === 'success',
+							'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-900': result.status === 'error',
+							'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900': result.status === 'info'
 						}"
 					>
 						<div class="flex items-start gap-2">
@@ -103,7 +127,7 @@
 							<div class="flex-1">
 								<h4 class="font-semibold">{{ result.title }}</h4>
 								<p class="text-sm text-gray-600 mt-1">{{ result.message }}</p>
-								<div v-if="result.details" class="mt-2 p-2 bg-gray-100 rounded text-xs font-mono">
+								<div v-if="result.details" class="mt-2 p-2 bg-gray-100 dark:bg-muted rounded text-xs font-mono">
 									{{ result.details }}
 								</div>
 							</div>
@@ -133,7 +157,7 @@
 						<el-button @click="performBigNumOperation('subtract')" type="info">Subtract</el-button>
 					</div>
 
-					<div v-if="bigNumResult" class="p-4 bg-green-50 rounded-lg">
+					<div v-if="bigNumResult" class="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
 						<p><strong>Result:</strong> {{ bigNumResult }}</p>
 					</div>
 				</div>
@@ -171,7 +195,7 @@
 
 					<div v-if="generatedAddress" class="space-y-2">
 						<p><strong>Generated Address:</strong></p>
-						<div class="p-3 bg-gray-100 rounded font-mono text-sm break-all">
+						<div class="p-3 bg-gray-100 dark:bg-muted rounded font-mono text-sm break-all">
 							{{ generatedAddress }}
 						</div>
 					</div>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARDENED - Hydra SDK Evaluator</title>
+  <style>
+    :root { --ink:#152018; --paper:#f2ead8; --green:#184f3a; --lime:#b4d455; --amber:#e99a38; --red:#b94435; --muted:#687069; --line:rgba(21,32,24,.16); --panel:rgba(255,252,241,.88); }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 82% 8%,rgba(180,212,85,.24),transparent 27rem),radial-gradient(circle at 8% 40%,rgba(233,154,56,.16),transparent 25rem),linear-gradient(145deg,#f8f0dc,#e9efe3 56%,#dfe8df); font-family:"Avenir Next","Gill Sans",sans-serif; }
+    body::before { content:""; position:fixed; inset:0; z-index:-1; opacity:.24; background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px),radial-gradient(circle,var(--green) 1px,transparent 1.5px); background-size:52px 52px,52px 52px,26px 26px; }
+    main { width:min(1160px,calc(100% - 30px)); margin:auto; padding:30px 0 70px; }
+    .mono { font-family:"IBM Plex Mono","SFMono-Regular",monospace; }
+    .hero { min-height:560px; padding:clamp(30px,7vw,76px); border:1px solid var(--line); border-radius:34px; background:var(--panel); box-shadow:0 30px 90px rgba(21,32,24,.16); display:grid; grid-template-columns:1.25fr .75fr; gap:42px; align-items:center; overflow:hidden; position:relative; }
+    .hero::after { content:"TX + CONTEXT + COST"; position:absolute; right:-80px; bottom:36px; color:rgba(24,79,58,.07); font:900 clamp(2.5rem,7vw,6.4rem)/1 monospace; transform:rotate(-8deg); white-space:nowrap; }
+    .eyebrow { color:var(--green); font:800 .72rem/1.35 monospace; letter-spacing:.17em; text-transform:uppercase; }
+    h1 { margin:20px 0; font-size:clamp(3.4rem,8.2vw,7.5rem); line-height:.87; letter-spacing:-.075em; }
+    h1 em { display:block; color:var(--amber); font-style:normal; }
+    .lead { max-width:700px; color:var(--muted); font-size:1.2rem; line-height:1.65; }
+    .seal-wrap { z-index:1; display:grid; place-items:center; }
+    .seal { width:min(315px,100%); filter:drop-shadow(0 22px 28px rgba(24,79,58,.28)); transform:rotate(3deg); }
+    section { margin-top:60px; }
+    h2 { max-width:940px; margin:9px 0 26px; font-size:clamp(2.15rem,5.3vw,4.45rem); line-height:.98; letter-spacing:-.055em; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+    .card { min-height:225px; padding:26px; border:1px solid var(--line); border-radius:22px; background:var(--panel); box-shadow:0 12px 34px rgba(21,32,24,.06); }
+    .card b { display:block; margin-bottom:16px; color:var(--amber); font:850 .73rem/1.3 monospace; }
+    .card h3 { margin:0 0 11px; font-size:1.42rem; }
+    .card p,.card li { color:var(--muted); line-height:1.58; }
+    .architecture { padding:clamp(30px,6vw,64px); color:white; border-radius:32px; background:linear-gradient(118deg,rgba(180,212,85,.14),transparent 38%),linear-gradient(145deg,#215f45,#153427 64%,#17271e); box-shadow:0 26px 70px rgba(21,32,24,.23); }
+    .architecture .eyebrow { color:var(--lime); }
+    .flow { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:32px; }
+    .step { min-height:190px; padding:24px; border:1px solid rgba(255,255,255,.17); border-radius:20px; background:rgba(255,255,255,.07); }
+    .step i { color:var(--lime); font:900 2.6rem/1 monospace; font-style:normal; }
+    .step h3 { margin:16px 0 8px; }
+    .step p { color:#cee0d4; line-height:1.55; }
+    .truth { margin-top:18px; padding:16px 18px; border-left:5px solid var(--lime); background:rgba(180,212,85,.1); color:#edf5e8; line-height:1.55; }
+    .contract { overflow:hidden; border:1px solid rgba(21,32,24,.22); border-radius:26px; background:#101c16; box-shadow:0 20px 55px rgba(21,32,24,.2); }
+    .bar { padding:13px 18px; color:#a9c0b1; border-bottom:1px solid rgba(255,255,255,.1); font:700 .72rem/1 monospace; }
+    pre { margin:0; padding:26px; overflow:auto; color:#dbe9df; font:.88rem/1.72 monospace; }
+    .kw { color:#b4d455; } .fn { color:#79d2aa; } .str { color:#f2ae5d; } .cm { color:#789083; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .lock,.reject { padding:30px; border-radius:25px; }
+    .lock { background:#dcebdd; border:1px solid rgba(24,79,58,.23); }
+    .reject { background:#f2dfd1; border:1px solid rgba(185,68,53,.2); }
+    .split h3 { margin-top:0; font-size:1.55rem; }
+    .split li { margin:10px 0; line-height:1.48; }
+    .matrix { width:100%; border-collapse:collapse; overflow:hidden; border-radius:20px; background:var(--panel); }
+    .matrix th,.matrix td { padding:17px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    .matrix th { color:var(--green); font-family:monospace; font-size:.78rem; }
+    .matrix td { color:var(--muted); line-height:1.48; }
+    .voices { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .voice { padding:21px; border:1px solid var(--line); border-bottom:5px solid var(--green); background:rgba(255,255,255,.62); }
+    .voice b { font-family:monospace; }
+    .voice p { color:var(--muted); line-height:1.5; }
+    footer { margin-top:42px; color:var(--muted); font:650 .72rem/1.6 monospace; }
+    @media(max-width:900px){ .hero,.split{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.voices{grid-template-columns:1fr 1fr}.seal{max-width:245px} }
+    @media(max-width:540px){ main{width:calc(100% - 16px);padding-top:8px}.hero,.architecture{padding:27px 21px;border-radius:22px}.flow,.voices{grid-template-columns:1fr}pre{padding:20px 15px;font-size:.76rem}.matrix{font-size:.82rem}.matrix th,.matrix td{padding:11px} }
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div>
+      <div class="eyebrow">BMad Forge · Hydra SDK · 2026-08-11</div>
+      <h1>Evaluate local.<br><em>Prove against truth.</em></h1>
+      <p class="lead"><code>@hydra-sdk/evaluator</code> là evaluator transaction-level chạy offline cho Plutus: đủ context, đủ cost accounting, trả đúng <code>IEvaluator</code> — nhưng chỉ nhận claim tương đương node sau differential conformance.</p>
+    </div>
+    <div class="seal-wrap">
+      <svg class="seal" viewBox="0 0 320 320" role="img" aria-label="Hardened seal">
+        <defs><filter id="rough"><feTurbulence baseFrequency=".028" numOctaves="4" seed="19" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5"/></filter></defs>
+        <path d="M160 19 198 35 238 33 263 65 298 83 301 124 319 160 301 196 298 237 263 255 238 287 198 285 160 301 122 285 82 287 57 255 22 237 19 196 1 160 19 124 22 83 57 65 82 33 122 35Z" fill="#184f3a" filter="url(#rough)"/>
+        <circle cx="160" cy="160" r="111" fill="#123b2b" stroke="#b4d455" stroke-width="4" stroke-dasharray="5 8"/>
+        <circle cx="160" cy="160" r="88" fill="none" stroke="#e99a38" stroke-width="3"/>
+        <text x="160" y="137" text-anchor="middle" fill="#dceadf" font-family="sans-serif" font-size="21" font-weight="800">IDEA</text>
+        <text x="160" y="179" text-anchor="middle" fill="#f8f1cf" font-family="monospace" font-size="31" font-weight="900">HARDENED</text>
+        <text x="160" y="208" text-anchor="middle" fill="#b4d455" font-family="monospace" font-size="13" font-weight="700">CONTEXT IS INPUT</text>
+      </svg>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Product lock</div>
+    <h2>Không phải chạy một UPLC program. Phải đánh giá cả transaction.</h2>
+    <div class="grid">
+      <article class="card"><b>01 / JOB</b><h3>Real exUnits without a provider</h3><p>Local dev, CI và browser worker có thể tính budget cho <code>TxBuilder.complete()</code> mà không cần Blockfrost key, Ogmios endpoint hoặc network.</p></article>
+      <article class="card"><b>02 / BOUNDARY</b><h3>Context is mandatory</h3><p>Input references chưa đủ. Evaluator cần UTxO, datum, reference script, era, slot/time, protocol parameters và cost models để dựng đúng ScriptContext.</p></article>
+      <article class="card"><b>03 / CLAIM</b><h3>Deterministic, then conformant</h3><p>Kết quả deterministic khi context được pin. “Node-equivalent” chỉ được nói cho version/corpus đã differential-test và công bố trong matrix.</p></article>
+    </div>
+  </section>
+
+  <section class="architecture">
+    <div class="eyebrow">Evaluation pipeline</div>
+    <h2>CBOR vào. Context đầy đủ. Budget có provenance.</h2>
+    <div class="flow">
+      <article class="step"><i>01</i><h3>Decode</h3><p>Transaction body, witness set, redeemer pointers, inline/reference scripts và datum.</p></article>
+      <article class="step"><i>02</i><h3>Resolve</h3><p>Lookup UTxO và missing ledger data từ local context source hoặc explicit additional inputs.</p></article>
+      <article class="step"><i>03</i><h3>Execute</h3><p>Dựng ScriptContext đúng era; chạy Plutus V1/V2/V3 bằng engine có cost accounting.</p></article>
+      <article class="step"><i>04</i><h3>Report</h3><p>Trả <code>EvalAction[]</code>; detailed mode thêm logs, script hash, context fingerprint và failure phase.</p></article>
+    </div>
+    <div class="truth"><strong>Fail closed:</strong> thiếu UTxO, datum, reference script, cost model hoặc era context là typed error. Không network fetch ngầm, không budget 0, không placeholder.</div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Proposed surface</div>
+    <h2>Một adapter cho TxBuilder, một đường sâu để debug.</h2>
+    <div class="contract">
+      <div class="bar">@hydra-sdk/evaluator · API direction, not implementation</div>
+      <pre><span class="kw">import</span> { createEvaluator } <span class="kw">from</span> <span class="str">'@hydra-sdk/evaluator'</span>
+
+<span class="kw">const</span> evaluator = <span class="fn">createEvaluator</span>({
+  context: localLedgerContext,
+  protocol: pinnedProtocolContext,
+  diagnostics: <span class="str">'errors'</span>
+})
+
+<span class="kw">const</span> tx = <span class="kw">await new</span> TxBuilder({
+  evaluator,
+  txEvaluationMultiplier: 1.1
+}).complete()
+
+<span class="cm">// Mesh-compatible path</span>
+<span class="kw">await</span> evaluator.evaluateTx(txHex, additionalUtxos, additionalTxs)
+
+<span class="cm">// Debug / conformance path</span>
+<span class="kw">await</span> evaluator.evaluateTxDetailed(txHex, { additionalUtxos })</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">V1 decision</div>
+    <h2>Hỗ trợ ít purpose hơn, nhưng hỗ trợ đến nơi.</h2>
+    <div class="split">
+      <div class="lock"><h3>Khóa vào V1</h3><ul><li>Plutus V1, V2, V3.</li><li><code>SPEND</code> và <code>MINT</code> end-to-end.</li><li>Node + browser/worker runtime.</li><li>Typed failures và bounded diagnostics.</li><li>Differential corpus với oracle version công bố.</li><li>Engine đặt sau adapter có thể thay thế.</li></ul></div>
+      <div class="reject"><h3>Loại khỏi V1</h3><ul><li><code>CERT</code>, <code>REWARD</code>, <code>VOTE</code>, <code>PROPOSE</code>.</li><li>Provider HTTP và silent fallback.</li><li>Submission, fee balancing, script compiler.</li><li>Step debugger và general-purpose UPLC playground.</li><li>Hydra ledger validation.</li><li>Claim thay thế cardano-node cho acceptance production.</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Compatibility truth table</div>
+    <h2>Semver không đủ. Context fingerprint mới giải thích kết quả.</h2>
+    <table class="matrix">
+      <thead><tr><th>Dimension</th><th>Phải pin/công bố</th><th>Nếu lệch</th></tr></thead>
+      <tbody>
+        <tr><td>Plutus + era</td><td>V1/V2/V3, protocol era, ScriptContext encoding</td><td>Semantics hoặc builtin availability có thể khác</td></tr>
+        <tr><td>Costs</td><td>Cost-model hash, engine version, execution limits</td><td>Budget mem/steps không còn so sánh được</td></tr>
+        <tr><td>Ledger context</td><td>UTxO set, datum, scripts, slot/time mapping</td><td>Cùng txHex có thể success/fail khác nhau</td></tr>
+        <tr><td>Oracle</td><td>cardano-node/Ogmios version và corpus ID</td><td>Không được claim node-equivalent</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="eyebrow">Delivery gate</div>
+    <h2>Chứng minh engine trước khi ổn định API.</h2>
+    <div class="grid">
+      <article class="card"><b>SPIKE A</b><h3>Real V3 spend</h3><p>Một fixture script spend thật với datum, redeemer, resolved UTxO và oracle budget/failure.</p></article>
+      <article class="card"><b>SPIKE B</b><h3>Real mint</h3><p>Một minting policy thật để khóa redeemer index, policy ordering và ScriptContext.</p></article>
+      <article class="card"><b>GO / NO-GO</b><h3>Match or change engine</h3><p>Nếu semantics hoặc cost accounting không khớp corpus đại diện, dừng package hoặc thay engine trước khi public API stable.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Pressure-test voices</div>
+    <h2>Những tiếng nói đã làm ý tưởng cứng lại.</h2>
+    <div class="voices">
+      <article class="voice"><b>🏗️ Winston · Architect</b><p>Buộc ledger context trở thành input explicit và engine trở thành adapter có thể thay.</p></article>
+      <article class="voice"><b>🧪 Murat · Test Architect</b><p>Đòi differential corpus, versioned oracle và compatibility matrix thay cho niềm tin.</p></article>
+      <article class="voice"><b>📏 Level · Claim Checker</b><p>Hạ claim từ “real/node-equivalent” xuống deterministic-with-pinned-context cho đến khi có evidence.</p></article>
+      <article class="voice"><b>⚙️ Rhea · Node Maintainer</b><p>Chỉ ra rằng UPLC execution không đồng nghĩa transaction evaluation: ScriptContext, era và cost model mới là phần khó.</p></article>
+    </div>
+  </section>
+
+  <footer>Outcome: HARDENED · Artifact chỉ khóa ý tưởng và contract bề mặt; chưa triển khai package · opensource-hydra-sdk / BMad Forge</footer>
+</main>
+</body>
+</html>

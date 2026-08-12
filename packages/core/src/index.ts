@@ -12,6 +12,7 @@ export * from './types/cardano'
 export * from './types/protocol'
 
 export * from './utils/parser'
+export type { FeeBreakdown, CalculateTxFeeOptions, ExUnitsLike } from './utils/fee'
 
 // Export as Utilities
 import * as Serializer from './utils/cardano-wasm/serializer'
@@ -20,6 +21,7 @@ import * as Resolver from './utils/cardano-wasm/resolver'
 import * as Converter from './utils/cardano-wasm/converter'
 import * as BuildKeys from './utils/cardano-wasm/build-keys'
 import * as CostModelsImpl from './utils/cost-models'
+import * as FeeUtils from './utils/fee'
 import * as TimeUtils from './utils/time'
 import * as DatumUtils from './utils/datum'
 import * as PolicyUtils from './utils/policy'
@@ -60,6 +62,7 @@ export {
 	CostModels,
 	// Utilities
 	ParserUtils,
+	FeeUtils,
 	TimeUtils,
 	DatumUtils,
 	PolicyUtils,
