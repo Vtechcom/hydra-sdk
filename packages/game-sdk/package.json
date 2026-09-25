@@ -1,0 +1,88 @@
+{
+	"name": "@hydra-sdk/game-sdk",
+	"license": "Apache-2.0",
+	"version": "0.1.0",
+	"publishConfig": {
+		"access": "public"
+	},
+	"description": "Hydra SDK - Official Game SDK for cross-origin iframe game dApps (CIP-30 RPC & Game Lifecycle protocol)",
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
+	"module": "dist/index.mjs",
+	"files": [
+		"dist"
+	],
+	"homepage": "https://hydrasdk.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Vtechcom/hydra-sdk.git",
+		"directory": "packages/game-sdk"
+	},
+	"keywords": [
+		"@hydra-sdk/game-sdk",
+		"game-sdk",
+		"hydra-game-sdk",
+		"wallet-bridge",
+		"iframe-bridge",
+		"postMessage",
+		"cip-30",
+		"hydra",
+		"cardano",
+		"micro-frontend",
+		"game-lifecycle"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		},
+		"./vue": {
+			"types": "./dist/vue.d.ts",
+			"import": "./dist/vue.mjs",
+			"require": "./dist/vue.js"
+		},
+		"./simulator": {
+			"types": "./dist/simulator.d.ts",
+			"import": "./dist/simulator.mjs",
+			"require": "./dist/simulator.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"typesVersions": {
+		"*": {
+			"vue": [
+				"./dist/vue.d.ts"
+			],
+			"simulator": [
+				"./dist/simulator.d.ts"
+			]
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch --dts",
+		"test": "vitest --run",
+		"test:u": "vitest -u --run",
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+		"update:snapshot": "vitest -u"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"peerDependencies": {
+		"vue": ">=3.0.0"
+	},
+	"peerDependenciesMeta": {
+		"vue": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@types/node": "22",
+		"tsup": "^6.7.0",
+		"typescript": "5.7.3",
+		"vite": "^7.0.5",
+		"vue": "^3.5.17"
+	}
+}
