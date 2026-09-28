@@ -7,22 +7,40 @@
  * - Hỗ trợ Key Prefixing để cô lập dữ liệu, tránh xung đột và tuyệt đối KHÔNG xóa nhầm dữ liệu khác của Game
  *   khi gọi clear().
  */
+export interface StorageHostRelay {
+	hostStorageGet(key: string): Promise<string | null>
+	hostStorageSet(key: string, value: string): Promise<boolean>
+	hostStorageRemove(key: string): Promise<boolean>
+}
+
+export interface DualStorageOptions {
+	prefix?: string
+	debug?: boolean
+	hostRelay?: StorageHostRelay
+}
+
 export class DualStorage {
 	private inMemoryStore = new Map<string, string>()
 	private knownKeys = new Set<string>()
 	private isLocalStorageAvailable = false
 	private prefix: string
 	private debug = false
+	private hostRelay?: StorageHostRelay
 
-	constructor(options: { prefix?: string; debug?: boolean } | boolean = false) {
+	constructor(options: DualStorageOptions | boolean = false) {
 		if (typeof options === 'boolean') {
 			this.debug = options
 			this.prefix = 'hydra:'
 		} else {
 			this.debug = !!options.debug
 			this.prefix = options.prefix ?? 'hydra:'
+			this.hostRelay = options.hostRelay
 		}
 		this.isLocalStorageAvailable = this.checkStorageAvailability()
+	}
+
+	public setHostRelay(relay: StorageHostRelay): void {
+		this.hostRelay = relay
 	}
 
 	private checkStorageAvailability(): boolean {
@@ -167,5 +185,66 @@ export class DualStorage {
 
 	public isUsingMemoryFallback(): boolean {
 		return !this.isLocalStorageAvailable
+	}
+
+	/**
+	 * Đọc giá trị với cơ chế Host Storage Relay:
+	 * Nếu local/in-memory không có và môi trường bị chặn do Safari ITP,
+	 * sẽ truy vấn lên App Center Host để lấy dữ liệu đã lưu hộ.
+	 */
+	public async getItemAsync(key: string): Promise<string | null> {
+		const localVal = this.getItem(key)
+		if (localVal !== null) return localVal
+
+		if (this.hostRelay) {
+			try {
+				const remoteVal = await this.hostRelay.hostStorageGet(this.getStorageKey(key))
+				if (remoteVal !== null) {
+					this.inMemoryStore.set(key, remoteVal)
+					this.knownKeys.add(key)
+					return remoteVal
+				}
+			} catch (err) {
+				if (this.debug) {
+					console.warn(`[DualStorage] Lỗi getItemAsync từ Host cho key "${key}":`, err)
+				}
+			}
+		}
+
+		return null
+	}
+
+	/**
+	 * Ghi giá trị đồng bộ và đồng thời đồng bộ bất đồng bộ lên Host nếu có Host Relay
+	 */
+	public async setItemAsync(key: string, value: string, options?: { throwOnError?: boolean }): Promise<void> {
+		this.setItem(key, value)
+		if (this.hostRelay) {
+			try {
+				await this.hostRelay.hostStorageSet(this.getStorageKey(key), value)
+			} catch (err) {
+				console.warn(`[DualStorage] Lỗi setItemAsync lên Host cho key "${key}":`, err)
+				if (options?.throwOnError) {
+					throw err
+				}
+			}
+		}
+	}
+
+	/**
+	 * Xóa giá trị đồng bộ và đồng thời xóa trên Host nếu có Host Relay
+	 */
+	public async removeItemAsync(key: string, options?: { throwOnError?: boolean }): Promise<void> {
+		this.removeItem(key)
+		if (this.hostRelay) {
+			try {
+				await this.hostRelay.hostStorageRemove(this.getStorageKey(key))
+			} catch (err) {
+				console.warn(`[DualStorage] Lỗi removeItemAsync trên Host cho key "${key}":`, err)
+				if (options?.throwOnError) {
+					throw err
+				}
+			}
+		}
 	}
 }

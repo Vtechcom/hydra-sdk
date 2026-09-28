@@ -121,11 +121,72 @@ describe('Simulator & DevTools', () => {
 			}
 		}
 		vi.stubGlobal('document', docMock)
-
 		const { host, unmount } = mountGameDevtools({ address: 'addr_dev' })
 		expect(host).toBeDefined()
 		expect(docMock.body.appendChild).toHaveBeenCalled()
-
 		unmount()
 	})
+
+	it('MockBridgeHost should support host storage relay and audio/theme push events', async () => {
+		vi.useFakeTimers()
+		const host = new MockBridgeHost({ latencyMs: 5 })
+		host.start()
+
+		const mockSource = { postMessage: vi.fn() } as any
+
+		// 1. SET storage
+		for (const listener of messageListeners) {
+			listener({
+				data: {
+					type: 'HOST_STORAGE_SET',
+					requestId: 'req_set',
+					key: 'test_token',
+					value: 'jwt_value_123'
+				},
+				source: mockSource
+			})
+		}
+		vi.advanceTimersByTime(10)
+		expect(mockSource.postMessage).toHaveBeenCalledWith(
+			{
+				type: 'HOST_STORAGE_SET_RESULT',
+				requestId: 'req_set',
+				result: true
+			},
+			'*'
+		)
+
+		// 2. GET storage
+		for (const listener of messageListeners) {
+			listener({
+				data: {
+					type: 'HOST_STORAGE_GET',
+					requestId: 'req_get',
+					key: 'test_token'
+				},
+				source: mockSource
+			})
+		}
+		vi.advanceTimersByTime(10)
+		expect(mockSource.postMessage).toHaveBeenCalledWith(
+			{
+				type: 'HOST_STORAGE_GET_RESULT',
+				requestId: 'req_get',
+				result: 'jwt_value_123'
+			},
+			'*'
+		)
+
+		// 3. Audio & Theme push events
+		const mockTarget = { postMessage: vi.fn() } as any
+		host.setAudioMuted(true)
+		expect(host.isAudioMuted).toBe(true)
+
+		host.setTheme('light')
+		expect(host.context.theme).toBe('light')
+
+		host.stop()
+		vi.useRealTimers()
+	})
 })
+

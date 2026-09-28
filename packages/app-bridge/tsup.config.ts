@@ -4,6 +4,9 @@ export default defineConfig({
 	entry: {
 		index: 'src/index.ts',
 		vue: 'src/vue.ts',
+		auth: 'src/auth.ts',
+		storage: 'src/storage.ts',
+		lifecycle: 'src/lifecycle.ts',
 		simulator: 'src/simulator/index.ts'
 	},
 	format: ['esm', 'cjs'],

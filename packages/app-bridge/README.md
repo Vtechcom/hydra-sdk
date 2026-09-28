@@ -18,17 +18,18 @@ Do rào cản **Same-Origin Policy**, browser extension không thể trực ti�
 ## 2. Tính năng chính
 
 - 🚀 **Framework Agnostic Core**: Core class `WalletBridgeClient` thuần TypeScript, không phụ thuộc vào Vue, hoạt động với mọi framework (Vanilla JS, React, Vue, Phaser, PixiJS, Svelte...).
-- 💚 **Dedicated Vue 3 / Nuxt 3 Subpath (`@hydra-sdk/game-sdk/vue`)**: Cung cấp `useWalletBridgeClient` với reactive state (`ref`), computed helpers (`shortAddress`, `isMainnet`, `isTestnet`), và asset parser `parseUtxoAssets`.
-- 🛡️ **Bảo mật nghiêm ngặt**:
-  - Chỉ chấp nhận message từ `window.parent`.
-  - Hỗ trợ kiểm tra whitelist `appCenterOrigin`.
-  - Bọc kiểm tra `event.source` an toàn trước các ngoại lệ `SecurityError` trên iOS WKWebView.
-  - Không truyền private key qua postMessage (chỉ truyền payload hex cần ký).
-- 🔄 **Dual Storage Pattern với Prefix Namespacing**:
+- 💚 **Dedicated Vue 3 / Nuxt 3 Subpath (`@hydra-sdk/game-sdk/vue`)**: Cung cấp `useWalletBridgeClient` và `useGameAuth` với reactive state (`ref`), computed helpers (`shortAddress`, `isMainnet`, `isTestnet`), và asset parser `parseUtxoAssets`.
+- ⏱️ **Phân tầng Timeout thông minh (Tiered Timeouts)**: Tự động phân bổ timeout tối ưu theo loại tác vụ (3s cho ping/ready/context, 15s cho UTxO/balance, 120s cho ký ví) và cho phép override per-request.
+- 🤝 **Capability Discovery & Handshake**: Client tự động nhận diện các methods mà App Center Host hỗ trợ thông qua `ping()` và cung cấp helper `isMethodSupported(type)`.
+- 🔐 **Web3 Auth 1-Click chuẩn hóa (`GameAuthManager`)**: Tự động mã hóa Hex Payload theo chuẩn CIP-8/CIP-30, lưu token an toàn và kiểm tra hạn sử dụng JWT token (`isJwtExpired`).
+- 🔄 **Dual Storage Pattern & Host Storage Relay**:
   - Tự động fallback sang bộ nhớ RAM (In-Memory Map) khi `localStorage` bị chặn bởi **Safari ITP** hoặc Storage Partitioning trong cross-origin iframe.
+  - Hỗ trợ **Host Storage Relay** (`getItemAsync`, `setItemAsync`, `removeItemAsync`): Nhờ App Center Shell lưu hộ session token và game state, giữ vững phiên đăng nhập ngay cả khi người chơi F5 / reload iframe trên iOS Safari.
   - Hỗ trợ prefix (mặc định `'hydra:'`), khi gọi `storage.clear()` chỉ xóa dữ liệu của SDK, **bảo toàn tuyệt đối dữ liệu khác của Game origin** (âm thanh, high score, v.v.).
-  - Bổ sung helper `getJSON`, `setJSON`, `hasItem`.
-- 🧪 **Chế độ Mock Standalone Dev**: Cho phép game developer phát triển độc lập trên `localhost:3000` ngoài iframe mà không cần luôn khởi chạy App Center.
+- 🎮 **Game Lifecycle & UX Events**: Đồng bộ âm thanh (`AUDIO_MUTED_CHANGED`), đổi giao diện (`THEME_CHANGED`), khóa hướng xoay màn hình (`setOrientation`), rung phản hồi xúc giác (`triggerHaptic`).
+- 🔌 **Standalone Fallback to CIP-30 Extension**: Hỗ trợ chạy game độc lập ngoài iframe với tùy chọn `fallbackToExtension: true` (tự động kết nối với Eternl, Lace, Nami...).
+- 🧪 **Chế độ Mock Standalone Dev & DevTools**: Widget DevTools floating và `MockBridgeHost` giúp game developer phát triển độc lập trên `localhost:3000` ngoài iframe.
+- 📦 **Modular Tree-shakable Subpath Exports**: Hỗ trợ import linh hoạt `@hydra-sdk/game-sdk`, `@hydra-sdk/game-sdk/vue`, `@hydra-sdk/game-sdk/auth`, `@hydra-sdk/game-sdk/storage`, `@hydra-sdk/game-sdk/lifecycle`, `@hydra-sdk/game-sdk/simulator`.
 - ⚠️ **Typed Custom Errors**: Phân loại chi tiết lỗi `WalletBridgeUserRejectedError`, `WalletBridgeTimeoutError`, `WalletBridgeNotInIframeError`, `WalletBridgeRpcError`.
 
 ---

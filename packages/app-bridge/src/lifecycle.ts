@@ -49,4 +49,24 @@ export class GameLifecycleManager {
 			type: 'EXIT_GAME'
 		})
 	}
+
+	/**
+	 * Yêu cầu App Center khóa hướng xoay màn hình (landscape hoặc portrait) trên thiết bị di động
+	 */
+	public async setOrientation(orientation: 'portrait' | 'landscape' | 'any'): Promise<boolean> {
+		return this.client.sendRequest<boolean>({
+			type: 'SET_ORIENTATION',
+			orientation
+		})
+	}
+
+	/**
+	 * Yêu cầu Host kích hoạt rung phản hồi xúc giác (Haptic Feedback) trên thiết bị di động
+	 */
+	public async triggerHaptic(pattern: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' | number | number[] = 'medium'): Promise<boolean> {
+		return this.client.sendRequest<boolean>({
+			type: 'TRIGGER_HAPTIC',
+			pattern
+		})
+	}
 }

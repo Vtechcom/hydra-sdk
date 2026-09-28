@@ -149,4 +149,39 @@ describe('useWalletBridgeClient', () => {
 			{ unit: 'assetPolicyId1234567890', quantity: '15' }
 		])
 	})
+
+	it('should reactively reflect audioMuted, theme and capabilities push events', () => {
+		const bridge = useWalletBridgeClient()
+
+		expect(bridge.isAudioMuted.value).toBe(false)
+		expect(bridge.theme.value).toBe('dark')
+		expect(bridge.supportedCapabilities.value).toEqual([])
+
+		// Simulate AUDIO_MUTED_CHANGED
+		for (const listener of messageListeners) {
+			listener({
+				source: mockParent,
+				origin: '*',
+				data: {
+					type: 'AUDIO_MUTED_CHANGED',
+					muted: true
+				}
+			})
+		}
+		expect(bridge.isAudioMuted.value).toBe(true)
+
+		// Simulate THEME_CHANGED
+		for (const listener of messageListeners) {
+			listener({
+				source: mockParent,
+				origin: '*',
+				data: {
+					type: 'THEME_CHANGED',
+					theme: 'light'
+				}
+			})
+		}
+		expect(bridge.theme.value).toBe('light')
+	})
 })
+

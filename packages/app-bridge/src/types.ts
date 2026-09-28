@@ -16,6 +16,35 @@ export interface GameContext {
 	}
 }
 
+export const DEFAULT_TIMEOUTS: Record<string, number> = {
+	WALLET_PING: 3000,
+	GET_CONTEXT: 3000,
+	GAME_READY: 3000,
+	REQUEST_FULLSCREEN: 5000,
+	EXIT_GAME: 5000,
+	SET_ORIENTATION: 5000,
+	TRIGGER_HAPTIC: 3000,
+	HOST_STORAGE_GET: 5000,
+	HOST_STORAGE_SET: 5000,
+	HOST_STORAGE_REMOVE: 5000,
+	WALLET_GET_ADDRESS: 5000,
+	WALLET_GET_NETWORK: 5000,
+	WALLET_GET_BALANCE: 10000,
+	WALLET_GET_UTXOS: 15000,
+	WALLET_GET_COLLATERAL: 15000,
+	WALLET_GET_REWARD_ADDRESSES: 10000,
+	WALLET_GET_USED_ADDRESSES: 10000,
+	WALLET_BATCH_REQUEST: 15000,
+	WALLET_CONNECT: 60000,
+	WALLET_SIGN_DATA: 120000,
+	WALLET_SIGN_TX: 120000,
+	WALLET_SUBMIT_TX: 60000
+}
+
+export interface SendRequestOptions {
+	timeoutMs?: number
+}
+
 // ─── Game → App Center (Requests) ───────────────────────────────────────────
 
 export type WalletRequest =
@@ -73,6 +102,29 @@ export type WalletRequest =
 	| {
 			type: 'WALLET_PING'
 			requestId: string
+			version?: string
+	  }
+	| {
+			type: 'WALLET_BATCH_REQUEST'
+			requestId: string
+			requests: WalletRequestPayload[]
+	  }
+	// ─── Host Storage Relay Requests (Safari ITP bypass) ───
+	| {
+			type: 'HOST_STORAGE_GET'
+			requestId: string
+			key: string
+	  }
+	| {
+			type: 'HOST_STORAGE_SET'
+			requestId: string
+			key: string
+			value: string
+	  }
+	| {
+			type: 'HOST_STORAGE_REMOVE'
+			requestId: string
+			key: string
 	  }
 	// ─── Game Lifecycle Requests ───
 	| {
@@ -93,6 +145,16 @@ export type WalletRequest =
 	| {
 			type: 'EXIT_GAME'
 			requestId: string
+	  }
+	| {
+			type: 'SET_ORIENTATION'
+			requestId: string
+			orientation: 'portrait' | 'landscape' | 'any'
+	  }
+	| {
+			type: 'TRIGGER_HAPTIC'
+			requestId: string
+			pattern?: string | number | number[]
 	  }
 
 export type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never
@@ -175,7 +237,33 @@ export type WalletResponse =
 				isConnected: boolean
 				address?: string | null
 				networkId?: number | null
+				supportedMethods?: string[]
 			}
+			error?: string
+	  }
+	| {
+			type: 'WALLET_BATCH_RESULT'
+			requestId: string
+			result: unknown[] | null
+			error?: string
+	  }
+	// ─── Host Storage Relay Results ───
+	| {
+			type: 'HOST_STORAGE_GET_RESULT'
+			requestId: string
+			result: string | null
+			error?: string
+	  }
+	| {
+			type: 'HOST_STORAGE_SET_RESULT'
+			requestId: string
+			result: boolean
+			error?: string
+	  }
+	| {
+			type: 'HOST_STORAGE_REMOVE_RESULT'
+			requestId: string
+			result: boolean
 			error?: string
 	  }
 	// ─── Game Lifecycle Results ───
@@ -203,6 +291,24 @@ export type WalletResponse =
 			result: boolean
 			error?: string
 	  }
+	| {
+			type: 'SET_ORIENTATION_RESULT'
+			requestId: string
+			result: boolean
+			error?: string
+	  }
+	| {
+			type: 'TRIGGER_HAPTIC_RESULT'
+			requestId: string
+			result: boolean
+			error?: string
+	  }
+	| {
+			type: string
+			requestId: string
+			result?: any
+			error?: string
+	  }
 
 // ─── App Center → Game (Push Events — không có requestId) ───────────────────
 
@@ -227,6 +333,14 @@ export type WalletEvent =
 			type: 'CONTEXT_CHANGED'
 			context: Partial<GameContext>
 	  }
+	| {
+			type: 'AUDIO_MUTED_CHANGED'
+			muted: boolean
+	  }
+	| {
+			type: 'THEME_CHANGED'
+			theme: 'dark' | 'light'
+	  }
 
 // ─── Client Configuration & Events ───────────────────────────────────────────
 
@@ -237,6 +351,7 @@ export interface WalletBridgeMockConfig {
 	balance?: string
 	rewardAddresses?: string[]
 	context?: Partial<GameContext>
+	supportedMethods?: string[]
 }
 
 export interface WalletBridgeClientOptions {
@@ -246,8 +361,8 @@ export interface WalletBridgeClientOptions {
 	 */
 	appCenterOrigin?: string
 	/**
-	 * Thời gian chờ tối đa (ms) cho một request RPC trước khi throw timeout.
-	 * Mặc định: 60000ms (60 giây để kịp thời gian user mở popup ví ký).
+	 * Thời gian chờ tối đa (ms) mặc định cho request RPC nếu không có cấu hình cụ thể theo method.
+	 * Mặc định: 60000ms.
 	 */
 	timeoutMs?: number
 	/**
@@ -269,6 +384,11 @@ export interface WalletBridgeClientOptions {
 	 */
 	fallbackToExtension?: boolean
 	/**
+	 * Tên ví Cardano ưu tiên khi fallbackToExtension (ví dụ: 'eternl', 'lace', 'nami').
+	 * Mặc định sẽ tự động chọn ví CIP-30 đầu tiên có sẵn trong window.cardano.
+	 */
+	preferredWallet?: string
+	/**
 	 * Mock data giả lập khi chạy dev standalone mà không có App Center Host.
 	 */
 	mock?: WalletBridgeMockConfig
@@ -280,6 +400,9 @@ export type WalletBridgeEventMap = {
 	networkChanged: (networkId: number) => void
 	disconnected: () => void
 	contextChanged: (context: Partial<GameContext>) => void
+	audioMutedChanged: (muted: boolean) => void
+	themeChanged: (theme: 'dark' | 'light') => void
+	capabilitiesUpdated: (methods: string[]) => void
 }
 
 // ─── Host Protocol Types (Dành cho App Center Shell / Host) ──────────────────

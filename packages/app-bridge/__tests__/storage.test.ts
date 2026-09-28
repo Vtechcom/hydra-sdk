@@ -108,4 +108,34 @@ describe('DualStorage', () => {
 		storage.setItem('ssr_key', 'ssr_val')
 		expect(storage.getItem('ssr_key')).toBe('ssr_val')
 	})
+
+	it('should support async storage relay via Host when local storage is empty', async () => {
+		const mockHostRelay = {
+			hostStorageGet: vi.fn().mockResolvedValue('host_persisted_val'),
+			hostStorageSet: vi.fn().mockResolvedValue(true),
+			hostStorageRemove: vi.fn().mockResolvedValue(true)
+		}
+
+		const storage = new DualStorage({ hostRelay: mockHostRelay })
+
+		// Local is empty initially
+		expect(storage.getItem('remote_key')).toBeNull()
+
+		// Async get queries Host
+		const val = await storage.getItemAsync('remote_key')
+		expect(val).toBe('host_persisted_val')
+		expect(mockHostRelay.hostStorageGet).toHaveBeenCalledWith('hydra:remote_key')
+
+		// Cached in local memory now
+		expect(storage.getItem('remote_key')).toBe('host_persisted_val')
+
+		// SetItemAsync delegates to Host
+		await storage.setItemAsync('new_key', 'new_val')
+		expect(mockHostRelay.hostStorageSet).toHaveBeenCalledWith('hydra:new_key', 'new_val')
+
+		// RemoveItemAsync delegates to Host
+		await storage.removeItemAsync('new_key')
+		expect(mockHostRelay.hostStorageRemove).toHaveBeenCalledWith('hydra:new_key')
+	})
 })
+

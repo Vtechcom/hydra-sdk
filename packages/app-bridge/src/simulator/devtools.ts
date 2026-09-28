@@ -157,6 +157,12 @@ export function mountGameDevtools(options: GameDevtoolsOptions = {}): {
 						<button id="hydra-btn-switch-acc" style="
 							background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 7px; border-radius: 6px; cursor: pointer;
 						">Đổi Ví</button>
+						<button id="hydra-btn-toggle-audio" style="
+							background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 7px; border-radius: 6px; cursor: pointer;
+						">${host.isAudioMuted ? '🔊 Bật Âm' : '🔇 Mute Âm'}</button>
+						<button id="hydra-btn-toggle-theme" style="
+							background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 7px; border-radius: 6px; cursor: pointer;
+						">Đổi Theme (${host.context.theme})</button>
 					</div>
 
 					<!-- Options -->
@@ -210,6 +216,17 @@ export function mountGameDevtools(options: GameDevtoolsOptions = {}): {
 		container.querySelector('#hydra-btn-switch-acc')?.addEventListener('click', () => {
 			const randomSuffix = Math.random().toString(36).slice(2, 6)
 			host.switchAccount(`addr_test1qz2fxv2um5tjaq62new${randomSuffix}`)
+			updateUI()
+		})
+
+		container.querySelector('#hydra-btn-toggle-audio')?.addEventListener('click', () => {
+			host.setAudioMuted(!host.isAudioMuted)
+			updateUI()
+		})
+
+		container.querySelector('#hydra-btn-toggle-theme')?.addEventListener('click', () => {
+			const nextTheme = host.context.theme === 'dark' ? 'light' : 'dark'
+			host.setTheme(nextTheme)
 			updateUI()
 		})
 

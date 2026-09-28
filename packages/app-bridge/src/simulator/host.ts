@@ -1,5 +1,6 @@
 import type {
 	WalletRequest,
+	WalletRequestPayload,
 	WalletResponse,
 	WalletEvent,
 	GameContext
@@ -27,8 +28,10 @@ export class MockBridgeHost {
 	public autoApprove: boolean
 	public latencyMs: number
 	public context: GameContext
+	public isAudioMuted = false
 	private targetWindow: Window
 	private isRunning = false
+	private mockStorage = new Map<string, string>()
 	private onRpcLog?: (log: { type: string; payload: any; timestamp: number; success: boolean }) => void
 
 	constructor(options: MockBridgeHostOptions = {}) {
@@ -214,10 +217,94 @@ export class MockBridgeHost {
 						version: '0.1.0-mock',
 						isConnected: true,
 						address: this.address,
-						networkId: this.networkId
+						networkId: this.networkId,
+						supportedMethods: [
+							'WALLET_GET_ADDRESS',
+							'WALLET_GET_NETWORK',
+							'WALLET_GET_BALANCE',
+							'WALLET_GET_UTXOS',
+							'WALLET_GET_COLLATERAL',
+							'WALLET_GET_REWARD_ADDRESSES',
+							'WALLET_GET_USED_ADDRESSES',
+							'WALLET_SIGN_DATA',
+							'WALLET_SIGN_TX',
+							'WALLET_SUBMIT_TX',
+							'WALLET_CONNECT',
+							'WALLET_PING',
+							'WALLET_BATCH_REQUEST',
+							'HOST_STORAGE_GET',
+							'HOST_STORAGE_SET',
+							'HOST_STORAGE_REMOVE',
+							'GAME_READY',
+							'GET_CONTEXT',
+							'REQUEST_FULLSCREEN',
+							'EXIT_GAME',
+							'SET_ORIENTATION',
+							'TRIGGER_HAPTIC'
+						]
 					}
 				}
 				break
+
+			case 'HOST_STORAGE_GET':
+				response = {
+					type: 'HOST_STORAGE_GET_RESULT',
+					requestId,
+					result: this.mockStorage.get((request as any).key) ?? null
+				}
+				break
+
+			case 'HOST_STORAGE_SET':
+				this.mockStorage.set((request as any).key, (request as any).value)
+				response = {
+					type: 'HOST_STORAGE_SET_RESULT',
+					requestId,
+					result: true
+				}
+				break
+
+			case 'HOST_STORAGE_REMOVE':
+				this.mockStorage.delete((request as any).key)
+				response = {
+					type: 'HOST_STORAGE_REMOVE_RESULT',
+					requestId,
+					result: true
+				}
+				break
+
+			case 'WALLET_BATCH_REQUEST': {
+				const requests = ((request as any).requests ?? []) as WalletRequestPayload[]
+				const batchResults = requests.map(req => {
+					switch (req.type) {
+						case 'WALLET_GET_ADDRESS':
+							return this.address
+						case 'WALLET_GET_NETWORK':
+							return this.networkId
+						case 'WALLET_GET_BALANCE':
+							return '1a002dc6c0'
+						case 'WALLET_GET_REWARD_ADDRESSES':
+							return ['stake_test1uqz2fxv2um5tjaq62synchronizedstake123']
+						case 'WALLET_GET_USED_ADDRESSES':
+							return [this.address]
+						case 'HOST_STORAGE_GET':
+							return this.mockStorage.get((req as any).key) ?? null
+						case 'HOST_STORAGE_SET':
+							this.mockStorage.set((req as any).key, (req as any).value)
+							return true
+						case 'HOST_STORAGE_REMOVE':
+							this.mockStorage.delete((req as any).key)
+							return true
+						default:
+							return null
+					}
+				})
+				response = {
+					type: 'WALLET_BATCH_RESULT',
+					requestId,
+					result: batchResults
+				}
+				break
+			}
 
 			case 'GAME_READY':
 				response = {
@@ -251,12 +338,28 @@ export class MockBridgeHost {
 				}
 				break
 
+			case 'SET_ORIENTATION':
+				response = {
+					type: 'SET_ORIENTATION_RESULT',
+					requestId,
+					result: true
+				}
+				break
+
+			case 'TRIGGER_HAPTIC':
+				response = {
+					type: 'TRIGGER_HAPTIC_RESULT',
+					requestId,
+					result: true
+				}
+				break
+
 			default:
 				response = {
 					type: (type + '_RESULT') as any,
 					requestId,
 					result: null,
-					error: 'Unsupported request type in mock host'
+					error: `Unsupported request type in mock host: ${type}`
 				} as WalletResponse
 		}
 
@@ -317,6 +420,22 @@ export class MockBridgeHost {
 		this.sendPushEvent({
 			type: 'CONTEXT_CHANGED',
 			context: newContext
+		})
+	}
+
+	public setAudioMuted(muted: boolean): void {
+		this.isAudioMuted = muted
+		this.sendPushEvent({
+			type: 'AUDIO_MUTED_CHANGED',
+			muted
+		})
+	}
+
+	public setTheme(theme: 'dark' | 'light'): void {
+		this.context.theme = theme
+		this.sendPushEvent({
+			type: 'THEME_CHANGED',
+			theme
 		})
 	}
 

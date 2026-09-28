@@ -96,12 +96,13 @@ describe('WalletBridgeClient', () => {
 		client.destroy()
 	})
 
-	it('should auto-probe address and network on mount when autoProbe is true', () => {
+	it('should auto-probe capabilities, address and network on mount when autoProbe is true', () => {
 		const client = new WalletBridgeClient({ autoProbe: true })
-		expect(mockParent.postMessage).toHaveBeenCalledTimes(2)
+		expect(mockParent.postMessage).toHaveBeenCalledTimes(3)
 		const calls = mockParent.postMessage.mock.calls
-		expect(calls[0][0].type).toBe('WALLET_GET_ADDRESS')
-		expect(calls[1][0].type).toBe('WALLET_GET_NETWORK')
+		expect(calls[0][0].type).toBe('WALLET_PING')
+		expect(calls[1][0].type).toBe('WALLET_GET_ADDRESS')
+		expect(calls[2][0].type).toBe('WALLET_GET_NETWORK')
 		client.destroy()
 	})
 

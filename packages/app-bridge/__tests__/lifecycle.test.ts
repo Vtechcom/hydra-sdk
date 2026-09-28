@@ -56,4 +56,23 @@ describe('GameLifecycleManager', () => {
 		expect(mockClient.sendRequest).toHaveBeenCalledWith({ type: 'EXIT_GAME' })
 		expect(res).toBe(true)
 	})
+
+	it('should send SET_ORIENTATION and TRIGGER_HAPTIC requests', async () => {
+		mockClient.sendRequest.mockResolvedValue(true)
+
+		const resOrientation = await manager.setOrientation('landscape')
+		expect(mockClient.sendRequest).toHaveBeenCalledWith({
+			type: 'SET_ORIENTATION',
+			orientation: 'landscape'
+		})
+		expect(resOrientation).toBe(true)
+
+		const resHaptic = await manager.triggerHaptic('success')
+		expect(mockClient.sendRequest).toHaveBeenCalledWith({
+			type: 'TRIGGER_HAPTIC',
+			pattern: 'success'
+		})
+		expect(resHaptic).toBe(true)
+	})
 })
+

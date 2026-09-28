@@ -1,5 +1,6 @@
-import { DualStorage } from './storage'
+import { DualStorage, type StorageHostRelay } from './storage'
 import { GameLifecycleManager } from './lifecycle'
+import { cardanoHexToBech32 } from './utils'
 import {
 	WalletBridgeError,
 	WalletBridgeTimeoutError,
@@ -7,14 +8,16 @@ import {
 	WalletBridgeNotInIframeError,
 	WalletBridgeRpcError
 } from './errors'
-import type {
-	WalletRequest,
-	WalletRequestPayload,
-	WalletResponse,
-	WalletEvent,
-	WalletBridgeClientOptions,
-	WalletBridgeEventMap,
-	WalletBridgeMockConfig
+import {
+	DEFAULT_TIMEOUTS,
+	type WalletRequest,
+	type WalletRequestPayload,
+	type WalletResponse,
+	type WalletEvent,
+	type WalletBridgeClientOptions,
+	type WalletBridgeEventMap,
+	type WalletBridgeMockConfig,
+	type SendRequestOptions
 } from './types'
 
 interface PendingRequest {
@@ -28,18 +31,23 @@ interface PendingRequest {
  * Core Wallet Bridge & Game SDK Client dành cho Game dApp trong iframe.
  * Thuần TypeScript, độc lập framework (chạy tốt với Vanilla TS, React, Vue, Phaser, PixiJS...).
  */
-export class WalletBridgeClient {
+export class WalletBridgeClient implements StorageHostRelay {
 	private appCenterOrigin: string
 	private timeoutMs: number
+	private customTimeoutMs?: number
 	private debug: boolean
 	private autoProbe: boolean
 	private mockConfig?: WalletBridgeMockConfig
 	private fallbackToExtension: boolean
+	private preferredWallet?: string
 	public storage: DualStorage
 	public lifecycle: GameLifecycleManager
 
 	private pendingRequests = new Map<string, PendingRequest>()
 	private eventListeners = new Map<keyof WalletBridgeEventMap, Set<Function>>()
+	private supportedMethods = new Set<string>()
+	private capabilitiesReceived = false
+	private mockStorage = new Map<string, string>()
 
 	public isConnected = false
 	public currentAddress: string | null = null
@@ -49,17 +57,25 @@ export class WalletBridgeClient {
 
 	constructor(options: WalletBridgeClientOptions = {}) {
 		this.appCenterOrigin = options.appCenterOrigin ?? '*'
+		this.customTimeoutMs = options.timeoutMs
 		this.timeoutMs = options.timeoutMs ?? 60000
 		this.debug = !!options.debug
 		this.autoProbe = options.autoProbe ?? true
 		this.mockConfig = options.mock
 		this.fallbackToExtension = !!options.fallbackToExtension
+		this.preferredWallet = options.preferredWallet
 
 		this.storage = new DualStorage({
 			prefix: options.storagePrefix ?? 'hydra:',
-			debug: this.debug
+			debug: this.debug,
+			hostRelay: this
 		})
 		this.lifecycle = new GameLifecycleManager(this)
+
+		if (this.mockConfig?.supportedMethods) {
+			this.supportedMethods = new Set(this.mockConfig.supportedMethods)
+			this.capabilitiesReceived = true
+		}
 
 		this.init()
 	}
@@ -70,6 +86,22 @@ export class WalletBridgeClient {
 
 	public getAppCenterOrigin(): string {
 		return this.appCenterOrigin
+	}
+
+	/**
+	 * Kiểm tra xem một method cụ thể có được App Center Host hỗ trợ hay không.
+	 * Trả về null nếu chưa thực hiện handshake Capability qua WALLET_PING.
+	 */
+	public isMethodSupported(type: string): boolean | null {
+		if (!this.capabilitiesReceived) return null
+		return this.supportedMethods.has(type)
+	}
+
+	/**
+	 * Lấy danh sách các methods mà Host đã thông báo hỗ trợ
+	 */
+	public getSupportedMethods(): string[] {
+		return Array.from(this.supportedMethods)
 	}
 
 	/**
@@ -110,8 +142,11 @@ export class WalletBridgeClient {
 			console.log('[WalletBridgeClient] Đã khởi tạo Bridge Client. Lắng nghe parent message...')
 		}
 
-		// Tự động gửi request thăm dò (probe) getAddress & getNetwork ban đầu nếu chạy trong iframe
+		// Tự động gửi request thăm dò (probe) capabilities, getAddress & getNetwork ban đầu nếu chạy trong iframe
 		if (this.autoProbe && this.isInIframe()) {
+			this.ping().catch(() => {
+				// Silent catch on initial probe
+			})
 			this.getChangeAddress().catch(() => {
 				// Silent catch on initial probe
 			})
@@ -185,6 +220,18 @@ export class WalletBridgeClient {
 				this.currentAddress = null
 				this.emit('disconnected')
 				break
+
+			case 'CONTEXT_CHANGED':
+				this.emit('contextChanged', event.context)
+				break
+
+			case 'AUDIO_MUTED_CHANGED':
+				this.emit('audioMutedChanged', event.muted)
+				break
+
+			case 'THEME_CHANGED':
+				this.emit('themeChanged', event.theme)
+				break
 		}
 	}
 
@@ -236,6 +283,11 @@ export class WalletBridgeClient {
 				this.currentNetworkId = response.result.networkId ?? this.currentNetworkId
 				this.isConnected = true
 			}
+			if (Array.isArray(response.result?.supportedMethods)) {
+				this.supportedMethods = new Set(response.result.supportedMethods)
+				this.capabilitiesReceived = true
+				this.emit('capabilitiesUpdated', response.result.supportedMethods)
+			}
 			pending.resolve(response.result)
 		} else if (response.type === 'WALLET_NETWORK_RESULT') {
 			if (response.result !== null) {
@@ -248,9 +300,9 @@ export class WalletBridgeClient {
 	}
 
 	/**
-	 * Gửi request RPC lên App Center cha và trả về Promise
+	 * Gửi request RPC lên App Center cha và trả về Promise với timeout phân tầng
 	 */
-	public sendRequest<T>(request: WalletRequestPayload): Promise<T> {
+	public sendRequest<T>(request: WalletRequestPayload, options?: SendRequestOptions): Promise<T> {
 		if (this.isDestroyed) {
 			return Promise.reject(new WalletBridgeError('[WalletBridgeClient] Client instance đã bị hủy.'))
 		}
@@ -260,18 +312,24 @@ export class WalletBridgeClient {
 			return this.handleMockRequest<T>(request)
 		}
 
-		// ─── Kiểm tra Iframe hợp lệ ───
+		// ─── Xử lý Fallback to Extension khi chạy ngoài Iframe ───
 		if (!this.isInIframe()) {
+			if (this.fallbackToExtension && typeof window !== 'undefined' && (window as any).cardano) {
+				return this.handleExtensionFallback<T>(request)
+			}
 			return Promise.reject(new WalletBridgeNotInIframeError())
 		}
+
+		// Phân tầng timeout theo loại request
+		const requestTimeout = options?.timeoutMs ?? this.customTimeoutMs ?? DEFAULT_TIMEOUTS[request.type] ?? this.timeoutMs
 
 		return new Promise<T>((resolve, reject) => {
 			const requestId = this.generateUuid()
 
 			const timer = setTimeout(() => {
 				this.pendingRequests.delete(requestId)
-				reject(new WalletBridgeTimeoutError(request.type, this.timeoutMs))
-			}, this.timeoutMs)
+				reject(new WalletBridgeTimeoutError(request.type, requestTimeout))
+			}, requestTimeout)
 
 			this.pendingRequests.set(requestId, {
 				resolve,
@@ -327,11 +385,49 @@ export class WalletBridgeClient {
 					version: '0.1.0-mock',
 					isConnected: true,
 					address: m.address,
-					networkId: m.networkId
+					networkId: m.networkId,
+					supportedMethods: m.supportedMethods ?? [
+						'WALLET_GET_ADDRESS',
+						'WALLET_GET_NETWORK',
+						'WALLET_GET_BALANCE',
+						'WALLET_GET_UTXOS',
+						'WALLET_GET_COLLATERAL',
+						'WALLET_GET_REWARD_ADDRESSES',
+						'WALLET_GET_USED_ADDRESSES',
+						'WALLET_SIGN_DATA',
+						'WALLET_SIGN_TX',
+						'WALLET_SUBMIT_TX',
+						'WALLET_CONNECT',
+						'WALLET_PING',
+						'WALLET_BATCH_REQUEST',
+						'HOST_STORAGE_GET',
+						'HOST_STORAGE_SET',
+						'HOST_STORAGE_REMOVE',
+						'GAME_READY',
+						'GET_CONTEXT',
+						'REQUEST_FULLSCREEN',
+						'EXIT_GAME',
+						'SET_ORIENTATION',
+						'TRIGGER_HAPTIC'
+					]
 				} as unknown as T)
+			case 'HOST_STORAGE_GET':
+				return Promise.resolve((this.mockStorage.get((request as any).key) ?? null) as unknown as T)
+			case 'HOST_STORAGE_SET':
+				this.mockStorage.set((request as any).key, (request as any).value)
+				return Promise.resolve(true as unknown as T)
+			case 'HOST_STORAGE_REMOVE':
+				this.mockStorage.delete((request as any).key)
+				return Promise.resolve(true as unknown as T)
+			case 'WALLET_BATCH_REQUEST': {
+				const reqs = ((request as any).requests ?? []) as WalletRequestPayload[]
+				return Promise.all(reqs.map(r => this.handleMockRequest(r))) as unknown as Promise<T>
+			}
 			case 'GAME_READY':
 			case 'REQUEST_FULLSCREEN':
 			case 'EXIT_GAME':
+			case 'SET_ORIENTATION':
+			case 'TRIGGER_HAPTIC':
 				return Promise.resolve(true as unknown as T)
 			case 'GET_CONTEXT':
 				return Promise.resolve({
@@ -346,114 +442,263 @@ export class WalletBridgeClient {
 		}
 	}
 
+	private async handleExtensionFallback<T>(request: WalletRequestPayload): Promise<T> {
+		if (typeof window === 'undefined' || !(window as any).cardano) {
+			throw new WalletBridgeNotInIframeError()
+		}
+
+		const cardano = (window as any).cardano
+		const walletName =
+			this.preferredWallet && cardano[this.preferredWallet]
+				? this.preferredWallet
+				: Object.keys(cardano).find(k => cardano[k] && typeof cardano[k].enable === 'function')
+
+		if (!walletName) {
+			throw new WalletBridgeError('[WalletBridgeClient] Không tìm thấy ví CIP-30 trong window.cardano.')
+		}
+
+		const api = await cardano[walletName].enable()
+		if (!api) {
+			throw new WalletBridgeError(`[WalletBridgeClient] Kích hoạt ví ${walletName} thất bại.`)
+		}
+
+		switch (request.type) {
+			case 'WALLET_GET_ADDRESS': {
+				const addrs = await api.getUsedAddresses()
+				const changeAddr = await api.getChangeAddress()
+				const rawAddr = changeAddr || addrs?.[0] || null
+				const addr = rawAddr ? cardanoHexToBech32(rawAddr) : null
+				if (addr) {
+					this.currentAddress = addr
+					this.isConnected = true
+				}
+				return addr as unknown as T
+			}
+			case 'WALLET_GET_NETWORK': {
+				const net = await api.getNetworkId()
+				this.currentNetworkId = net
+				return net as unknown as T
+			}
+			case 'WALLET_GET_BALANCE': {
+				return (await api.getBalance()) as unknown as T
+			}
+			case 'WALLET_GET_UTXOS': {
+				return (await api.getUtxos((request as any).amount)) as unknown as T
+			}
+			case 'WALLET_GET_COLLATERAL': {
+				return (await (api.getCollateral ? api.getCollateral((request as any).amount) : [])) as unknown as T
+			}
+			case 'WALLET_GET_REWARD_ADDRESSES': {
+				const rawRewards = (await api.getRewardAddresses()) ?? []
+				return rawRewards.map((a: string) => cardanoHexToBech32(a)) as unknown as T
+			}
+			case 'WALLET_GET_USED_ADDRESSES': {
+				const rawAddrs = (await api.getUsedAddresses()) ?? []
+				return rawAddrs.map((a: string) => cardanoHexToBech32(a)) as unknown as T
+			}
+			case 'WALLET_SIGN_DATA': {
+				return (await api.signData((request as any).address, (request as any).hexPayload)) as unknown as T
+			}
+			case 'WALLET_SIGN_TX': {
+				return (await api.signTx((request as any).txHex, (request as any).partialSign ?? false)) as unknown as T
+			}
+			case 'WALLET_SUBMIT_TX': {
+				return (await api.submitTx((request as any).txHex)) as unknown as T
+			}
+			case 'WALLET_CONNECT': {
+				const addrs = await api.getUsedAddresses()
+				const changeAddr = await api.getChangeAddress()
+				const rawAddr = changeAddr || addrs?.[0] || ''
+				const addr = rawAddr ? cardanoHexToBech32(rawAddr) : ''
+				const net = await api.getNetworkId()
+				this.currentAddress = addr
+				this.currentNetworkId = net
+				this.isConnected = true
+				this.emit('connected', { address: addr, networkId: net })
+				return { address: addr, networkId: net } as unknown as T
+			}
+			case 'WALLET_PING': {
+				return {
+					version: '0.1.0-extension',
+					isConnected: true,
+					address: this.currentAddress,
+					networkId: this.currentNetworkId
+				} as unknown as T
+			}
+			case 'GAME_READY':
+			case 'REQUEST_FULLSCREEN':
+			case 'EXIT_GAME':
+			case 'SET_ORIENTATION':
+			case 'TRIGGER_HAPTIC':
+				return true as unknown as T
+			case 'WALLET_BATCH_REQUEST': {
+				const reqs = ((request as any).requests ?? []) as WalletRequestPayload[]
+				const results: unknown[] = []
+				for (const req of reqs) {
+					try {
+						const res = await this.handleExtensionFallback(req)
+						results.push(res)
+					} catch {
+						results.push(null)
+					}
+				}
+				return results as unknown as T
+			}
+			case 'GET_CONTEXT':
+				return {
+					theme: 'dark',
+					locale: 'vi',
+					device: 'desktop',
+					appCenterOrigin: window.location.origin
+				} as unknown as T
+			default:
+				return null as unknown as T
+		}
+	}
+
 	// ─── API Methods (CIP-30 & Extension Compatible) ─────────────────────────
 
 	/**
 	 * Yêu cầu Host mở modal kết nối ví (dành cho nút "Connect Wallet" trong Game UI)
 	 */
-	public async requestConnect(): Promise<{ address: string; networkId: number } | null> {
+	public async requestConnect(options?: SendRequestOptions): Promise<{ address: string; networkId: number } | null> {
 		return this.sendRequest<{ address: string; networkId: number } | null>({
 			type: 'WALLET_CONNECT'
-		})
+		}, options)
 	}
 
 	/**
-	 * Gửi ping kiểm tra trạng thái và phiên bản của Host Bridge
+	 * Gửi ping kiểm tra trạng thái, phiên bản và các methods mà Host Bridge hỗ trợ
 	 */
-	public async ping(): Promise<{
+	public async ping(options?: SendRequestOptions): Promise<{
 		version: string
 		isConnected: boolean
 		address?: string | null
 		networkId?: number | null
+		supportedMethods?: string[]
 	} | null> {
-		return this.sendRequest({ type: 'WALLET_PING' })
+		return this.sendRequest({ type: 'WALLET_PING' }, options)
 	}
 
 	/**
 	 * Lấy địa chỉ ví Bech32 đang kết nối từ App Center
 	 */
-	public async getChangeAddress(): Promise<string | null> {
-		return this.sendRequest<string | null>({ type: 'WALLET_GET_ADDRESS' })
+	public async getChangeAddress(options?: SendRequestOptions): Promise<string | null> {
+		return this.sendRequest<string | null>({ type: 'WALLET_GET_ADDRESS' }, options)
 	}
 
 	/**
 	 * Lấy danh sách địa chỉ đã sử dụng (CIP-30)
 	 */
-	public async getUsedAddresses(): Promise<string[] | null> {
-		return this.sendRequest<string[] | null>({ type: 'WALLET_GET_USED_ADDRESSES' })
+	public async getUsedAddresses(options?: SendRequestOptions): Promise<string[] | null> {
+		return this.sendRequest<string[] | null>({ type: 'WALLET_GET_USED_ADDRESSES' }, options)
 	}
 
 	/**
 	 * Lấy danh sách địa chỉ stake/reward (Bech32 `stake1...`) dùng để định danh tài khoản game
 	 */
-	public async getRewardAddresses(): Promise<string[] | null> {
-		return this.sendRequest<string[] | null>({ type: 'WALLET_GET_REWARD_ADDRESSES' })
+	public async getRewardAddresses(options?: SendRequestOptions): Promise<string[] | null> {
+		return this.sendRequest<string[] | null>({ type: 'WALLET_GET_REWARD_ADDRESSES' }, options)
 	}
 
 	/**
 	 * Lấy tổng số dư tài khoản dưới dạng CBOR hex của Value (Lovelace + Token native)
 	 */
-	public async getBalance(): Promise<string | null> {
-		return this.sendRequest<string | null>({ type: 'WALLET_GET_BALANCE' })
+	public async getBalance(options?: SendRequestOptions): Promise<string | null> {
+		return this.sendRequest<string | null>({ type: 'WALLET_GET_BALANCE' }, options)
 	}
 
 	/**
 	 * Lấy danh sách Collateral UTxOs (bắt buộc khi tương tác Plutus contracts & Hydra Head)
 	 */
-	public async getCollateral(amount?: string): Promise<unknown[] | null> {
+	public async getCollateral(amount?: string, options?: SendRequestOptions): Promise<unknown[] | null> {
 		return this.sendRequest<unknown[] | null>({
 			type: 'WALLET_GET_COLLATERAL',
 			amount
-		})
+		}, options)
 	}
 
 	/**
 	 * Yêu cầu ký challenge qua CIP-30 / CIP-8 để lấy JWT Token
 	 */
-	public async signData(address: string, hexPayload: string): Promise<{ signature: string; key: string } | null> {
+	public async signData(address: string, hexPayload: string, options?: SendRequestOptions): Promise<{ signature: string; key: string } | null> {
 		return this.sendRequest<{ signature: string; key: string } | null>({
 			type: 'WALLET_SIGN_DATA',
 			address,
 			hexPayload
-		})
+		}, options)
 	}
 
 	/**
 	 * Yêu cầu ký Cardano Transaction (on-chain tx / nạp rút / Hydra commit)
 	 */
-	public async signTx(txHex: string, partialSign = false): Promise<string | null> {
+	public async signTx(txHex: string, partialSign = false, options?: SendRequestOptions): Promise<string | null> {
 		return this.sendRequest<string | null>({
 			type: 'WALLET_SIGN_TX',
 			txHex,
 			partialSign
-		})
+		}, options)
 	}
 
 	/**
 	 * Lấy danh sách UTxOs của ví
 	 */
-	public async getUtxos(amount?: string): Promise<unknown[] | null> {
+	public async getUtxos(amount?: string, options?: SendRequestOptions): Promise<unknown[] | null> {
 		return this.sendRequest<unknown[] | null>({
 			type: 'WALLET_GET_UTXOS',
 			amount
-		})
+		}, options)
 	}
 
 	/**
 	 * Lấy Network ID hiện tại (0 = Preprod/Preview, 1 = Mainnet)
 	 */
-	public async getNetworkId(): Promise<number | null> {
-		return this.sendRequest<number | null>({ type: 'WALLET_GET_NETWORK' })
+	public async getNetworkId(options?: SendRequestOptions): Promise<number | null> {
+		return this.sendRequest<number | null>({ type: 'WALLET_GET_NETWORK' }, options)
 	}
 
 	/**
 	 * Gửi (submit/broadcast) Cardano Transaction đã ký lên chain L1
 	 */
-	public async submitTx(txHex: string): Promise<string | null> {
+	public async submitTx(txHex: string, options?: SendRequestOptions): Promise<string | null> {
 		return this.sendRequest<string | null>({
 			type: 'WALLET_SUBMIT_TX',
 			txHex
-		})
+		}, options)
+	}
+
+	/**
+	 * Gửi một mảng batch nhiều requests RPC trong 1 postMessage duy nhất
+	 */
+	public async batch(requests: WalletRequestPayload[], options?: SendRequestOptions): Promise<unknown[]> {
+		return this.sendRequest<unknown[]>({
+			type: 'WALLET_BATCH_REQUEST',
+			requests
+		}, options)
+	}
+
+	// ─── Host Storage Relay Methods ──────────────────────────────────────────
+
+	public async hostStorageGet(key: string, options?: SendRequestOptions): Promise<string | null> {
+		return this.sendRequest<string | null>({
+			type: 'HOST_STORAGE_GET',
+			key
+		}, options)
+	}
+
+	public async hostStorageSet(key: string, value: string, options?: SendRequestOptions): Promise<boolean> {
+		return this.sendRequest<boolean>({
+			type: 'HOST_STORAGE_SET',
+			key,
+			value
+		}, options)
+	}
+
+	public async hostStorageRemove(key: string, options?: SendRequestOptions): Promise<boolean> {
+		return this.sendRequest<boolean>({
+			type: 'HOST_STORAGE_REMOVE',
+			key
+		}, options)
 	}
 
 	// ─── Event Emitter Helper ────────────────────────────────────────────────

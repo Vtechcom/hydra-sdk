@@ -42,6 +42,21 @@
 			"import": "./dist/vue.mjs",
 			"require": "./dist/vue.js"
 		},
+		"./auth": {
+			"types": "./dist/auth.d.ts",
+			"import": "./dist/auth.mjs",
+			"require": "./dist/auth.js"
+		},
+		"./storage": {
+			"types": "./dist/storage.d.ts",
+			"import": "./dist/storage.mjs",
+			"require": "./dist/storage.js"
+		},
+		"./lifecycle": {
+			"types": "./dist/lifecycle.d.ts",
+			"import": "./dist/lifecycle.mjs",
+			"require": "./dist/lifecycle.js"
+		},
 		"./simulator": {
 			"types": "./dist/simulator.d.ts",
 			"import": "./dist/simulator.mjs",
@@ -53,6 +68,15 @@
 		"*": {
 			"vue": [
 				"./dist/vue.d.ts"
+			],
+			"auth": [
+				"./dist/auth.d.ts"
+			],
+			"storage": [
+				"./dist/storage.d.ts"
+			],
+			"lifecycle": [
+				"./dist/lifecycle.d.ts"
 			],
 			"simulator": [
 				"./dist/simulator.d.ts"
@@ -83,6 +107,6 @@
 		"tsup": "^6.7.0",
 		"typescript": "5.7.3",
 		"vite": "^7.0.5",
-		"vue": "^3.5.17"
+		"vue": "^3.5.40"
 	}
 }
