@@ -11,7 +11,9 @@ export default defineConfig({
 	},
 	format: ['esm', 'cjs'],
 	dts: true,
-	splitting: false,
+	// Bật splitting để các subpath (vue, auth, ...) dùng chung chunk runtime: nếu mỗi entry
+	// bundle riêng thì class lỗi bị nhân bản và `instanceof` giữa các subpath luôn false.
+	splitting: true,
 	sourcemap: true,
 	clean: true,
 	target: 'es2020',

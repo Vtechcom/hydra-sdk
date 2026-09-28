@@ -27,6 +27,22 @@ interface PendingRequest {
 	type: string
 }
 
+/** Chuẩn hoá trường `error` của response về string, bất kể host gửi string, Error hay object CIP-30. */
+function rpcErrorMessage(error: unknown): string {
+	if (typeof error === 'string') return error
+	if (error && typeof error === 'object') {
+		const { info, message } = error as { info?: unknown; message?: unknown }
+		if (typeof info === 'string' && info) return info
+		if (typeof message === 'string' && message) return message
+		try {
+			return JSON.stringify(error)
+		} catch {
+			/* object vòng tham chiếu — rơi xuống String() */
+		}
+	}
+	return String(error)
+}
+
 /**
  * Core Wallet Bridge & Game SDK Client dành cho Game dApp trong iframe.
  * Thuần TypeScript, độc lập framework (chạy tốt với Vanilla TS, React, Vue, Phaser, PixiJS...).
@@ -243,16 +259,18 @@ export class WalletBridgeClient implements StorageHostRelay {
 		this.pendingRequests.delete(response.requestId)
 
 		if (response.error) {
-			const errLower = response.error.toLowerCase()
+			// Host có thể chuyển tiếp nguyên object lỗi CIP-30 ({ code, info }) hoặc Error thay vì string
+			const message = rpcErrorMessage(response.error)
+			const errLower = message.toLowerCase()
 			if (
 				errLower.includes('declined') ||
 				errLower.includes('rejected') ||
 				errLower.includes('cancel') ||
 				errLower.includes('user cancel')
 			) {
-				pending.reject(new WalletBridgeUserRejectedError(response.error))
+				pending.reject(new WalletBridgeUserRejectedError(message))
 			} else {
-				pending.reject(new WalletBridgeRpcError(pending.type, response.error))
+				pending.reject(new WalletBridgeRpcError(pending.type, message))
 			}
 			return
 		}

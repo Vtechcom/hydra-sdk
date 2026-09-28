@@ -3,7 +3,8 @@ import { WalletBridgeClient } from '../src/client'
 import {
 	WalletBridgeUserRejectedError,
 	WalletBridgeNotInIframeError,
-	WalletBridgeTimeoutError
+	WalletBridgeTimeoutError,
+	WalletBridgeRpcError
 } from '../src/errors'
 
 describe('WalletBridgeClient', () => {
@@ -162,6 +163,31 @@ describe('WalletBridgeClient', () => {
 		}
 
 		await expect(promise).rejects.toBeInstanceOf(WalletBridgeUserRejectedError)
+		client.destroy()
+	})
+
+	it.each([
+		['CIP-30 object with user-declined info', { code: 2, info: 'User declined to sign' }, WalletBridgeUserRejectedError],
+		['CIP-30 object with other info', { code: -2, info: 'Internal wallet error' }, WalletBridgeRpcError],
+		['Error-like object', { message: 'User rejected the request' }, WalletBridgeUserRejectedError],
+		['object without message', { code: 1 }, WalletBridgeRpcError]
+	])('should reject (not hang) when host returns a non-string error: %s', async (_label, error, ErrorClass) => {
+		const client = new WalletBridgeClient({ timeoutMs: 1000, autoProbe: false })
+
+		const promise = client.signTx('tx-hex-data')
+		const [req] = mockParent.postMessage.mock.calls[0]
+
+		const errorEvent = {
+			source: mockParent,
+			origin: '*',
+			data: { type: 'WALLET_SIGN_TX_RESULT', requestId: req.requestId, result: null, error }
+		}
+
+		for (const listener of messageListeners) {
+			listener(errorEvent)
+		}
+
+		await expect(promise).rejects.toBeInstanceOf(ErrorClass)
 		client.destroy()
 	})
 
