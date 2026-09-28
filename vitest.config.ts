@@ -22,8 +22,7 @@ export default defineConfig({
 			'@hydra-sdk/transaction': path.resolve(__dirname, 'packages/hydra-transaction/src/index.ts'),
 			'@hydra-sdk/bridge': path.resolve(__dirname, 'packages/hydra-bridge/src/index.ts'),
 			'@hydra-sdk/evaluator': path.resolve(__dirname, 'packages/evaluator/src/index.ts'),
-			'@hydra-sdk/game-sdk': path.resolve(__dirname, 'packages/game-sdk/src/index.ts'),
-			'@hydra-sdk/wallet-bridge-client': path.resolve(__dirname, 'packages/game-sdk/src/index.ts')
+			'@hydra-sdk/app-bridge': path.resolve(__dirname, 'packages/app-bridge/src/index.ts')
 		},
 
 		coverage: {

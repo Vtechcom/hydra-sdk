@@ -24,11 +24,8 @@
             "cardano-wasm": [
                 "packages/cardano-wasm/src/index.ts"
             ],
-            "@hydra-sdk/game-sdk": [
-                "packages/game-sdk/src/index.ts"
-            ],
-            "@hydra-sdk/wallet-bridge-client": [
-                "packages/game-sdk/src/index.ts"
+            "@hydra-sdk/app-bridge": [
+                "packages/app-bridge/src/index.ts"
             ]
         }
     }
