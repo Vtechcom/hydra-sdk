@@ -1,5 +1,5 @@
 {
-	"name": "@hydra-sdk/game-sdk",
+	"name": "@hydra-sdk/app-bridge",
 	"license": "Apache-2.0",
 	"version": "0.1.0",
 	"publishConfig": {
@@ -16,12 +16,12 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Vtechcom/hydra-sdk.git",
-		"directory": "packages/game-sdk"
+		"directory": "packages/app-bridge"
 	},
 	"keywords": [
-		"@hydra-sdk/game-sdk",
-		"game-sdk",
-		"hydra-game-sdk",
+		"@hydra-sdk/app-bridge",
+		"app-bridge",
+		"hydra-app-bridge",
 		"wallet-bridge",
 		"iframe-bridge",
 		"postMessage",
