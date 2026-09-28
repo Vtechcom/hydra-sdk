@@ -23,6 +23,9 @@
             ],
             "cardano-wasm": [
                 "packages/cardano-wasm/src/index.ts"
+            ],
+            "@hydra-sdk/app-bridge": [
+                "packages/app-bridge/src/index.ts"
             ]
         }
     }

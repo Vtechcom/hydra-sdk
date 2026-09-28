@@ -8,7 +8,7 @@ if (!mode || !['dev', 'prod'].includes(mode)) {
 	process.exit(1)
 }
 
-const whitelist = ['cardano-wasm', 'eslint-config', 'tsconfig']
+const whitelist = ['cardano-wasm', 'eslint-config', 'tsconfig', 'app-bridge']
 const packagesDir = path.resolve('./packages')
 const packages = fs.readdirSync(packagesDir)
 
