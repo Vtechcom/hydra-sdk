@@ -129,4 +129,4 @@ Explore practical examples:
 
 ## License
 
-Hydra SDK is open source software licensed under the [MIT License](https://github.com/Vtechcom/hydra-sdk/blob/dev/LICENSE).
+Hydra SDK is open source software licensed under the [Apache License 2.0](https://github.com/Vtechcom/hydra-sdk/blob/master/LICENSE).

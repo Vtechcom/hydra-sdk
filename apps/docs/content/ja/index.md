@@ -129,4 +129,4 @@ Hydra Headsを使用した高速で低コストな支払いソリューション
 
 ## ライセンス
 
-Hydra SDKはオープンソースソフトウェアで、[MITライセンス](https://github.com/Vtechcom/hydra-sdk/blob/dev/LICENSE)の下でライセンスされています。
+Hydra SDKはオープンソースソフトウェアで、[Apache License 2.0](https://github.com/Vtechcom/hydra-sdk/blob/master/LICENSE)の下でライセンスされています。
