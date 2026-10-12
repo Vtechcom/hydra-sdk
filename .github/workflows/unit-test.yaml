@@ -179,7 +179,7 @@ jobs:
           } >> $GITHUB_OUTPUT
 
       - name: Comment Test Report on PR
-        if: github.event_name == 'pull_request' && always()
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: ${{ steps.test-report.outputs.report }}
