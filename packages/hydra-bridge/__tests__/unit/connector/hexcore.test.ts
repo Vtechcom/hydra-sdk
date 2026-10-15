@@ -5,6 +5,7 @@ import {
 	defaultHexcoreFetcher,
 	defaultHexcoreSubmitter
 } from '../../../src/connector/hexcore'
+import axios from 'axios'
 import { HydraCommand, HydraHeadTag, HydraPayload } from '../../../src/types/payload.type'
 import { HydraBridgeFetcher } from '../../../src/types/fetcher.type'
 import { HydraBridgeSubmitter } from '../../../src/types/submitter.type'
@@ -123,6 +124,30 @@ describe('HexcoreConnector', () => {
 			expect(conn.conn.ssl).toBe(false)
 			expect(conn.conn.host).toBe('localhost')
 			expect(conn.conn.port).toBe('3000')
+		})
+
+		it('should forward X-Api-Key to HTTP requests', () => {
+			const apiKey = 'test-api-key-123'
+			const conn = new HexcoreConnector(`https://api.hexcore.dev?X-Api-Key=${apiKey}`)
+
+			expect(conn.conn.params?.['X-Api-Key']).toBe(apiKey)
+			expect(axios.create).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					headers: {
+						'X-Api-Key': apiKey
+					}
+				})
+			)
+		})
+
+		it('should omit X-Api-Key when it is not configured', () => {
+			new HexcoreConnector('https://api.hexcore.dev')
+
+			expect(axios.create).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					headers: undefined
+				})
+			)
 		})
 	})
 
