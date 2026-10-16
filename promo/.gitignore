@@ -1,0 +1,13 @@
+# Môi trường và model TTS
+.venv-tts/
+.venv-render/
+models/
+
+# File sinh ra khi dựng
+**/clips/
+**/frames/
+**/stills/
+**/out/
+**/*.mp4
+**/*.wav
+__pycache__/
