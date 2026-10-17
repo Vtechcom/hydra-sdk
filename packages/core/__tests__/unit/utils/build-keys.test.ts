@@ -34,7 +34,8 @@ describe('BuildKeys', () => {
 	])('builds base/enterprise/reward addresses for network %i', (networkId, base, enterprise, reward) => {
 		const payment = keyHash(TEST_WALLET.paymentKeyHash)
 		const stake = keyHash(TEST_WALLET.stakeKeyHash)
-		const bech32 = (addr: { to_address(): CardanoWASM.Address }) => keep(keep(addr).to_address()).to_bech32()
+		const bech32 = (addr: { to_address(): CardanoWASM.Address; free(): void }) =>
+			keep(keep(addr).to_address()).to_bech32()
 
 		expect(bech32(buildBaseAddress(networkId, payment, stake))).toBe(base)
 		expect(bech32(buildEnterpriseAddress(networkId, payment))).toMatch(enterprise)
