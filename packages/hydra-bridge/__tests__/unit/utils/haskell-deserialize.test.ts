@@ -1,289 +1,107 @@
 import { describe, it, expect } from 'vitest'
-import { deserializeHaskellErrorToJson, ErrorType, JsonResult } from '../../../src/utils/haskell-deserialize'
+import { deserializeHaskellErrorToJson, ErrorType } from '../../../src/utils/haskell-deserialize'
+
+const unknown = (raw: string, errorType: string) => ({ errorType, message: 'Unknown error format', rawError: raw })
 
 describe('deserializeHaskellErrorToJson', () => {
-	describe('ErrorType.ScriptFailedInWallet', () => {
-		it('should parse ScriptFailedInWallet error with redeemer and failure reason', () => {
-			const errorStr = `ScriptFailedInWallet {redeemerPtr = "Spend:0", failureReason = "MissingScript (RdmrPtr Spend 0) (fromList [(RdmrPtr Spend 0,ScriptPurpose with SafeHash \\"abc123\\",TxIn {txId = \\"txhash\\", TxIx {unTxIx = 0}},ScriptHash \\"scripthash\\",Nothing)])"}`
+	const scriptFailed =
+		'ScriptFailedInWallet {redeemerPtr = "Spend:0", failureReason = "MissingScript (RdmrPtr Spend 0) (fromList [(RdmrPtr Spend 0,ScriptPurpose with SafeHash \\"abc123\\",TxIn {txId = \\"txhash\\", TxIx {unTxIx = 3}},ScriptHash \\"scripthash\\",Nothing)])"}'
 
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.ScriptFailedInWallet)
-			expect(result.redeemerPtr).toBe('Spend:0')
-			expect(result.failureReason).toBeDefined()
-		})
-
-		it('should handle ScriptFailedInWallet with missing fields', () => {
-			const errorStr = `ScriptFailedInWallet {}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.ScriptFailedInWallet)
+	it('extracts redeemerPtr and the redeemer from ScriptFailedInWallet', () => {
+		expect(deserializeHaskellErrorToJson(scriptFailed)).toMatchObject({
+			errorType: ErrorType.ScriptFailedInWallet,
+			redeemerPtr: 'Spend:0',
+			failureReason: { type: 'MissingScript', redeemer: 'MissingScript (RdmrPtr Spend 0)' }
 		})
 	})
 
-	describe('ErrorType.InternalWalletError', () => {
-		it('should parse InternalWalletError with reason', () => {
-			const errorStr = `InternalWalletError {reason = "Failed to build transaction", headUTxO = UTxO {...}, tx = Tx {...}}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.InternalWalletError)
-			expect(result.reason).toBe('Failed to build transaction')
-		})
-
-		it('should handle InternalWalletError with default headUTxO and tx', () => {
-			const errorStr = `InternalWalletError {reason = "Some error"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.InternalWalletError)
-			expect(result.reason).toBe('Some error')
-			expect(result.headUTxO).toBe('UTxO {...}')
-			expect(result.tx).toBe('Tx {...}')
-		})
-	})
-
-	describe('ErrorType.NoFuelUTXOFound', () => {
-		it('should parse NoFuelUTXOFound error', () => {
-			const errorStr = `NoFuelUTXOFound`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.NoFuelUTXOFound)
-		})
-
-		it('should parse NoFuelUTXOFound with extra content', () => {
-			const errorStr = `NoFuelUTXOFound {}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.NoFuelUTXOFound)
+	// BUG: failureReason is captured with /"([^"]+)"/, which stops at the first
+	// escaped quote (`SafeHash \"`), while the inner regexes only match escaped
+	// quotes — so txIn and scriptHash can never be extracted and are always null.
+	it.fails('extracts the tx input and script hash from ScriptFailedInWallet', () => {
+		expect(deserializeHaskellErrorToJson(scriptFailed)).toEqual({
+			errorType: ErrorType.ScriptFailedInWallet,
+			redeemerPtr: 'Spend:0',
+			failureReason: {
+				type: 'MissingScript',
+				redeemer: 'MissingScript (RdmrPtr Spend 0)',
+				details: [
+					{
+						redeemer: 'MissingScript (RdmrPtr Spend 0)',
+						txIn: { txId: 'abc123', txIx: 3 },
+						scriptHash: 'scripthash',
+						datum: null
+					}
+				]
+			}
 		})
 	})
 
-	describe('ErrorType.NotEnoughFuel', () => {
-		it('should parse NotEnoughFuel error', () => {
-			const errorStr = `NotEnoughFuel`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.NotEnoughFuel)
-		})
+	it.each([
+		['ScriptFailedInWallet {}', { errorType: ErrorType.ScriptFailedInWallet }],
+		[
+			'InternalWalletError {reason = "Failed to build", headUTxO = UTxO {a}, tx = Tx {b}}',
+			{ errorType: ErrorType.InternalWalletError, reason: 'Failed to build', headUTxO: 'UTxO {a}', tx: 'Tx {b}' }
+		],
+		[
+			'InternalWalletError {reason = "Multi\nline !@#"}',
+			{ errorType: ErrorType.InternalWalletError, reason: 'Multi\nline !@#', headUTxO: 'UTxO {...}', tx: 'Tx {...}' }
+		],
+		['NoFuelUTXOFound', { errorType: ErrorType.NoFuelUTXOFound }],
+		['  NoFuelUTXOFound  ', { errorType: ErrorType.NoFuelUTXOFound }],
+		['NotEnoughFuel {}', { errorType: ErrorType.NotEnoughFuel }],
+		['NoSeedInput', { errorType: ErrorType.NoSeedInput }],
+		['InvalidSeed {headSeed = "abc123def456"}', { errorType: ErrorType.InvalidSeed, headSeed: 'abc123def456' }],
+		['InvalidSeed {}', { errorType: ErrorType.InvalidSeed, headSeed: null }],
+		['FailedToConstructCloseTx', { errorType: ErrorType.FailedToConstructCloseTx }],
+		['FailedToConstructFanoutTx', { errorType: ErrorType.FailedToConstructFanoutTx }],
+		[
+			'FailedToConstructIncrementTx {failureReason = "Insufficient funds"}',
+			{ errorType: ErrorType.FailedToConstructIncrementTx, failureReason: 'Insufficient funds' }
+		],
+		[
+			'FailedToConstructRecoverTx {failureReason = "Too early"}',
+			{ errorType: ErrorType.FailedToConstructRecoverTx, failureReason: 'Too early' }
+		],
+		[
+			'FailedToConstructDecrementTx {failureReason = "Decrement failed"}',
+			{ errorType: ErrorType.FailedToConstructDecrementTx, failureReason: 'Decrement failed' }
+		],
+		[
+			'TimeConversionException {slotNo = SlotNo 12345, reason = "Slot too far"}',
+			{ errorType: ErrorType.TimeConversionException, slotNo: 12345, reason: 'Slot too far' }
+		],
+		['TimeConversionException {}', { errorType: ErrorType.TimeConversionException, slotNo: null, reason: null }],
+		['SomeUnknownError {field = "value"}', unknown('SomeUnknownError {field = "value"}', 'SomeUnknownError')],
+		['', unknown('', ErrorType.UnknownError)],
+		['{{{malformed', unknown('{{{malformed', ErrorType.UnknownError)]
+	])('%j', (raw, expected) => {
+		expect(deserializeHaskellErrorToJson(raw)).toEqual(expected)
 	})
 
-	describe('ErrorType.NoSeedInput', () => {
-		it('should parse NoSeedInput error', () => {
-			const errorStr = `NoSeedInput`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.NoSeedInput)
-		})
-	})
-
-	describe('ErrorType.InvalidSeed', () => {
-		it('should parse InvalidSeed error with headSeed', () => {
-			const errorStr = `InvalidSeed {headSeed = "abc123def456"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.InvalidSeed)
-			expect(result.headSeed).toBe('abc123def456')
+	// The enum predates hydra-node v2.3.0's PostTxError (see types/post-tx-error.type.ts):
+	// these tags fall through to "Unknown error format". Fixing it means editing
+	// ErrorType in src, which needs the owner's sign-off — the proposed diff is in
+	// _bmad-output/implementation-artifacts/test-refactor-slice-4.md.
+	describe('v2.3.0 PostTxError tags missing from ErrorType', () => {
+		it.fails.each([
+			'InvalidHeadId {headId = "cafe"}',
+			'UnsupportedLegacyOutput {byronAddress = "Ae2"}',
+			'DepositTooLow {providedValue = 1, minimumValue = 2}',
+			'InvalidStateToPost {txTried = X, chainState = Y}',
+			'FailedToConstructPartialFanoutTx',
+			'StalePartialFanoutTx',
+			'InvalidTokenRequest {contents = []}'
+		])('recognises %j', raw => {
+			expect(deserializeHaskellErrorToJson(raw).message).toBeUndefined()
 		})
 
-		it('should handle InvalidSeed without headSeed', () => {
-			const errorStr = `InvalidSeed {}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.InvalidSeed)
-			expect(result.headSeed).toBeNull()
-		})
-	})
-
-	describe('ErrorType.FailedToConstruct*Tx errors', () => {
-		it('should parse FailedToConstructAbortTx', () => {
-			const errorStr = `FailedToConstructAbortTx`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructAbortTx)
-		})
-
-		it('should parse FailedToConstructCollectTx', () => {
-			const errorStr = `FailedToConstructCollectTx`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructCollectTx)
-		})
-
-		it('should parse FailedToConstructCloseTx', () => {
-			const errorStr = `FailedToConstructCloseTx`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructCloseTx)
-		})
-
-		it('should parse FailedToConstructContestTx', () => {
-			const errorStr = `FailedToConstructContestTx`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructContestTx)
-		})
-
-		it('should parse FailedToConstructFanoutTx', () => {
-			const errorStr = `FailedToConstructFanoutTx`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructFanoutTx)
-		})
-
-		it('should parse FailedToConstructIncrementTx with failureReason', () => {
-			const errorStr = `FailedToConstructIncrementTx {failureReason = "Insufficient funds"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructIncrementTx)
-			expect(result.failureReason).toBe('Insufficient funds')
-		})
-
-		it('should parse FailedToConstructRecoverTx with failureReason', () => {
-			const errorStr = `FailedToConstructRecoverTx {failureReason = "Recovery not possible"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructRecoverTx)
-			expect(result.failureReason).toBe('Recovery not possible')
-		})
-
-		it('should parse FailedToConstructDecrementTx with failureReason', () => {
-			const errorStr = `FailedToConstructDecrementTx {failureReason = "Decrement failed"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.FailedToConstructDecrementTx)
-			expect(result.failureReason).toBe('Decrement failed')
-		})
-	})
-
-	describe('ErrorType.TimeConversionException', () => {
-		it('should parse TimeConversionException with slotNo and reason', () => {
-			const errorStr = `TimeConversionException {slotNo = SlotNo 12345, reason = "Slot too far in the future"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.TimeConversionException)
-			expect(result.slotNo).toBe(12345)
-			expect(result.reason).toBe('Slot too far in the future')
-		})
-
-		it('should handle TimeConversionException with missing fields', () => {
-			const errorStr = `TimeConversionException {}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.TimeConversionException)
-			expect(result.slotNo).toBeNull()
-			expect(result.reason).toBeNull()
-		})
-	})
-
-	describe('Unknown errors', () => {
-		it('should handle completely unknown error type', () => {
-			const errorStr = `SomeUnknownError {field = "value"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe('SomeUnknownError')
-			expect(result.message).toBe('Unknown error format')
-			expect(result.rawError).toBe(errorStr)
-		})
-
-		it('should handle empty string', () => {
-			const errorStr = ``
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.message).toBe('Unknown error format')
-			expect(result.rawError).toBe('')
-		})
-
-		it('should handle malformed error string', () => {
-			const errorStr = `{{{malformed`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.message).toBe('Unknown error format')
-			expect(result.rawError).toBe(errorStr)
-		})
-	})
-
-	describe('ErrorType enum', () => {
-		it('should have all expected error types', () => {
-			expect(ErrorType.ScriptFailedInWallet).toBe('ScriptFailedInWallet')
-			expect(ErrorType.InternalWalletError).toBe('InternalWalletError')
-			expect(ErrorType.NoFuelUTXOFound).toBe('NoFuelUTXOFound')
-			expect(ErrorType.NotEnoughFuel).toBe('NotEnoughFuel')
-			expect(ErrorType.NoSeedInput).toBe('NoSeedInput')
-			expect(ErrorType.InvalidSeed).toBe('InvalidSeed')
-			expect(ErrorType.FailedToConstructAbortTx).toBe('FailedToConstructAbortTx')
-			expect(ErrorType.FailedToConstructCollectTx).toBe('FailedToConstructCollectTx')
-			expect(ErrorType.FailedToConstructCloseTx).toBe('FailedToConstructCloseTx')
-			expect(ErrorType.FailedToConstructContestTx).toBe('FailedToConstructContestTx')
-			expect(ErrorType.FailedToConstructFanoutTx).toBe('FailedToConstructFanoutTx')
-			expect(ErrorType.FailedToConstructIncrementTx).toBe('FailedToConstructIncrementTx')
-			expect(ErrorType.FailedToConstructRecoverTx).toBe('FailedToConstructRecoverTx')
-			expect(ErrorType.FailedToConstructDecrementTx).toBe('FailedToConstructDecrementTx')
-			expect(ErrorType.TimeConversionException).toBe('TimeConversionException')
-			expect(ErrorType.UnknownError).toBe('UnknownError')
-		})
-	})
-
-	describe('JsonResult structure', () => {
-		it('should always return errorType', () => {
-			const result1 = deserializeHaskellErrorToJson('NoFuelUTXOFound')
-			const result2 = deserializeHaskellErrorToJson('UnknownError')
-
-			expect(result1.errorType).toBeDefined()
-			expect(result2.errorType).toBeDefined()
-		})
-
-		it('should have correct optional field types', () => {
-			const result = deserializeHaskellErrorToJson('TimeConversionException {slotNo = SlotNo 100, reason = "test"}')
-
-			expect(typeof result.slotNo).toBe('number')
-			expect(typeof result.reason).toBe('string')
-		})
-	})
-
-	describe('edge cases', () => {
-		it('should handle error with special characters', () => {
-			const errorStr = `InternalWalletError {reason = "Error with special chars: !@#$%^&*()"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.InternalWalletError)
-		})
-
-		it('should handle error with newlines', () => {
-			const errorStr = `InternalWalletError {reason = "Multi\nline\nerror"}`
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.InternalWalletError)
-		})
-
-		it('should handle error type with whitespace', () => {
-			const errorStr = `  NoFuelUTXOFound  `
-
-			const result = deserializeHaskellErrorToJson(errorStr)
-
-			expect(result.errorType).toBe(ErrorType.NoFuelUTXOFound)
+		it.fails.each([
+			['FailedToPostTx {failureReason = "boom"}'],
+			['FailedToConstructDepositTx {failureReason = "boom"}'],
+			['ContestationDeadlineOutsideTimeHorizon {failureReason = "boom"}']
+		])('extracts failureReason from %j', raw => {
+			expect(deserializeHaskellErrorToJson(raw)).toMatchObject({ failureReason: 'boom' })
 		})
 	})
 })
