@@ -1,227 +1,105 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
+import { DEFAULT_PROTOCOL_PARAMETERS, type Asset } from '@hydra-sdk/core'
 import { TxBuilder } from '../../../src/tx-builder'
-import { DEFAULT_PROTOCOL_PARAMETERS } from '@hydra-sdk/core'
+import {
+	ADDRESS,
+	ALWAYS_SUCCEEDS_V3,
+	OTHER_ADDRESS,
+	POLICY_ID,
+	SCRIPT_ADDRESS,
+	TOKEN,
+	fee,
+	lovelace,
+	txHash,
+	utxo,
+	withTx
+} from '../../helpers/fixtures'
 
-describe('TxBuilder - Constructor and Configuration', () => {
-	describe('constructor', () => {
-		it('should create TxBuilder with default options', () => {
-			const builder = new TxBuilder()
-			expect(builder).toBeDefined()
-			expect(builder).toBeInstanceOf(TxBuilder)
-		})
+const FUND = utxo(txHash('a'), 0, lovelace(10_000_000))
+const payment = (builder: TxBuilder) =>
+	builder.setInputs([FUND]).txOut(OTHER_ADDRESS, lovelace(2_000_000)).changeAddress(ADDRESS)
+const scriptSpend = (builder: TxBuilder) =>
+	payment(builder)
+		.txIn(txHash('b'), 1, lovelace(5_000_000), SCRIPT_ADDRESS)
+		.txInScript(ALWAYS_SUCCEEDS_V3)
+		.txInEmptyRedeemer()
+		.txInCollateral(txHash('c'), 0, lovelace(5_000_000), ADDRESS)
+const feeOf = (builder: TxBuilder) => withTx(builder, tx => fee(tx))
 
-		it('should create TxBuilder with custom protocol params', () => {
-			const customParams = {
-				minFeeA: 100,
-				minFeeB: 200000
-			}
-			const builder = new TxBuilder({ params: customParams })
-			expect(builder).toBeDefined()
-		})
+describe('protocol parameters', () => {
+	const bump = { minFeeB: DEFAULT_PROTOCOL_PARAMETERS.minFeeB + 100_000 }
 
-		it('should create TxBuilder with fetcher', () => {
-			const mockFetcher = {
-				fetchAddressUTxOs: async () => [],
-				fetchProtocolParameters: async () => DEFAULT_PROTOCOL_PARAMETERS
-			}
-			const builder = new TxBuilder({ fetcher: mockFetcher as any })
-			expect(builder).toBeDefined()
-		})
-
-		it('should create TxBuilder with submitter', () => {
-			const mockSubmitter = {
-				submitTx: async () => 'txhash'
-			}
-			const builder = new TxBuilder({ submitter: mockSubmitter as any })
-			expect(builder).toBeDefined()
-		})
-
-		it('should create TxBuilder with isHydra flag', () => {
-			const builder = new TxBuilder({ isHydra: true })
-			expect(builder).toBeDefined()
-		})
-
-		it('should create TxBuilder with verbose flag', () => {
-			const builder = new TxBuilder({ verbose: true })
-			expect(builder).toBeDefined()
-		})
-
-		it('should create TxBuilder with errorLogger flag', () => {
-			const builder = new TxBuilder({ errorLogger: true })
-			expect(builder).toBeDefined()
-		})
-
-		it('should create TxBuilder with all options', () => {
-			const mockFetcher = { fetchAddressUTxOs: async () => [] }
-			const mockSubmitter = { submitTx: async () => 'txhash' }
-			const builder = new TxBuilder({
-				fetcher: mockFetcher as any,
-				submitter: mockSubmitter as any,
-				isHydra: true,
-				verbose: true,
-				errorLogger: true,
-				params: { minFeeA: 50 }
-			})
-			expect(builder).toBeDefined()
-		})
+	it.each([
+		['constructor params', () => new TxBuilder({ params: bump })],
+		['updateProtocolParams()', () => new TxBuilder().updateProtocolParams(bump)]
+	])('merges %s over the defaults and prices the fee with them', async (_name, make) => {
+		const base = await feeOf(payment(new TxBuilder()))
+		expect((await feeOf(payment(make()))) - base).toBe(100_000n)
 	})
 
-	describe('updateProtocolParams', () => {
-		it('should update protocol parameters', () => {
-			const builder = new TxBuilder()
-			const result = builder.updateProtocolParams({ minFeeA: 100 })
-			expect(result).toBe(builder) // Should return this for chaining
-		})
-
-		it('should merge with existing params', () => {
-			const builder = new TxBuilder({ params: { minFeeA: 50 } })
-			builder.updateProtocolParams({ minFeeB: 200000 })
-			expect(builder).toBeDefined()
-		})
-
-		it('should allow chaining after update', () => {
-			const builder = new TxBuilder()
-			const result = builder.updateProtocolParams({ minFeeA: 100 }).updateProtocolParams({ minFeeB: 200000 })
-			expect(result).toBe(builder)
-		})
+	it('charges script execution at priceMem/priceStep', async () => {
+		const priced = await feeOf(scriptSpend(new TxBuilder()))
+		const free = await feeOf(scriptSpend(new TxBuilder({ params: { priceMem: 0, priceStep: 0 } })))
+		// placeholder exUnits 100000 mem / 10000000 steps: 100000·0.0577 + 10000000·0.0000721 = 5770 + 721
+		expect(priced - free).toBe(6491n)
 	})
 
-	describe('txBuilder getter', () => {
-		it('should return CardanoWASM TransactionBuilder', () => {
-			const builder = new TxBuilder()
-			expect(builder.txBuilder).toBeDefined()
-			expect(builder.txBuilder).toBeInstanceOf(CardanoWASM.TransactionBuilder)
-		})
-	})
-
-	describe('reset', () => {
-		it('should reset builder to initial state', () => {
-			const builder = new TxBuilder()
-			builder.changeAddress(
-				'addr_test1qrsx72hrv8ens90hwkezg7ysyhwvcjmyzdveyf88ppq7a0lwu7gv0wuuf9lhzm7wclvj5ntgcfa53j0rqxmu237x20xsne56q3'
-			)
-			const result = builder.reset()
-			expect(result).toBe(builder) // Should return this for chaining
-		})
-
-		it('should allow building new transaction after reset', () => {
-			const builder = new TxBuilder()
-			builder.txOut(
-				'addr_test1qrsx72hrv8ens90hwkezg7ysyhwvcjmyzdveyf88ppq7a0lwu7gv0wuuf9lhzm7wclvj5ntgcfa53j0rqxmu237x20xsne56q3',
-				[{ unit: 'lovelace', quantity: '1000000' }]
-			)
-			builder.reset()
-			// Should be able to add new output after reset
-			const result = builder.txOut(
-				'addr_test1qrsx72hrv8ens90hwkezg7ysyhwvcjmyzdveyf88ppq7a0lwu7gv0wuuf9lhzm7wclvj5ntgcfa53j0rqxmu237x20xsne56q3',
-				[{ unit: 'lovelace', quantity: '2000000' }]
-			)
-			expect(result).toBe(builder)
-		})
+	it('calculateFee() is a zero placeholder', () => {
+		const builder = new TxBuilder()
+		const zero = builder.calculateFee()
+		expect(zero.to_str()).toBe('0')
+		zero.free()
+		builder.dispose()
 	})
 })
 
-describe('TxBuilder - Static Methods', () => {
-	describe('getTxBuilder', () => {
-		it('should create TransactionBuilder from protocol params', () => {
-			const txBuilder = TxBuilder.getTxBuilder(DEFAULT_PROTOCOL_PARAMETERS)
-			expect(txBuilder).toBeDefined()
-			expect(txBuilder).toBeInstanceOf(CardanoWASM.TransactionBuilder)
-		})
+describe('minAda / minAdaForAssets', () => {
+	const minAdaOf = (assets: Asset[]) => {
+		const value = TxBuilder.minAdaForAssets(assets)
+		try {
+			return BigInt(value.to_str())
+		} finally {
+			value.free()
+		}
+	}
 
-		it('should handle custom protocol params', () => {
-			const customParams = {
-				...DEFAULT_PROTOCOL_PARAMETERS,
-				minFeeA: 100,
-				minFeeB: 200000
-			}
-			const txBuilder = TxBuilder.getTxBuilder(customParams)
-			expect(txBuilder).toBeDefined()
-		})
+	it('follows the Babbage rule (160 + output bytes) × coinsPerUtxoSize', () => {
+		const address = CardanoWASM.Address.from_bech32(ADDRESS)
+		const coin = CardanoWASM.BigNum.from_str('1000000')
+		const value = CardanoWASM.Value.new(coin)
+		const output = CardanoWASM.TransactionOutput.new(address, value)
+		const size = BigInt(output.to_bytes().length)
+
+		for (const coinsPerUtxoSize of [DEFAULT_PROTOCOL_PARAMETERS.coinsPerUtxoSize, 5000]) {
+			const min = TxBuilder.minAda(output, { ...DEFAULT_PROTOCOL_PARAMETERS, coinsPerUtxoSize })
+			expect(BigInt(min.to_str())).toBe((160n + size) * BigInt(coinsPerUtxoSize))
+			min.free()
+		}
+		;[output, value, coin, address].forEach(o => o.free())
 	})
 
-	describe('minAda', () => {
-		it('should calculate minimum ADA for simple output', () => {
-			const output = CardanoWASM.TransactionOutput.new(
-				CardanoWASM.Address.from_bech32(
-					'addr_test1qrsx72hrv8ens90hwkezg7ysyhwvcjmyzdveyf88ppq7a0lwu7gv0wuuf9lhzm7wclvj5ntgcfa53j0rqxmu237x20xsne56q3'
-				),
-				CardanoWASM.Value.new(CardanoWASM.BigNum.from_str('1000000'))
-			)
-			const minAda = TxBuilder.minAda(output)
-			expect(minAda).toBeDefined()
-			expect(minAda).toBeInstanceOf(CardanoWASM.BigNum)
-		})
-
-		it('should calculate minimum ADA with custom protocol params', () => {
-			const output = CardanoWASM.TransactionOutput.new(
-				CardanoWASM.Address.from_bech32(
-					'addr_test1qrsx72hrv8ens90hwkezg7ysyhwvcjmyzdveyf88ppq7a0lwu7gv0wuuf9lhzm7wclvj5ntgcfa53j0rqxmu237x20xsne56q3'
-				),
-				CardanoWASM.Value.new(CardanoWASM.BigNum.from_str('1000000'))
-			)
-			const customParams = { ...DEFAULT_PROTOCOL_PARAMETERS, coinsPerUtxoSize: 5000 }
-			const minAda = TxBuilder.minAda(output, customParams)
-			expect(minAda).toBeDefined()
-		})
+	it('aggregates repeated units before sizing the output', () => {
+		expect(
+			minAdaOf([
+				{ unit: TOKEN, quantity: '1000' },
+				{ unit: TOKEN, quantity: '500' }
+			])
+		).toBe(minAdaOf([{ unit: TOKEN, quantity: '1500' }]))
 	})
 
-	describe('minAdaForAssets', () => {
-		it('should calculate minimum ADA for single native asset', () => {
-			const policyId = 'a'.repeat(56)
-			const assetName = '746f6b656e' // "token" in hex
-			const assets = [{ unit: policyId + assetName, quantity: '1000' }]
-			const minAda = TxBuilder.minAdaForAssets(assets)
-			expect(minAda).toBeDefined()
-			expect(minAda).toBeInstanceOf(CardanoWASM.BigNum)
-			expect(BigInt(minAda.to_str())).toBeGreaterThan(BigInt(0))
-		})
-
-		it('should calculate minimum ADA for native assets', () => {
-			const policyId = 'a'.repeat(56)
-			const assetName = '746f6b656e' // "token" in hex
-			const assets = [{ unit: policyId + assetName, quantity: '1000' }]
-			const minAda = TxBuilder.minAdaForAssets(assets)
-			expect(minAda).toBeDefined()
-			// Min ADA with assets should be higher than without
-			expect(BigInt(minAda.to_str())).toBeGreaterThan(BigInt(0))
-		})
-
-		it('should calculate minimum ADA for multiple assets', () => {
-			const policyId1 = 'a'.repeat(56)
-			const policyId2 = 'b'.repeat(56)
-			const assetName1 = '746f6b656e31' // "token1" in hex
-			const assetName2 = '746f6b656e32' // "token2" in hex
-			const assets = [
-				{ unit: policyId1 + assetName1, quantity: '1000' },
-				{ unit: policyId2 + assetName2, quantity: '2000' }
-			]
-			const minAda = TxBuilder.minAdaForAssets(assets)
-			expect(minAda).toBeDefined()
-		})
-
-		it('should handle assets with same policy ID', () => {
-			const policyId = 'a'.repeat(56)
-			const assetName1 = '746f6b656e31'
-			const assetName2 = '746f6b656e32'
-			const assets = [
-				{ unit: policyId + assetName1, quantity: '1000' },
-				{ unit: policyId + assetName2, quantity: '2000' }
-			]
-			const minAda = TxBuilder.minAdaForAssets(assets)
-			expect(minAda).toBeDefined()
-		})
-
-		it('should aggregate same asset quantities', () => {
-			const policyId = 'a'.repeat(56)
-			const assetName = '746f6b656e'
-			const assets = [
-				{ unit: policyId + assetName, quantity: '1000' },
-				{ unit: policyId + assetName, quantity: '500' }
-			]
-			const minAda = TxBuilder.minAdaForAssets(assets)
-			expect(minAda).toBeDefined()
-		})
+	it('grows with every extra asset', () => {
+		const one = minAdaOf([{ unit: TOKEN, quantity: '1' }])
+		const samePolicy = minAdaOf([
+			{ unit: TOKEN, quantity: '1' },
+			{ unit: `${POLICY_ID}746f6b656e32`, quantity: '1' }
+		])
+		const twoPolicies = minAdaOf([
+			{ unit: TOKEN, quantity: '1' },
+			{ unit: `${'b'.repeat(56)}746f6b656e32`, quantity: '1' }
+		])
+		expect(one).toBeGreaterThan(0n)
+		expect(samePolicy).toBeGreaterThan(one)
+		expect(twoPolicies).toBeGreaterThan(samePolicy)
 	})
 })
