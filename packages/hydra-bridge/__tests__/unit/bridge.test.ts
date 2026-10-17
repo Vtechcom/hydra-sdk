@@ -1,963 +1,587 @@
-import { describe, it, expect, beforeEach, vi, afterEach, Mock } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { DEFAULT_PROTOCOL_PARAMETERS } from '@hydra-sdk/core'
 import { HydraBridge } from '../../src/bridge'
+import { CHAIN_TIMEOUT_MS, WebsocketConnector } from '../../src/connector/websocket'
+import { HydraCommand, HydraHeadStatus, HydraHeadTag } from '../../src/types/payload.type'
 import {
-	DecommitApproved,
-	HydraCommand,
-	HydraHeadStatus,
-	HydraHeadTag,
-	HydraPayload,
-	SnapshotConfirmed
-} from '../../src/types/payload.type'
-import { HydraConnector, HydraBridgeEvents } from '../../src/types/hydra-connector.type'
-import { HydraBridgeFetcher } from '../../src/types/fetcher.type'
-import { HydraBridgeSubmitter } from '../../src/types/submitter.type'
-import mitt, { Emitter } from 'mitt'
-import { Transaction } from '../../src/types/transaction.type'
-import { DEFAULT_PROTOCOL_PARAMETERS, UTxOObject } from '@hydra-sdk/core'
+	ADDR_A,
+	ADDR_B,
+	HEAD_ID,
+	POLICY,
+	deferred,
+	greetings,
+	headState,
+	mockConnector,
+	pp,
+	snapshotConfirmed,
+	tx,
+	utxo,
+	utxoSet,
+	type MockConnector
+} from '../helpers/fixtures'
 
-// Mock connector factory
-const createMockConnector = (overrides?: Partial<HydraConnector>): HydraConnector => {
-	const eventEmitter: Emitter<HydraBridgeEvents> = mitt<HydraBridgeEvents>()
-	const mockFetcher: HydraBridgeFetcher = {
-		queryRawProtocolParameters: vi.fn().mockResolvedValue({
-			txFeeFixed: 155381,
-			txFeePerByte: 44,
-			maxTxSize: 16384,
-			maxBlockBodySize: 90112,
-			maxBlockHeaderSize: 1100,
-			protocolVersion: { major: 8, minor: 0 },
-			maxValueSize: 5000,
-			collateralPercentage: 150,
-			maxCollateralInputs: 3,
-			utxoCostPerByte: 4310,
-			stakeAddressDeposit: 2000000,
-			stakePoolDeposit: 500000000,
-			minPoolCost: 340000000,
-			executionUnitPrices: {
-				priceMemory: 0.0577,
-				priceSteps: 0.0000721
-			},
-			maxTxExecutionUnits: {
-				memory: 14000000,
-				steps: 10000000000
-			},
-			maxBlockExecutionUnits: {
-				memory: 62000000,
-				steps: 20000000000
-			},
-			minFeeRefScriptCostPerByte: 15
-		}),
-		querySnapshotUtxo: vi.fn().mockResolvedValue({
-			'txhash123#0': {
-				address: 'addr_test1qz...',
-				datum: null,
-				datumhash: null,
-				inlineDatum: null,
-				referenceScript: null,
-				value: { lovelace: 5000000 }
-			}
-		} as UTxOObject),
-		queryHeadInfo: vi.fn().mockResolvedValue({
-			tag: HydraHeadStatus.Idle,
-			contents: {
-				headId: null,
-				headSeed: '',
-				parameters: { contestationPeriod: 0, parties: [] },
-				chainState: { recordedAt: null, spendableUTxO: {} },
-				coordinatedHeadState: {
-					allTxs: {},
-					confirmedSnapshot: null,
-					currentDepositTxId: null,
-					decommitTx: null,
-					localTxs: [],
-					localUTxO: {},
-					seenSnapshot: { lastSeen: 0, tag: 'LastSeenSnapshot' },
-					version: 0
-				}
-			}
-		})
-	}
-
-	const mockSubmitter: HydraBridgeSubmitter = {
-		commit: vi.fn().mockResolvedValue({ txId: 'commit-tx-id' }),
-		submitCardanoTx: vi.fn().mockResolvedValue({ txId: 'cardano-tx-id' }),
-		submitTxSync: vi.fn().mockResolvedValue({
-			txId: 'tx-id',
-			isValid: true,
-			isConfirmed: true,
-			result: { tag: HydraHeadTag.SnapshotConfirmed } as SnapshotConfirmed
-		}),
-		submitTx: vi.fn()
-	}
-
-	return {
-		conn: {
-			ssl: false,
-			host: 'localhost',
-			port: 4001,
-			path: '/'
-		},
-		fetcher: mockFetcher,
-		submitter: mockSubmitter,
-		apiFetch: {} as any,
-		eventEmitter,
-		connect: vi.fn(),
-		disconnect: vi.fn(),
-		connected: vi.fn().mockReturnValue(true),
-		sendCommand: vi.fn(),
-		...overrides
-	}
-}
+const NOW = Date.parse('2026-10-17T00:00:00Z')
+const flush = () => vi.advanceTimersByTimeAsync(0)
 
 describe('HydraBridge', () => {
+	let connector: MockConnector
 	let bridge: HydraBridge
-	let mockConnector: HydraConnector
 
 	beforeEach(() => {
-		mockConnector = createMockConnector()
-		bridge = new HydraBridge({
-			connector: mockConnector,
-			verbose: false
-		})
+		vi.useFakeTimers({ now: NOW })
+		connector = mockConnector()
+		bridge = new HydraBridge({ connector })
 	})
 
 	afterEach(() => {
-		vi.clearAllMocks()
+		vi.useRealTimers()
+		vi.restoreAllMocks()
 	})
 
-	describe('constructor', () => {
-		it('should create HydraBridge with custom connector', () => {
-			const customConnector = createMockConnector()
-			const customBridge = new HydraBridge({
-				connector: customConnector,
-				verbose: true
-			})
-			expect(customBridge.connector).toBe(customConnector)
-			expect(customBridge.verbose).toBe(true)
-		})
-
-		it('should create HydraBridge with websocket URL', () => {
+	describe('constructor with url', () => {
+		it('builds a websocket connector carrying history, snapshot-utxo, address and api key', () => {
 			const urlBridge = new HydraBridge({
-				url: 'ws://localhost:4001',
-				verbose: false
-			})
-			expect(urlBridge.connector).toBeDefined()
-			expect(urlBridge.verbose).toBe(false)
-		})
-
-		it('should create HydraBridge with verbose logging', () => {
-			const verboseBridge = new HydraBridge({
-				connector: mockConnector,
-				verbose: true
-			})
-			expect(verboseBridge.verbose).toBe(true)
-		})
-
-		it('should set up onConnected event handler', () => {
-			const connector = createMockConnector()
-			const onSpy = vi.spyOn(connector.eventEmitter, 'on')
-
-			new HydraBridge({
-				connector,
-				verbose: false
-			})
-
-			expect(onSpy).toHaveBeenCalledWith('onConnected', expect.any(Function))
-		})
-
-		it('should create HydraBridge with websocket URL and new options', () => {
-			const urlBridge = new HydraBridge({
-				url: 'ws://localhost:4001',
+				url: 'ws://localhost:4001?X-Api-Key=secret',
 				history: true,
 				noSnapshotUtxo: true,
-				address: 'addr_test1...',
-				verbose: false
+				address: ADDR_A
 			})
 
-			expect(urlBridge.connector).toBeDefined()
-			// Verify options are passed to connector
-			const wsConnector = urlBridge.connector as any
-			expect(wsConnector.conn.history).toBe(true)
-			expect(wsConnector.conn.noSnapshotUtxo).toBe(true)
-			expect(wsConnector.conn.address).toBe('addr_test1...')
-		})
-
-		it('should create HydraBridge with only xApiKey params', () => {
-			const apiKey = 'my-secret-key'
-			const bridge = new HydraBridge({
-				url: `ws://localhost:4001?X-Api-Key=${apiKey}`,
-				verbose: false
-			})
-
-			const wsConnector = bridge.connector as any
-			expect(wsConnector.conn.params['X-Api-Key']).toBe(apiKey)
-			expect(wsConnector.apiFetch.defaults.headers['X-Api-Key']).toBe(apiKey)
+			const ws = urlBridge.connector as WebsocketConnector
+			expect(ws).toBeInstanceOf(WebsocketConnector)
+			expect(ws.networkInfo.socketUrl).toBe(
+				`ws://localhost:4001/?X-Api-Key=secret&history=yes&snapshot-utxo=no&address=${ADDR_A}`
+			)
+			expect(ws.apiFetch.defaults.headers['X-Api-Key']).toBe('secret')
 		})
 	})
 
-	describe('connected', () => {
-		it('should return true when connector is connected', () => {
-			;(mockConnector.connected as Mock).mockReturnValue(true)
-			expect(bridge.connected()).toBe(true)
+	describe('connect / disconnect', () => {
+		it('connect resolves true on onConnected', async () => {
+			const p = bridge.connect()
+			connector.eventEmitter.emit('onConnected')
+			await expect(p).resolves.toBe(true)
 		})
 
-		it('should return false when connector is not connected', () => {
-			;(mockConnector.connected as Mock).mockReturnValue(false)
-			expect(bridge.connected()).toBe(false)
-		})
-	})
-
-	describe('connect', () => {
-		it('should call connector.connect', async () => {
-			const connectPromise = bridge.connect()
-
-			// Emit connected event
-			mockConnector.eventEmitter.emit('onConnected')
-
-			const result = await connectPromise
-			expect(mockConnector.connect).toHaveBeenCalled()
-			expect(result).toBe(true)
+		it('connect rejects with false on onDisconnected', async () => {
+			const p = bridge.connect()
+			connector.eventEmitter.emit('onDisconnected')
+			await expect(p).rejects.toBe(false)
 		})
 
-		it('should reject when disconnected event is received', async () => {
-			const connectPromise = bridge.connect()
-
-			// Emit disconnected event
-			mockConnector.eventEmitter.emit('onDisconnected')
-
-			await expect(connectPromise).rejects.toBe(false)
-		})
-	})
-
-	describe('disconnect', () => {
-		it('should call connector.disconnect', async () => {
-			;(mockConnector.connected as Mock).mockReturnValue(false)
-			const result = await bridge.disconnect()
-			expect(mockConnector.disconnect).toHaveBeenCalled()
-			expect(result).toBe(true)
+		// BUG: connect() only removes the handler that fired; the other one stays
+		// registered forever, so every connect() leaks a listener.
+		it.fails('connect leaves no handler of its own behind once settled', async () => {
+			const before = connector.eventEmitter.all.get('onDisconnected')?.length ?? 0
+			const p = bridge.connect()
+			connector.eventEmitter.emit('onConnected')
+			await p
+			expect(connector.eventEmitter.all.get('onDisconnected')?.length ?? 0).toBe(before)
 		})
 
-		it('should wait for disconnected event when still connected', async () => {
-			;(mockConnector.connected as Mock).mockReturnValue(true)
+		it('disconnect resolves at once when the connector is already down', async () => {
+			connector.connected.mockReturnValue(false)
+			await expect(bridge.disconnect()).resolves.toBe(true)
+			expect(connector.disconnect).toHaveBeenCalledOnce()
+		})
 
-			const disconnectPromise = bridge.disconnect()
+		it('disconnect waits for onDisconnected while the socket is still open', async () => {
+			let settled = false
+			const p = bridge.disconnect().then(v => (settled = v))
+			await flush()
+			expect(settled).toBe(false)
 
-			// Emit disconnected event
-			mockConnector.eventEmitter.emit('onDisconnected')
-
-			const result = await disconnectPromise
-			expect(result).toBe(true)
+			connector.eventEmitter.emit('onDisconnected')
+			await p
+			expect(settled).toBe(true)
 		})
 	})
 
 	describe('headInfo', () => {
-		it('should return head info from connector', async () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-			const info = await bridge.headInfo()
-
-			expect(info).toEqual({
-				headId: null,
-				headStatus: HydraHeadStatus.Idle,
-				vkey: null
-			})
-			consoleSpy.mockRestore()
-		})
-	})
-
-	describe('sendCommand', () => {
-		it('should call connector.sendCommand with correct data', () => {
-			bridge.sendCommand({
-				command: HydraCommand.Init,
-				payload: { test: 'data' }
-			})
-
-			expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-				command: HydraCommand.Init,
-				payload: { test: 'data' }
-			})
+		it('reports Idle with no head id or vkey', async () => {
+			connector.fetcher.queryHeadInfo.mockResolvedValue(headState.idle())
+			await expect(bridge.headInfo()).resolves.toEqual({ headId: null, headStatus: HydraHeadStatus.Idle, vkey: null })
 		})
 
-		it('should call afterSendCb if provided', () => {
-			const afterSendCb = vi.fn()
-			bridge.sendCommand({
-				command: HydraCommand.Init,
-				afterSendCb
-			})
-
-			expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-				command: HydraCommand.Init,
-				afterSendCb
+		it('reports Open with the head id and the first party vkey', async () => {
+			connector.fetcher.queryHeadInfo.mockResolvedValue(headState.open(['alice', 'bob']))
+			await expect(bridge.headInfo()).resolves.toEqual({
+				headId: HEAD_ID,
+				headStatus: HydraHeadStatus.Open,
+				vkey: 'alice'
 			})
 		})
 	})
 
-	describe('commit', () => {
-		it('should call connector.submitter.commit', async () => {
-			const commitData = {
-				'txhash#0': {
-					address: 'addr_test1...',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 1000000 }
-				}
-			}
-			await bridge.commit(commitData)
+	describe('protocol parameters', () => {
+		it('maps node fields onto core Protocol and keeps an in-head zero utxoCostPerByte', async () => {
+			connector.fetcher.queryRawProtocolParameters.mockResolvedValue(pp({ txFeePerByte: 44, txFeeFixed: 155381 }))
 
-			expect(mockConnector.submitter.commit).toHaveBeenCalledWith(commitData)
-		})
-	})
-
-	describe('submitCardanoTransaction', () => {
-		it('should call connector.submitter.submitCardanoTx', async () => {
-			const txData = {
-				cborHex: 'abc123',
-				description: 'Test tx',
-				type: 'Witnessed Tx ConwayEra' as const
-			}
-			await bridge.submitCardanoTransaction(txData)
-
-			expect(mockConnector.submitter.submitCardanoTx).toHaveBeenCalledWith(txData)
-		})
-	})
-
-	describe('getProtocolParameters', () => {
-		it('should fetch and convert protocol parameters', async () => {
 			const params = await bridge.getProtocolParameters()
 
-			expect(mockConnector.fetcher.queryRawProtocolParameters).toHaveBeenCalled()
-			expect(params).toBeDefined()
+			expect(params).toMatchObject({ minFeeA: 44, minFeeB: 155381, maxTxSize: 16384, coinsPerUtxoSize: 0 })
 		})
 
-		it('should cache protocol parameters', async () => {
-			await bridge.getProtocolParameters()
-			await bridge.getProtocolParameters()
-
-			// Should only call once due to caching
-			expect(mockConnector.fetcher.queryRawProtocolParameters).toHaveBeenCalledTimes(1)
-		})
-
-		it('should throw error if fetching fails', async () => {
-			;(mockConnector.fetcher.queryRawProtocolParameters as Mock).mockRejectedValue(new Error('Network error'))
-
-			await expect(bridge.getProtocolParameters()).rejects.toThrow('Failed to query protocol parameters')
-		})
-
-		// Inside a head utxoCostPerByte is 0. castProtocol must keep that zero
-		// rather than substituting the L1 default, or min-UTxO maths goes wrong.
-		it('should preserve a zero utxoCostPerByte instead of falling back', async () => {
-			;(mockConnector.fetcher.queryRawProtocolParameters as Mock).mockResolvedValue({
-				...(await (mockConnector.fetcher.queryRawProtocolParameters as Mock).getMockImplementation()!()),
-				utxoCostPerByte: 0
-			})
+		it('falls back to core defaults for fields the node omits', async () => {
+			connector.fetcher.queryRawProtocolParameters.mockResolvedValue({ txFeeFixed: 1, txFeePerByte: 2 })
 
 			const params = await bridge.getProtocolParameters()
-			expect(params.coinsPerUtxoSize).toBe(0)
-		})
 
-		it('should fall back to core defaults for fields the node omits', async () => {
-			;(mockConnector.fetcher.queryRawProtocolParameters as Mock).mockResolvedValue({
-				txFeeFixed: 155381,
-				txFeePerByte: 44
-			})
-
-			const params = await bridge.getProtocolParameters()
-			expect(params.minFeeA).toBe(44)
 			expect(params.maxTxSize).toBe(DEFAULT_PROTOCOL_PARAMETERS.maxTxSize)
 			expect(params.minPoolCost).toBe(DEFAULT_PROTOCOL_PARAMETERS.minPoolCost)
-			expect(params.maxTxSize).not.toBeUndefined()
 		})
 
-		it('should expose raw parameters including PV11 cost models', async () => {
+		it('queries the node once and serves both shapes from the cache', async () => {
+			await bridge.getProtocolParameters()
 			const raw = await bridge.getRawProtocolParameters()
 
-			expect(raw.txFeePerByte).toBe(44)
-			// costModels/protocolVersion have no slot in core's Protocol — they must
-			// survive on the raw object for ExUnits budgeting.
-			expect(raw.protocolVersion).toBeDefined()
-		})
-	})
-
-	describe('querySnapshotUtxo', () => {
-		it('should fetch snapshot UTxO', async () => {
-			const utxo = await bridge.querySnapshotUtxo()
-
-			expect(mockConnector.fetcher.querySnapshotUtxo).toHaveBeenCalled()
-			expect(utxo).toBeDefined()
+			expect(raw.costModels).toEqual(pp().costModels)
+			expect(raw.protocolVersion).toEqual({ major: 11, minor: 0 })
+			expect(connector.fetcher.queryRawProtocolParameters).toHaveBeenCalledOnce()
 		})
 
-		it('should throw error if fetching fails', async () => {
-			;(mockConnector.fetcher.querySnapshotUtxo as Mock).mockRejectedValue(new Error('Network error'))
+		it('wraps a fetch failure and logs it', async () => {
+			const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+			connector.fetcher.queryRawProtocolParameters.mockRejectedValue(new Error('ECONNREFUSED'))
 
-			await expect(bridge.querySnapshotUtxo()).rejects.toThrow('Failed to query utxo')
-		})
-	})
-
-	describe('snapshotUtxoArray', () => {
-		it('should convert snapshot UTxO object to array', async () => {
-			await bridge.querySnapshotUtxo()
-			const utxos = bridge.snapshotUtxoArray()
-
-			expect(Array.isArray(utxos)).toBe(true)
-		})
-	})
-
-	describe('addressesInHead', () => {
-		it('should return unique addresses from snapshot UTxO', async () => {
-			;(mockConnector.fetcher.querySnapshotUtxo as Mock).mockResolvedValue({
-				'txhash1#0': {
-					address: 'addr_test1...',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 1000000 }
-				},
-				'txhash2#0': {
-					address: 'addr_test1...',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 2000000 }
-				},
-				'txhash3#0': {
-					address: 'addr_test2...',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 3000000 }
-				}
-			} as UTxOObject)
-
-			const addresses = await bridge.addressesInHead()
-
-			expect(addresses).toContain('addr_test1...')
-			expect(addresses).toContain('addr_test2...')
-			expect(addresses.length).toBe(2) // Should be unique
-		})
-	})
-
-	describe('commands', () => {
-		describe('newTx', () => {
-			it('should send NewTx command', () => {
-				bridge.commands.newTx('cborHex123', 'description')
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.NewTx,
-					payload: {
-						transaction: {
-							cborHex: 'cborHex123',
-							description: 'description',
-							type: 'Witnessed Tx ConwayEra'
-						}
-					},
-					afterSendCb: undefined
-				})
-			})
-
-			it('should call callback after sending', () => {
-				const cb = vi.fn()
-				bridge.commands.newTx('cborHex123', 'description', cb)
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith(
-					expect.objectContaining({
-						command: HydraCommand.NewTx,
-						afterSendCb: cb
-					})
-				)
-			})
-		})
-
-		describe('init', () => {
-			it('should send Init command', () => {
-				bridge.commands.init()
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.Init
-				})
-			})
-		})
-
-		describe('close', () => {
-			it('should send Close command', () => {
-				bridge.commands.close()
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.Close
-				})
-			})
-		})
-
-		describe('safeClose', () => {
-			it('should send SafeClose command', () => {
-				bridge.commands.safeClose()
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.SafeClose
-				})
-			})
-		})
-
-		describe('sideLoadSnapshot', () => {
-			it('should send SideLoadSnapshot command with the snapshot', () => {
-				const snapshot = { tag: 'ConfirmedSnapshot' }
-				bridge.commands.sideLoadSnapshot(snapshot)
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.SideLoadSnapshot,
-					payload: { snapshot }
-				})
-			})
-		})
-
-		describe('partialFanout', () => {
-			it('should send PartialFanout command with the selected UTxO', () => {
-				const utxoToFanout = {}
-				bridge.commands.partialFanout(utxoToFanout)
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.PartialFanout,
-					payload: { utxoToFanout }
-				})
-			})
-		})
-
-		describe('fanout', () => {
-			it('should send Fanout command', () => {
-				bridge.commands.fanout()
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.Fanout
-				})
-			})
-		})
-
-		describe('contest', () => {
-			it('should send Contest command', () => {
-				bridge.commands.contest()
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.Contest
-				})
-			})
-		})
-
-		describe('recover', () => {
-			it('should send Recover command with recoverTxId', () => {
-				bridge.commands.recover('recover-tx-id-123')
-
-				expect(mockConnector.sendCommand).toHaveBeenCalledWith({
-					command: HydraCommand.Recover,
-					payload: {
-						recoverTxId: 'recover-tx-id-123'
-					}
-				})
-			})
-		})
-
-		describe('decommit', () => {
-			it('should send Decommit command and wait for approval', async () => {
-				const decommitPromise = bridge.commands.decommit({
-					cborHex: 'decommit-cbor',
-					txId: 'decommit-tx-id',
-					timeout: 5000
-				})
-
-				// Emit DecommitApproved event
-				setTimeout(() => {
-					mockConnector.eventEmitter.emit('onMessage', {
-						headId: 'head-123',
-						decommitTxId: 'decommit-tx-id',
-						utxoToDecommit: {
-							'txhash#0': {
-								address: 'addr_test1...',
-								datum: null,
-								datumhash: null,
-								inlineDatum: null,
-								referenceScript: null,
-								value: { lovelace: 1000000 }
-							}
-						},
-						seq: 1,
-						tag: HydraHeadTag.DecommitApproved
-					} as DecommitApproved)
-				}, 10)
-
-				const result = await decommitPromise
-				expect(result).toBeDefined()
-			})
-
-			it('should timeout if DecommitApproved not received', async () => {
-				const decommitPromise = bridge.commands.decommit({
-					cborHex: 'decommit-cbor',
-					txId: 'decommit-tx-id',
-					timeout: 50
-				})
-
-				await expect(decommitPromise).rejects.toThrow('Decommit timeout')
-			})
-		})
-
-		describe('initSync', () => {
-			// hydra-node v2 removed the commit phase — the head opens directly and
-			// never emits HeadIsInitializing.
-			it('should send Init command and wait for HeadIsOpen', async () => {
-				const initPromise = bridge.commands.initSync!(1, 100)
-
-				setTimeout(() => {
-					mockConnector.eventEmitter.emit('onMessage', {
-						tag: HydraHeadTag.HeadIsOpen,
-						headId: 'head-123',
-						parties: [{ vkey: 'vkey-1' }],
-						seq: 1,
-						timestamp: new Date().toISOString()
-					} as HydraPayload)
-				}, 10)
-
-				const result = await initPromise
-				expect(result).toBe(true)
-			})
-
-			it('should retry init on timeout', async () => {
-				const initPromise = bridge.commands.initSync!(0, 50)
-
-				await expect(initPromise).rejects.toThrow('Init timeout')
-			})
-
-			it('should fail fast when the node rejects Init because it is unsynced', async () => {
-				const initPromise = bridge.commands.initSync!(3, 10_000)
-
-				setTimeout(() => {
-					mockConnector.eventEmitter.emit('onMessage', {
-						tag: HydraHeadTag.RejectedInputBecauseUnsynced,
-						clientInput: { tag: HydraCommand.Init },
-						drift: 42
-					} as HydraPayload)
-				}, 10)
-
-				await expect(initPromise).rejects.toThrow('node is out of sync')
-			})
-		})
-	})
-
-	describe('submitTxSync', () => {
-		it('should submit transaction synchronously', async () => {
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test tx',
-				type: 'Witnessed Tx ConwayEra'
-			}
-
-			const result = await bridge.submitTxSync(tx)
-
-			expect(mockConnector.submitter.submitTxSync).toHaveBeenCalledWith(tx, { timeout: 30000 })
-			expect(result.txId).toBe('tx-id')
-		})
-
-		it('should throw error when not connected', async () => {
-			;(mockConnector.connected as Mock).mockReturnValue(false)
-
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test tx',
-				type: 'Witnessed Tx ConwayEra'
-			}
-
-			await expect(bridge.submitTxSync(tx)).rejects.toThrow('Not connected to Hydra node')
-		})
-
-		it('should use custom timeout', async () => {
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test tx',
-				type: 'Witnessed Tx ConwayEra'
-			}
-
-			await bridge.submitTxSync(tx, { timeout: 60000 })
-
-			expect(mockConnector.submitter.submitTxSync).toHaveBeenCalledWith(tx, { timeout: 60000 })
-		})
-	})
-
-	describe('events', () => {
-		it('should return event emitter', () => {
-			expect(bridge.events).toBe(mockConnector.eventEmitter)
-		})
-	})
-
-	describe('queryAddressUTxO', () => {
-		it('should filter UTxOs by address', async () => {
-			const targetAddress = 'addr_test1target'
-			;(mockConnector.fetcher.querySnapshotUtxo as Mock).mockResolvedValue({
-				'txhash1#0': {
-					address: targetAddress,
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 1000000 }
-				},
-				'txhash2#0': {
-					address: 'addr_test1other',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 2000000 }
-				}
-			} as UTxOObject)
-
-			const utxos = await bridge.queryAddressUTxO(targetAddress)
-
-			expect(utxos.length).toBe(1)
-			expect(utxos[0].output.address).toBe(targetAddress)
-		})
-
-		it('should return empty array if no matching UTxOs', async () => {
-			;(mockConnector.fetcher.querySnapshotUtxo as Mock).mockResolvedValue({
-				'txhash1#0': {
-					address: 'addr_test1other',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 1000000 }
-				}
-			} as UTxOObject)
-
-			const utxos = await bridge.queryAddressUTxO('addr_test1nonexistent')
-
-			expect(utxos.length).toBe(0)
-		})
-
-		it('should use addressUtxoIndex and skip HTTP when cache is seeded', async () => {
-			const mockSnapshot = {
-				'txhash1#0': {
-					address: 'addr_test1target',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 5000000 }
-				}
-			} as UTxOObject
-
-			// Seed via Greetings (no HTTP call)
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.Greetings,
-				snapshotUtxo: mockSnapshot,
-				headStatus: HydraHeadStatus.Open,
-				hydraHeadId: 'head-id',
-				me: { vkey: 'vkey' },
-				hydraNodeVersion: '1.3.0',
-				timestamp: new Date()
-			} as any)
-
-			const fetchSpy = mockConnector.fetcher.querySnapshotUtxo as Mock
-			fetchSpy.mockClear()
-
-			const utxos = await bridge.queryAddressUTxO('addr_test1target')
-			expect(utxos.length).toBe(1)
-			expect(utxos[0].output.address).toBe('addr_test1target')
-			expect(fetchSpy).not.toHaveBeenCalled()
+			await expect(bridge.getProtocolParameters()).rejects.toThrow(/Failed to query protocol parameters/)
+			expect(error).toHaveBeenCalledWith(expect.anything(), 'queryRawProtocolParameters error', expect.any(Error))
 		})
 	})
 
 	describe('snapshot cache', () => {
-		const mockSnapshot: UTxOObject = {
-			'txhash1#0': {
-				address: 'addr_test1target',
-				datum: null,
-				datumhash: null,
-				inlineDatum: null,
-				referenceScript: null,
-				value: { lovelace: 5000000 }
-			},
-			'txhash2#0': {
-				address: 'addr_test1other',
-				datum: null,
-				datumhash: null,
-				inlineDatum: null,
-				referenceScript: null,
-				value: { lovelace: 3000000 }
-			}
-		}
+		const assetUnit = POLICY + '74657374'
+		const snapshot = utxoSet(
+			utxo(1, ADDR_A, 2_000_000),
+			utxo(2, ADDR_A, { lovelace: 3_000_000, [POLICY]: { '74657374': 7 } } as never),
+			utxo(3, ADDR_B, 5_000_000)
+		)
 
-		it('should return null from getAddressBalance when cache is not seeded', () => {
-			expect(bridge.getAddressBalance('addr_test1target')).toBeNull()
-		})
-
-		it('should return empty Map for unknown address after cache is seeded', async () => {
-			;(mockConnector.fetcher.querySnapshotUtxo as Mock).mockResolvedValue(mockSnapshot)
-			await bridge.querySnapshotUtxo()
-			expect(bridge.getAddressBalance('addr_unknown')).toEqual(new Map())
-		})
-
-		it('should seed cache from Greetings snapshotUtxo without HTTP call', () => {
-			const fetchSpy = mockConnector.fetcher.querySnapshotUtxo as Mock
-			fetchSpy.mockClear()
-
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.Greetings,
-				snapshotUtxo: mockSnapshot,
-				headStatus: HydraHeadStatus.Open,
-				hydraHeadId: 'head-id',
-				me: { vkey: 'vkey' },
-				hydraNodeVersion: '1.3.0',
-				timestamp: new Date()
-			} as any)
-
-			expect(bridge.getAddressBalance('addr_test1target')).not.toBeNull()
-			expect(fetchSpy).not.toHaveBeenCalled()
-		})
-
-		it('should update cache and lastSnapshotNumber from SnapshotConfirmed', () => {
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.SnapshotConfirmed,
-				seq: 1,
-				headId: 'head-id',
-				snapshot: {
-					number: 5,
-					utxo: mockSnapshot,
-					headId: 'head-id',
-					version: 0,
-					confirmed: [],
-					utxoToCommit: {},
-					utxoToDecommit: {}
-				}
-			} as any)
-
-			expect(bridge.lastSnapshotNumber).toBe(5)
-			expect(bridge.getAddressBalance('addr_test1target')).not.toBeNull()
-		})
-
-		it('should skip out-of-order SnapshotConfirmed', () => {
-			// Apply snapshot #10
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.SnapshotConfirmed,
-				seq: 1,
-				headId: 'head-id',
-				snapshot: { number: 10, utxo: mockSnapshot, headId: 'head-id', version: 0, confirmed: [], utxoToCommit: {}, utxoToDecommit: {} }
-			} as any)
-			expect(bridge.lastSnapshotNumber).toBe(10)
-
-			// Try to apply an older snapshot #5 with different data
-			const newAddrSnapshot: UTxOObject = {
-				'txhash3#0': {
-					address: 'addr_new',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 1 }
-				}
-			}
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.SnapshotConfirmed,
-				seq: 1,
-				headId: 'head-id',
-				snapshot: { number: 5, utxo: newAddrSnapshot, headId: 'head-id', version: 0, confirmed: [], utxoToCommit: {}, utxoToDecommit: {} }
-			} as any)
-
-			// Counter must not regress
-			expect(bridge.lastSnapshotNumber).toBe(10)
-			// Data from snapshot #10 still intact
-			expect(bridge.getAddressBalance('addr_test1target')).not.toBeNull()
-		})
-
-		it('should use index for addressesInHead when cache is seeded', async () => {
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.Greetings,
-				snapshotUtxo: mockSnapshot,
-				headStatus: HydraHeadStatus.Open,
-				hydraHeadId: 'head-id',
-				me: { vkey: 'vkey' },
-				hydraNodeVersion: '1.3.0',
-				timestamp: new Date()
-			} as any)
-
-			const fetchSpy = mockConnector.fetcher.querySnapshotUtxo as Mock
-			fetchSpy.mockClear()
-
-			const addresses = await bridge.addressesInHead()
-			expect(addresses).toContain('addr_test1target')
-			expect(addresses).toContain('addr_test1other')
-			expect(fetchSpy).not.toHaveBeenCalled()
-		})
-
-		it('should reset lastSnapshotNumber to -1 on reconnect', () => {
-			// Seed a snapshot first
-			mockConnector.eventEmitter.emit('onMessage', {
-				tag: HydraHeadTag.SnapshotConfirmed,
-				seq: 1,
-				headId: 'head-id',
-				snapshot: { number: 10, utxo: mockSnapshot, headId: 'head-id', version: 0, confirmed: [], utxoToCommit: {}, utxoToDecommit: {} }
-			} as any)
-			expect(bridge.lastSnapshotNumber).toBe(10)
-
-			mockConnector.eventEmitter.emit('onConnected')
+		it('is cold before any snapshot', () => {
+			expect(bridge.getAddressBalance(ADDR_A)).toBeNull()
 			expect(bridge.lastSnapshotNumber).toBe(-1)
+		})
+
+		it('seeds per-address balances from Greetings without an HTTP call', async () => {
+			connector.emit(greetings({ snapshotUtxo: snapshot }))
+
+			expect(bridge.getAddressBalance(ADDR_A)).toEqual(
+				new Map([
+					['lovelace', 5_000_000n],
+					[assetUnit, 7n]
+				])
+			)
+			expect(bridge.getAddressBalance('addr_unknown')).toEqual(new Map())
+			expect((await bridge.queryAddressUTxO(ADDR_B)).map(u => u.output.amount)).toEqual([
+				[{ unit: 'lovelace', quantity: '5000000' }]
+			])
+			expect((await bridge.addressesInHead()).sort()).toEqual([ADDR_A, ADDR_B].sort())
+			expect(connector.fetcher.querySnapshotUtxo).not.toHaveBeenCalled()
+		})
+
+		it('seeds from HTTP on a cold queryAddressUTxO', async () => {
+			connector.fetcher.querySnapshotUtxo.mockResolvedValue(snapshot)
+
+			const utxos = await bridge.queryAddressUTxO(ADDR_A)
+
+			expect(utxos.map(u => u.output.amount[0].quantity)).toEqual(['2000000', '3000000'])
+			expect(bridge.snapshotUtxoArray()).toHaveLength(3)
+		})
+
+		it('replaces the cache on a newer SnapshotConfirmed and ignores an older one', () => {
+			connector.emit(snapshotConfirmed(10, utxo(1, ADDR_A, 1_000_000)))
+			connector.emit(snapshotConfirmed(5, utxo(9, ADDR_B, 9_000_000)))
+
+			expect(bridge.lastSnapshotNumber).toBe(10)
+			expect(bridge.getAddressBalance(ADDR_A)).toEqual(new Map([['lovelace', 1_000_000n]]))
+			expect(bridge.getAddressBalance(ADDR_B)).toEqual(new Map())
+		})
+
+		it('pulls the opening snapshot over HTTP on HeadIsOpen when not yet seeded', async () => {
+			connector.emit({ tag: HydraHeadTag.HeadIsOpen, headId: HEAD_ID, seq: 1, timestamp: '' })
+			await flush()
+
+			expect(bridge.getAddressBalance(ADDR_A)).toEqual(new Map([['lovelace', 1_000_000n]]))
+		})
+
+		it('does not query HTTP on HeadIsOpen once a snapshot is applied', () => {
+			connector.emit(snapshotConfirmed(1, utxo(1, ADDR_A)))
+			connector.emit({ tag: HydraHeadTag.HeadIsOpen, headId: HEAD_ID, seq: 2, timestamp: '' })
+
+			expect(connector.fetcher.querySnapshotUtxo).not.toHaveBeenCalled()
+		})
+
+		it('wraps an HTTP failure and logs it', async () => {
+			const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+			connector.fetcher.querySnapshotUtxo.mockRejectedValue(new Error('503'))
+
+			await expect(bridge.querySnapshotUtxo()).rejects.toThrow(/Failed to query utxo/)
+			expect(error).toHaveBeenCalledWith(expect.anything(), 'querySnapshotUtxo error', expect.any(Error))
+		})
+	})
+
+	describe('reconnect and HTTP/WS ordering', () => {
+		it('resets the counter on reconnect and re-seeds the cache from HTTP', async () => {
+			connector.emit(snapshotConfirmed(10, utxo(1, ADDR_A, 1_000_000)))
+			connector.fetcher.querySnapshotUtxo.mockResolvedValue(utxo(2, ADDR_B, 4_000_000))
+
+			connector.eventEmitter.emit('onConnected')
+			await flush()
+
+			expect(bridge.lastSnapshotNumber).toBe(-1)
+			expect(bridge.getAddressBalance(ADDR_B)).toEqual(new Map([['lovelace', 4_000_000n]]))
+			expect(bridge.getAddressBalance(ADDR_A)).toEqual(new Map())
+		})
+
+		it('a slow HTTP re-seed does not overwrite or regress a WS snapshot that arrived first', async () => {
+			const http = deferred<ReturnType<typeof utxo>>()
+			connector.fetcher.querySnapshotUtxo.mockReturnValue(http.promise)
+
+			connector.eventEmitter.emit('onConnected')
+			connector.emit(snapshotConfirmed(11, utxo(1, ADDR_A, 1_100_000)))
+			http.resolve(utxo(2, ADDR_B, 1))
+			await flush()
+
+			expect(bridge.lastSnapshotNumber).toBe(11)
+			expect(bridge.getAddressBalance(ADDR_A)).toEqual(new Map([['lovelace', 1_100_000n]]))
+			expect(bridge.getAddressBalance(ADDR_B)).toEqual(new Map())
+		})
+
+		// BUG: the onConnected comment says the HTTP fallback "will be skipped if
+		// Greetings ... arrives first", but seeding from Greetings leaves
+		// lastSnapshotNumber at -1, so a late HTTP response still overwrites it.
+		it.fails('a slow HTTP re-seed does not overwrite a cache seeded from Greetings', async () => {
+			const http = deferred<ReturnType<typeof utxo>>()
+			connector.fetcher.querySnapshotUtxo.mockReturnValue(http.promise)
+
+			connector.eventEmitter.emit('onConnected')
+			connector.emit(greetings({ snapshotUtxo: utxo(1, ADDR_A, 1_000_000) }))
+			http.resolve(utxo(2, ADDR_B, 1))
+			await flush()
+
+			expect(bridge.getAddressBalance(ADDR_A)).toEqual(new Map([['lovelace', 1_000_000n]]))
+		})
+	})
+
+	describe('sync status and slot zero', () => {
+		it('takes node version, sync status and an approximate slot zero from Greetings', () => {
+			connector.emit(greetings({ currentSlot: 1000, hydraNodeVersion: '2.3.0', chainSyncedStatus: 'CatchingUp' }))
+
+			expect(bridge.nodeVersion).toBe('2.3.0')
+			expect(bridge.syncedStatus).toBe('CatchingUp')
+			expect(bridge.slotZeroTimestamp).toBe(NOW - 1000 * 1000)
+		})
+
+		it('NodeSynced sets InSync and an exact slot zero from chainTime', () => {
+			connector.emit({
+				tag: HydraHeadTag.NodeSynced,
+				chainSlot: 500,
+				chainTime: '2026-10-16T00:00:00Z',
+				drift: 0,
+				seq: 1,
+				timestamp: ''
+			})
+
+			expect(bridge.syncedStatus).toBe('InSync')
+			expect(bridge.slotZeroTimestamp).toBe(Date.parse('2026-10-16T00:00:00Z') - 500 * 1000)
+		})
+
+		it('NodeUnsynced sets CatchingUp and warns with the drift', () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+			connector.emit({
+				tag: HydraHeadTag.NodeUnsynced,
+				chainSlot: 500,
+				chainTime: '2026-10-16T00:00:00Z',
+				drift: 42,
+				seq: 1,
+				timestamp: ''
+			})
+
+			expect(bridge.syncedStatus).toBe('CatchingUp')
+			expect(warn).toHaveBeenCalledWith(expect.anything(), expect.stringMatching(/out of sync \(drift 42s\)/))
+		})
+
+		it('SyncedStatusReport sets the reported status', () => {
+			connector.emit({
+				tag: HydraHeadTag.SyncedStatusReport,
+				chainSlot: 10,
+				chainTime: '2026-10-16T00:00:00Z',
+				drift: 3,
+				synced: 'CatchingUp'
+			})
+
+			expect(bridge.syncedStatus).toBe('CatchingUp')
+			expect(bridge.slotZeroTimestamp).toBe(Date.parse('2026-10-16T00:00:00Z') - 10 * 1000)
+		})
+
+		it('an exact slot zero is not overwritten by a later Greetings approximation', () => {
+			const exact = Date.parse('2026-10-16T00:00:00Z') - 500 * 1000
+			connector.emit({
+				tag: HydraHeadTag.SyncedStatusReport,
+				chainSlot: 500,
+				chainTime: '2026-10-16T00:00:00Z',
+				drift: 0,
+				synced: 'InSync'
+			})
+			connector.emit(greetings({ currentSlot: 1 }))
+
+			expect(bridge.slotZeroTimestamp).toBe(exact)
+		})
+
+		it('an approximate slot zero is replaced by an exact one', () => {
+			connector.emit(greetings({ currentSlot: 1 }))
+			connector.emit({
+				tag: HydraHeadTag.SyncedStatusReport,
+				chainSlot: 500,
+				chainTime: '2026-10-16T00:00:00Z',
+				drift: 0,
+				synced: 'InSync'
+			})
+
+			expect(bridge.slotZeroTimestamp).toBe(Date.parse('2026-10-16T00:00:00Z') - 500 * 1000)
+		})
+
+		it('ignores an unparseable chainTime', () => {
+			connector.emit(greetings({ currentSlot: 1000 }))
+			connector.emit({
+				tag: HydraHeadTag.SyncedStatusReport,
+				chainSlot: 5,
+				chainTime: 'not-a-date',
+				drift: 0,
+				synced: 'InSync'
+			})
+
+			expect(bridge.slotZeroTimestamp).toBe(NOW - 1000 * 1000)
+		})
+	})
+
+	describe('commands', () => {
+		it.each([
+			['init', () => bridge.commands.init(), { command: HydraCommand.Init }],
+			['close', () => bridge.commands.close(), { command: HydraCommand.Close }],
+			['safeClose', () => bridge.commands.safeClose(), { command: HydraCommand.SafeClose }],
+			['fanout', () => bridge.commands.fanout(), { command: HydraCommand.Fanout }],
+			['contest', () => bridge.commands.contest(), { command: HydraCommand.Contest }],
+			[
+				'recover',
+				() => bridge.commands.recover('dep'),
+				{ command: HydraCommand.Recover, payload: { recoverTxId: 'dep' } }
+			],
+			[
+				'sideLoadSnapshot',
+				() => bridge.commands.sideLoadSnapshot({ tag: 'ConfirmedSnapshot' }),
+				{ command: HydraCommand.SideLoadSnapshot, payload: { snapshot: { tag: 'ConfirmedSnapshot' } } }
+			],
+			[
+				'partialFanout',
+				() => bridge.commands.partialFanout(utxo(1, ADDR_A)),
+				{ command: HydraCommand.PartialFanout, payload: { utxoToFanout: utxo(1, ADDR_A) } }
+			],
+			[
+				'newTx',
+				() => bridge.commands.newTx('84a4', 'memo'),
+				{
+					command: HydraCommand.NewTx,
+					payload: { transaction: { cborHex: '84a4', description: 'memo', type: 'Witnessed Tx ConwayEra' } }
+				}
+			]
+		])('%s sends the node input', (_, send, expected) => {
+			send()
+			expect(connector.sendCommand).toHaveBeenCalledWith(expect.objectContaining(expected))
+		})
+
+		describe('decommit', () => {
+			it('sends the decommit tx and resolves on DecommitApproved for that txId only', async () => {
+				const p = bridge.commands.decommit({ cborHex: '84a4', txId: 'mine' })
+				expect(connector.sendCommand).toHaveBeenCalledWith({
+					command: HydraCommand.Decommit,
+					payload: { decommitTx: { cborHex: '84a4', description: 'Ledger Cddl Format', type: 'Witnessed Tx ConwayEra' } }
+				})
+
+				const approved = {
+					tag: HydraHeadTag.DecommitApproved,
+					headId: HEAD_ID,
+					decommitTxId: 'mine',
+					utxoToDecommit: {},
+					seq: 2,
+					timestamp: ''
+				}
+				connector.emit({ ...approved, decommitTxId: 'other' })
+				connector.emit(approved)
+
+				await expect(p).resolves.toEqual(approved)
+			})
+
+			it('rejects after the timeout', async () => {
+				const p = bridge.commands.decommit({ cborHex: '84a4', txId: 'mine', timeout: 5000 })
+				const assertion = expect(p).rejects.toThrow(/Decommit timeout/)
+				await vi.advanceTimersByTimeAsync(5000)
+				await assertion
+			})
+		})
+
+		describe('initSync', () => {
+			it('resolves on HeadIsOpen', async () => {
+				const p = bridge.commands.initSync!(3, 1000)
+				connector.emit({ tag: HydraHeadTag.HeadIsOpen, headId: HEAD_ID, seq: 1, timestamp: '' })
+				await expect(p).resolves.toBe(true)
+			})
+
+			it('re-sends Init `retry` times, then times out', async () => {
+				const p = bridge.commands.initSync!(2, 1000)
+				let error: unknown
+				p.catch(e => (error = e))
+
+				await vi.advanceTimersByTimeAsync(2999)
+				expect(error).toBeUndefined()
+				await vi.advanceTimersByTimeAsync(1)
+				expect(error).toEqual(new Error('Init timeout'))
+				const inits = connector.sendCommand.mock.calls.filter(([c]) => c.command === HydraCommand.Init)
+				expect(inits).toHaveLength(3)
+				expect(vi.getTimerCount()).toBe(0)
+			})
+
+			it('fails fast when the node rejects Init because it is unsynced, ignoring other rejections', async () => {
+				const p = bridge.commands.initSync!(3, 10_000)
+				connector.emit({
+					tag: HydraHeadTag.RejectedInputBecauseUnsynced,
+					clientInput: { tag: HydraCommand.NewTx },
+					drift: 1
+				})
+				connector.emit({
+					tag: HydraHeadTag.RejectedInputBecauseUnsynced,
+					clientInput: { tag: HydraCommand.Init },
+					drift: 42
+				})
+
+				await expect(p).rejects.toThrow(/out of sync with the chain \(drift 42s\)/)
+				expect(vi.getTimerCount()).toBe(0)
+			})
+		})
+	})
+
+	describe('submission', () => {
+		it('submitTxSync delegates to the submitter with the default timeout', async () => {
+			const result = { txId: tx().txId, isValid: true, isConfirmed: true, result: null }
+			connector.submitter.submitTxSync.mockResolvedValue(result)
+
+			await expect(bridge.submitTxSync(tx())).resolves.toBe(result)
+			expect(connector.submitter.submitTxSync).toHaveBeenCalledWith(tx(), { timeout: 30000 })
+		})
+
+		it('submitTxSync rejects and warns when not connected', async () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			connector.connected.mockReturnValue(false)
+
+			await expect(bridge.submitTxSync(tx())).rejects.toThrow(/Not connected to Hydra node/)
+			expect(warn).toHaveBeenCalledWith(expect.anything(), 'Not connected, cannot submit transaction')
+			expect(connector.submitter.submitTxSync).not.toHaveBeenCalled()
+		})
+
+		it('submitTx reports a not-connected error through the callback', () => {
+			vi.spyOn(console, 'warn').mockImplementation(() => {})
+			connector.connected.mockReturnValue(false)
+			const cb = vi.fn()
+
+			bridge.submitTx(tx(), cb)
+
+			expect(cb).toHaveBeenCalledWith({ txId: tx().txId, reason: 'Not connected to Hydra node', tag: 'Error' }, null)
+		})
+
+		it('submitL2Tx returns the node verdict, defaulting to the chain timeout', async () => {
+			connector.submitter.submitL2Tx.mockResolvedValue({ tag: 'SubmitTxInvalid', validationError: 'bad' })
+
+			await expect(bridge.submitL2Tx(tx())).resolves.toEqual({ tag: 'SubmitTxInvalid', validationError: 'bad' })
+			expect(connector.submitter.submitL2Tx).toHaveBeenCalledWith(tx(), { timeout: CHAIN_TIMEOUT_MS })
+		})
+
+		it('submitL2Tx rejects when the connector has no HTTP submit', async () => {
+			delete (connector.submitter as Partial<typeof connector.submitter>).submitL2Tx
+			await expect(bridge.submitL2Tx(tx())).rejects.toThrow(/does not implement submitL2Tx/)
+		})
+
+		it('commit and submitCardanoTransaction return the submitter response', async () => {
+			connector.submitter.commit.mockResolvedValue({ type: 'Tx ConwayEra', description: '', cborHex: '84' })
+
+			await expect(bridge.commit({})).resolves.toEqual({ type: 'Tx ConwayEra', description: '', cborHex: '84' })
+			await expect(bridge.submitCardanoTransaction(tx())).resolves.toEqual({ tag: 'TransactionSubmitted' })
+		})
+	})
+
+	describe('deposits', () => {
+		it('pendingDeposits returns the node list', async () => {
+			connector.fetcher.queryPendingDeposits.mockResolvedValue(['dep1', 'dep2'])
+			await expect(bridge.pendingDeposits()).resolves.toEqual(['dep1', 'dep2'])
+		})
+
+		it('pendingDeposits rejects when the connector has no GET /commits', async () => {
+			delete (connector.fetcher as Partial<typeof connector.fetcher>).queryPendingDeposits
+			await expect(bridge.pendingDeposits()).rejects.toThrow(/does not implement queryPendingDeposits/)
+		})
+
+		it('recoverDeposit uses HTTP and reports its outcome', async () => {
+			await expect(bridge.recoverDeposit('dep1')).resolves.toBe('OK')
+			expect(connector.submitter.recoverDeposit).toHaveBeenCalledWith('dep1', { timeout: CHAIN_TIMEOUT_MS })
+			expect(connector.sendCommand).not.toHaveBeenCalled()
+		})
+
+		it('recoverDeposit falls back to the Recover command without HTTP', async () => {
+			delete (connector.submitter as Partial<typeof connector.submitter>).recoverDeposit
+
+			await expect(bridge.recoverDeposit('dep1')).resolves.toBeUndefined()
+			expect(connector.sendCommand).toHaveBeenCalledWith({
+				command: HydraCommand.Recover,
+				payload: { recoverTxId: 'dep1' }
+			})
 		})
 	})
 
 	describe('autoReconnect', () => {
-		it('should not auto-reconnect by default', () => {
-			const connectSpy = vi.spyOn(mockConnector, 'connect')
-			mockConnector.eventEmitter.emit('onDisconnected')
-			expect(connectSpy).not.toHaveBeenCalled()
+		it('is off by default', () => {
+			connector.eventEmitter.emit('onDisconnected')
+			vi.advanceTimersByTime(60_000)
+			expect(connector.connect).not.toHaveBeenCalled()
 		})
 
-		it('should reconnect after interval when autoReconnect is enabled', () => {
-			vi.useFakeTimers()
-			const connector = createMockConnector()
-			new HydraBridge({ connector, autoReconnect: true, reconnectInterval: 500 })
-			const connectSpy = vi.spyOn(connector, 'connect')
+		it('reconnects after the interval and stops at maxReconnectAttempts', () => {
+			const c = mockConnector()
+			new HydraBridge({ connector: c, autoReconnect: true, reconnectInterval: 500, maxReconnectAttempts: 2 })
 
-			connector.eventEmitter.emit('onDisconnected')
-			expect(connectSpy).not.toHaveBeenCalled()
-
-			vi.advanceTimersByTime(500)
-			expect(connectSpy).toHaveBeenCalledTimes(1)
-			vi.useRealTimers()
+			for (let i = 0; i < 3; i++) {
+				c.eventEmitter.emit('onDisconnected')
+				vi.advanceTimersByTime(499)
+				expect(c.connect).toHaveBeenCalledTimes(i)
+				vi.advanceTimersByTime(1)
+			}
+			expect(c.connect).toHaveBeenCalledTimes(2)
 		})
 
-		it('should stop reconnecting after maxReconnectAttempts', () => {
-			vi.useFakeTimers()
-			const connector = createMockConnector()
-			new HydraBridge({ connector, autoReconnect: true, reconnectInterval: 100, maxReconnectAttempts: 1 })
-			const connectSpy = vi.spyOn(connector, 'connect')
+		it('a successful reconnect resets the attempt budget', () => {
+			const c = mockConnector()
+			new HydraBridge({ connector: c, autoReconnect: true, reconnectInterval: 100, maxReconnectAttempts: 1 })
+			c.fetcher.querySnapshotUtxo.mockReturnValue(new Promise(() => {}))
 
-			// First disconnect → triggers 1 attempt
-			connector.eventEmitter.emit('onDisconnected')
+			c.eventEmitter.emit('onDisconnected')
 			vi.advanceTimersByTime(100)
-			expect(connectSpy).toHaveBeenCalledTimes(1)
-
-			// Second disconnect → max reached, no more attempts
-			connector.eventEmitter.emit('onDisconnected')
+			c.eventEmitter.emit('onConnected')
+			c.eventEmitter.emit('onDisconnected')
 			vi.advanceTimersByTime(100)
-			expect(connectSpy).toHaveBeenCalledTimes(1)
-			vi.useRealTimers()
+
+			expect(c.connect).toHaveBeenCalledTimes(2)
 		})
 
-		it('should cancel reconnect timer and stop on disconnect()', async () => {
-			vi.useFakeTimers()
-			const connector = createMockConnector()
-			;(connector.connected as Mock).mockReturnValue(false)
-			const reconnectBridge = new HydraBridge({ connector, autoReconnect: true, reconnectInterval: 1000 })
-			const connectSpy = vi.spyOn(connector, 'connect')
+		it('disconnect() cancels a pending reconnect', async () => {
+			const c = mockConnector()
+			c.connected.mockReturnValue(false)
+			const b = new HydraBridge({ connector: c, autoReconnect: true, reconnectInterval: 1000 })
 
-			connector.eventEmitter.emit('onDisconnected')
-			await reconnectBridge.disconnect()
-
+			c.eventEmitter.emit('onDisconnected')
+			await b.disconnect()
 			vi.advanceTimersByTime(1000)
-			expect(connectSpy).not.toHaveBeenCalled()
-			vi.useRealTimers()
+
+			expect(c.connect).not.toHaveBeenCalled()
+			expect(vi.getTimerCount()).toBe(0)
 		})
 	})
 })
