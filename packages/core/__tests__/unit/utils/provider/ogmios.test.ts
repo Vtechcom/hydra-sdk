@@ -51,14 +51,6 @@ describe('OgmiosProvider', () => {
 	})
 
 	describe('constructor', () => {
-		it('should create instance with valid config', () => {
-			const provider = new OgmiosProvider(mockConfig)
-
-			expect(provider).toBeDefined()
-			expect(provider.fetcher).toBeDefined()
-			expect(provider.submitter).toBeDefined()
-		})
-
 		it('should create axios instance with custom endpoint', () => {
 			new OgmiosProvider(mockConfig)
 
@@ -77,13 +69,6 @@ describe('OgmiosProvider', () => {
 					baseURL: 'http://localhost:1337'
 				})
 			)
-		})
-
-		it('should set up request and response interceptors', () => {
-			new OgmiosProvider(mockConfig)
-
-			expect(mockInterceptors.request.use).toHaveBeenCalled()
-			expect(mockInterceptors.response.use).toHaveBeenCalled()
 		})
 
 		it('should set Content-Type header to application/json', () => {
@@ -194,12 +179,16 @@ describe('OgmiosProvider', () => {
 			expect(result[0].input.txHash).toBe('tx2')
 		})
 
-		it('should return empty array on error', async () => {
-			mockPost.mockRejectedValueOnce(new Error('Network error'))
+		it('logs and returns an empty array when the RPC call fails', async () => {
+			const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+			mockPost.mockRejectedValueOnce({ response: { data: { error: 'boom' } } })
 
 			const provider = new OgmiosProvider(mockConfig)
 			const result = await provider.fetcher.fetchAddressUTxOs('addr_test')
+
 			expect(result).toEqual([])
+			expect(consoleError).toHaveBeenCalledWith('RPC error:', JSON.stringify({ error: 'boom' }, null, 2))
+			expect(consoleError).toHaveBeenCalledWith('Error fetching UTxOs:', { error: 'boom' })
 		})
 
 		it('should send correct JSON-RPC request', async () => {
@@ -249,7 +238,7 @@ describe('OgmiosProvider', () => {
 			const provider = new OgmiosProvider(mockConfig)
 			const result = await provider.fetcher.fetchAddressUTxOs('addr_test')
 
-			expect(result[0].output.inlineDatum).toBeDefined()
+			expect(result[0].output.inlineDatum!.to_hex()).toBe('d87980')
 		})
 
 		it('should handle UTxO with Plutus script reference', async () => {
@@ -327,14 +316,16 @@ describe('OgmiosProvider', () => {
 			)
 		})
 
-		it('should throw error on submission failure', async () => {
+		it('rejects with the RPC error body on submission failure and logs it', async () => {
+			const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 			mockPost.mockRejectedValueOnce({
 				response: { data: { error: 'Invalid transaction' } }
 			})
 
 			const provider = new OgmiosProvider(mockConfig)
 
-			await expect(provider.submitter.submitTx('invalid_tx')).rejects.toBeDefined()
+			await expect(provider.submitter.submitTx('invalid_tx')).rejects.toEqual({ error: 'Invalid transaction' })
+			expect(consoleError).toHaveBeenCalledWith('RPC error:', JSON.stringify({ error: 'Invalid transaction' }, null, 2))
 		})
 
 		it('should send correct JSON-RPC request for submitTransaction', async () => {

@@ -49,14 +49,6 @@ describe('BlockfrostProvider', () => {
 	})
 
 	describe('constructor', () => {
-		it('should create instance with valid config', () => {
-			const provider = new BlockfrostProvider(mockConfig)
-
-			expect(provider).toBeDefined()
-			expect(provider.fetcher).toBeDefined()
-			expect(provider.submitter).toBeDefined()
-		})
-
 		it('should throw error when API key is empty', () => {
 			const invalidConfig: BlockfrostProviderConfig = {
 				apiKey: '',
@@ -223,7 +215,7 @@ describe('BlockfrostProvider', () => {
 			const provider = new BlockfrostProvider(mockConfig)
 			const result = await provider.fetcher.fetchAddressUTxOs('addr_test')
 
-			expect(result[0].output.inlineDatum).toBeDefined()
+			expect(result[0].output.inlineDatum!.to_hex()).toBe('40')
 		})
 	})
 
@@ -254,23 +246,24 @@ describe('BlockfrostProvider', () => {
 			expect(result).toBe(txHash)
 		})
 
-		it('should throw error on failed submission', async () => {
-			mockPost.mockResolvedValueOnce({
-				data: null,
-				status: 400
-			})
+		it.each([
+			[
+				'a non-2xx status',
+				() => mockPost.mockResolvedValueOnce({ data: null, status: 400 }),
+				/^Failed to submit transaction: 400$/
+			],
+			['a network error', () => mockPost.mockRejectedValueOnce(new Error('Network error')), /^Network error$/]
+		])('logs the cause and throws a generic error on %s', async (_name, arrange, cause) => {
+			const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+			arrange()
 
 			const provider = new BlockfrostProvider(mockConfig)
 
-			await expect(provider.submitter.submitTx('invalid_tx')).rejects.toThrow('Failed to submit transaction')
-		})
-
-		it('should throw error on network error', async () => {
-			mockPost.mockRejectedValueOnce(new Error('Network error'))
-
-			const provider = new BlockfrostProvider(mockConfig)
-
-			await expect(provider.submitter.submitTx('84a400d9...')).rejects.toThrow('Failed to submit transaction')
+			await expect(provider.submitter.submitTx('84a400d9')).rejects.toThrow(/^Failed to submit transaction$/)
+			expect(consoleError).toHaveBeenCalledWith(
+				'Error submitting transaction:',
+				expect.objectContaining({ message: expect.stringMatching(cause) })
+			)
 		})
 
 		it('should send correct headers for CBOR content', async () => {
@@ -289,29 +282,6 @@ describe('BlockfrostProvider', () => {
 					headers: { 'Content-Type': 'application/cbor' }
 				})
 			)
-		})
-	})
-
-	describe('caching options', () => {
-		it('should use default caching options when not provided', () => {
-			const provider = new BlockfrostProvider(mockConfig)
-
-			// Provider should be created without errors
-			expect(provider).toBeDefined()
-		})
-
-		it('should merge custom caching options with defaults', () => {
-			const configWithCache: BlockfrostProviderConfig = {
-				...mockConfig,
-				cachingOptions: {
-					enabled: true,
-					ttl: 60000
-				}
-			}
-
-			const provider = new BlockfrostProvider(configWithCache)
-
-			expect(provider).toBeDefined()
 		})
 	})
 })
