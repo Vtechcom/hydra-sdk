@@ -39,13 +39,15 @@ pnpm dev:nodejs        # Node.js playground
 
 To run a single test file:
 ```bash
-pnpm vitest run packages/core/tests/some.test.ts
+pnpm vitest run packages/core/__tests__/unit/some.test.ts
 ```
 
-To run tests for a specific package:
+To run tests for a specific package (project name = directory under `packages/`: `app-bridge`, `cardano-wasm`, `core`, `evaluator`, `hydra-bridge`, `hydra-transaction`; projects are declared in the root `vitest.config.ts`, packages have no own vitest config):
 ```bash
-pnpm vitest run --project packages/core
+pnpm vitest run --project core
 ```
+
+Other suites: `pnpm test:unit` (only `__tests__/unit/`), `pnpm test:integration` (evaluator conformance), `pnpm test:e2e` (needs a live hydra-node, see `packages/hydra-bridge/e2e/README.md`).
 
 ## Package Architecture
 
