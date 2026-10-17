@@ -1,0 +1,17 @@
+{
+	// Only used by `tsx --tsconfig` to run regenerate-always-true.ts against src,
+	// mirroring the aliases in the root vitest.config.ts.
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"baseUrl": "../../../../..",
+		"paths": {
+			"@hydra-sdk/cardano-wasm": ["packages/cardano-wasm/src/index.node.ts"],
+			"@hydra-sdk/core": ["packages/core/src/index.ts"],
+			"@hydra-sdk/transaction": ["packages/hydra-transaction/src/index.ts"]
+		}
+	}
+}
