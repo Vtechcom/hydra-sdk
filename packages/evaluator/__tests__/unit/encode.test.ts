@@ -29,6 +29,7 @@ describe('toEngineUtxo — field naming the engine expects', () => {
 		const engine = toEngineUtxo(utxo)
 		expect(engine.output.plutusData).toBe('40')
 		expect(engine.output.dataHash).toBeUndefined()
+		utxo.output.inlineDatum!.free()
 	})
 
 	it('maps a datum hash to dataHash (not plutusData)', () => {
@@ -45,7 +46,29 @@ describe('toEngineUtxo — field naming the engine expects', () => {
 		expect(engine.output.plutusData).toBeUndefined()
 	})
 
-	it('maps a reference script to scriptRef hex', () => {
+	it('maps an amount with native assets and numeric quantities to string quantities', () => {
+		const unit = 'ab'.repeat(28) + '74657374'
+		const utxo: UTxO = {
+			input: { txHash: 'e'.repeat(64), outputIndex: 1 },
+			output: {
+				address: addr,
+				amount: [
+					{ unit: 'lovelace', quantity: 2000000 as unknown as string },
+					{ unit, quantity: '7' }
+				]
+			}
+		}
+		expect(toEngineUtxo(utxo).output.amount).toEqual([
+			{ unit: 'lovelace', quantity: '2000000' },
+			{ unit, quantity: '7' }
+		])
+	})
+
+	// BUG: scriptRef is passed through as the bare script CBOR. whisky decodes it as a
+	// CBOR ScriptRef array `[language, script]` — `82 03 <script>` for V3 — and rejects
+	// anything else with "Invalid script ref bytes" (verified against whisky 0.1.1;
+	// `820346450101002499` evaluates, `46450101002499` does not).
+	it.fails('maps a V3 reference script to the ScriptRef array the engine decodes', () => {
 		const utxo: UTxO = {
 			input: { txHash: 'd'.repeat(64), outputIndex: 0 },
 			output: {
@@ -54,7 +77,6 @@ describe('toEngineUtxo — field naming the engine expects', () => {
 				scriptRef: { scriptCbor: '46450101002499', version: 'V3' }
 			}
 		}
-		const engine = toEngineUtxo(utxo)
-		expect(engine.output.scriptRef).toBe('46450101002499')
+		expect(toEngineUtxo(utxo).output.scriptRef).toBe('820346450101002499')
 	})
 })
