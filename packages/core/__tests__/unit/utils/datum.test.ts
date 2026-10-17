@@ -4,6 +4,7 @@ import {
 	mkInt,
 	mkBytes,
 	mkConstr,
+	mkList,
 	mkMap,
 	DatumSchema,
 	mkBool,
@@ -14,264 +15,49 @@ import {
 	mkAddress,
 	parseAddress
 } from '../../../src/utils/datum'
-import { bytesToHex, hexToBytes, stringToHex } from '../../../src/utils/parser'
+import { bytesToHex } from '../../../src/utils/parser'
 import { NETWORK_ID } from '../../../src/constants/chain'
 
 describe('datum utilities', () => {
-	describe('mkInt', () => {
-		it('should create PlutusData from number', () => {
-			const result = mkInt(42)
-
-			expect(result).toBeDefined()
-			const bigInt = result.as_integer()
-			expect(bigInt).toBeDefined()
-			expect(bigInt?.to_str()).toBe('42')
-		})
-
-		it('should create PlutusData from string number', () => {
-			const result = mkInt('12345')
-
-			const bigInt = result.as_integer()
-			expect(bigInt?.to_str()).toBe('12345')
-		})
-
-		it('should create PlutusData from bigint', () => {
-			const largeNumber = BigInt('9999999999999999999999')
-			const result = mkInt(largeNumber)
-
-			const bigInt = result.as_integer()
-			expect(bigInt?.to_str()).toBe('9999999999999999999999')
-		})
-
-		it('should handle zero', () => {
-			const result = mkInt(0)
-
-			const bigInt = result.as_integer()
-			expect(bigInt?.to_str()).toBe('0')
-		})
-
-		it('should handle negative numbers', () => {
-			const result = mkInt(-100)
-
-			const bigInt = result.as_integer()
-			expect(bigInt?.to_str()).toBe('-100')
-		})
-
-		it('should produce valid CBOR hex', () => {
-			const result = mkInt(42)
-
-			const hex = bytesToHex(result.to_bytes())
-			expect(hex).toBeDefined()
-			expect(hex.length).toBeGreaterThan(0)
-		})
-	})
-
-	describe('mkBytes', () => {
-		it('should create PlutusData from hex string', () => {
-			const hex = 'CAFEBABE'
-			const result = mkBytes(hex)
-
-			expect(result).toBeDefined()
-			const bytes = result.as_bytes()
-			expect(bytes).toBeDefined()
-			expect(bytesToHex(bytes!).toUpperCase()).toBe('CAFEBABE')
-		})
-
-		it('should create PlutusData from empty hex string', () => {
-			const result = mkBytes('')
-
-			const bytes = result.as_bytes()
-			expect(bytes).toBeDefined()
-			expect(bytes?.length).toBe(0)
-		})
-
-		it('should handle lowercase hex', () => {
-			const hex = 'deadbeef'
-			const result = mkBytes(hex)
-
-			const bytes = result.as_bytes()
-			expect(bytesToHex(bytes!).toLowerCase()).toBe('deadbeef')
-		})
-
-		it('should create bytes from string converted to hex', () => {
-			const text = 'Hello'
-			const hex = stringToHex(text)
-			const result = mkBytes(hex)
-
-			const bytes = result.as_bytes()
-			expect(bytes).toBeDefined()
-		})
-
-		it('should produce valid CBOR hex', () => {
-			const result = mkBytes('1234567890abcdef')
-
-			const cborHex = bytesToHex(result.to_bytes())
-			expect(cborHex).toBeDefined()
-			expect(cborHex.length).toBeGreaterThan(0)
-		})
-	})
-
-	describe('mkConstr', () => {
-		it('should create constructor with no fields', () => {
-			const result = mkConstr(0, [])
-
-			expect(result).toBeDefined()
-			const constr = result.as_constr_plutus_data()
-			expect(constr).toBeDefined()
-			expect(constr?.alternative().to_str()).toBe('0')
-			expect(constr?.data().len()).toBe(0)
-		})
-
-		it('should create constructor with single field', () => {
-			const field = mkInt(42)
-			const result = mkConstr(1, [field])
-
-			const constr = result.as_constr_plutus_data()
-			expect(constr?.alternative().to_str()).toBe('1')
-			expect(constr?.data().len()).toBe(1)
-		})
-
-		it('should create constructor with multiple fields', () => {
-			const field1 = mkInt(1)
-			const field2 = mkBytes('cafe')
-			const field3 = mkInt(3)
-			const result = mkConstr(2, [field1, field2, field3])
-
-			const constr = result.as_constr_plutus_data()
-			expect(constr?.alternative().to_str()).toBe('2')
-			expect(constr?.data().len()).toBe(3)
-		})
-
-		it('should create nested constructors', () => {
-			const inner = mkConstr(0, [mkInt(10)])
-			const outer = mkConstr(1, [inner])
-
-			const constr = outer.as_constr_plutus_data()
-			expect(constr?.alternative().to_str()).toBe('1')
-			expect(constr?.data().len()).toBe(1)
-
-			const innerConstr = constr?.data().get(0).as_constr_plutus_data()
-			expect(innerConstr?.alternative().to_str()).toBe('0')
-		})
-
-		it('should produce valid CBOR hex', () => {
-			const result = mkConstr(0, [mkInt(42), mkBytes('cafe')])
-
-			const cborHex = bytesToHex(result.to_bytes())
-			expect(cborHex).toBeDefined()
-			expect(cborHex.length).toBeGreaterThan(0)
-		})
-
-		it('should create Unit datum (constructor 0 with empty fields)', () => {
-			const unit = mkConstr(0, [])
-
-			const cborHex = bytesToHex(unit.to_bytes())
-			// d87980 is CBOR for Constr 0 []
-			expect(cborHex).toBe('d87980')
-		})
-	})
-
-	describe('mkMap', () => {
-		it('should create empty map', () => {
-			const result = mkMap([])
-
-			expect(result).toBeDefined()
-			const map = result.as_map()
-			expect(map).toBeDefined()
-			expect(map?.len()).toBe(0)
-		})
-
-		it('should create map with single entry', () => {
-			const key = mkInt(1)
-			const values = CardanoWASM.PlutusMapValues.new()
-			values.add(mkInt(100))
-
-			const result = mkMap([[key, values]])
-
-			const map = result.as_map()
-			expect(map?.len()).toBe(1)
-		})
-
-		it('should create map with multiple entries', () => {
-			const entries: Array<[CardanoWASM.PlutusData, CardanoWASM.PlutusMapValues]> = []
-
-			for (let i = 0; i < 3; i++) {
-				const key = mkInt(i)
+	// Expected values are hand-checked CBOR (RFC 8949; Plutus constructors use tags 121–127 / 1280+ / 102).
+	it.each([
+		['mkInt(42)', () => mkInt(42), '182a'],
+		["mkInt('12345')", () => mkInt('12345'), '193039'],
+		['mkInt(0)', () => mkInt(0), '00'],
+		['mkInt(-100)', () => mkInt(-100), '3863'],
+		['mkInt(bigint > 2^64)', () => mkInt(9999999999999999999999n), 'c24a021e19e0c9bab23fffff'],
+		["mkBytes('CAFEBABE')", () => mkBytes('CAFEBABE'), '44cafebabe'],
+		["mkBytes('')", () => mkBytes(''), '40'],
+		['mkConstr(0, [])', () => mkConstr(0, []), 'd87980'],
+		['mkConstr(1, [42])', () => mkConstr(1, [mkInt(42)]), 'd87a9f182aff'],
+		['mkConstr(7, [])', () => mkConstr(7, []), 'd9050080'],
+		['mkConstr(128, [])', () => mkConstr(128, []), 'd86682188080'],
+		['nested constr/list', () => mkConstr(0, [mkBytes('cafe'), mkList([mkInt(-1)])]), 'd8799f42cafe9f20ffff'],
+		['mkList([])', () => mkList([]), '80'],
+		['mkList([1, 2])', () => mkList([mkInt(1), mkInt(2)]), '9f0102ff'],
+		[
+			'mkMap({1: 100})',
+			() => {
 				const values = CardanoWASM.PlutusMapValues.new()
-				values.add(mkInt(i * 10))
-				entries.push([key, values])
-			}
-
-			const result = mkMap(entries)
-
-			const map = result.as_map()
-			expect(map?.len()).toBe(3)
-		})
-
-		it('should create map with bytes keys', () => {
-			const key = mkBytes('cafe')
-			const values = CardanoWASM.PlutusMapValues.new()
-			values.add(mkInt(42))
-
-			const result = mkMap([[key, values]])
-
-			const map = result.as_map()
-			expect(map?.len()).toBe(1)
-		})
-
-		it('should produce valid CBOR hex', () => {
-			const key = mkInt(1)
-			const values = CardanoWASM.PlutusMapValues.new()
-			values.add(mkInt(100))
-
-			const result = mkMap([[key, values]])
-
-			const cborHex = bytesToHex(result.to_bytes())
-			expect(cborHex).toBeDefined()
-			expect(cborHex.length).toBeGreaterThan(0)
-		})
+				values.add(mkInt(100))
+				return mkMap([[mkInt(1), values]])
+			},
+			'a1011864'
+		]
+	])('%s encodes to CBOR %s', (_name, build, cbor) => {
+		const data = build()
+		expect(bytesToHex(data.to_bytes())).toBe(cbor)
+		data.free()
 	})
 
-	describe('DatumSchema', () => {
-		it('should have Basic schema', () => {
-			expect(DatumSchema.Basic).toBeDefined()
-			expect(DatumSchema.Basic).toBe(CardanoWASM.PlutusDatumSchema.BasicConversions)
-		})
+	it('DatumSchema maps to the CSL JSON schemas', () => {
+		const data = mkConstr(0, [mkInt(42), mkBytes('cafe')])
 
-		it('should have Detailed schema', () => {
-			expect(DatumSchema.Detailed).toBeDefined()
-			expect(DatumSchema.Detailed).toBe(CardanoWASM.PlutusDatumSchema.DetailedSchema)
-		})
-
-		it('should convert PlutusData to JSON using Basic schema', () => {
-			const data = mkInt(42)
-
-			const json = data.to_json(DatumSchema.Basic)
-			expect(json).toBe('42')
-		})
-
-		it('should convert PlutusData to JSON using Detailed schema', () => {
-			const data = mkInt(42)
-
-			const json = data.to_json(DatumSchema.Detailed)
-			expect(JSON.parse(json)).toEqual({ int: 42 })
-		})
-
-		it('should convert bytes to JSON using Detailed schema', () => {
-			const data = mkBytes('cafe')
-
-			const json = data.to_json(DatumSchema.Detailed)
-			const parsed = JSON.parse(json)
-			expect(parsed.bytes).toBeDefined()
-		})
-
-		it('should convert constructor to JSON using Detailed schema', () => {
-			const data = mkConstr(0, [mkInt(1), mkInt(2)])
-
-			const json = data.to_json(DatumSchema.Detailed)
-			const parsed = JSON.parse(json)
-			expect(parsed.constructor).toBe(0)
-			expect(parsed.fields).toHaveLength(2)
+		expect(DatumSchema.Basic).toBe(CardanoWASM.PlutusDatumSchema.BasicConversions)
+		expect(mkInt(42).to_json(DatumSchema.Basic)).toBe('42')
+		expect(JSON.parse(data.to_json(DatumSchema.Detailed))).toEqual({
+			constructor: 0,
+			fields: [{ int: 42 }, { bytes: 'cafe' }]
 		})
 	})
 })
@@ -356,5 +142,18 @@ describe('datum utils — mkAddress / parseAddress round-trip', () => {
 
 		const data = mkAddress(mainnet)
 		expect(parseAddress(data, NETWORK_ID.MAINNET)).toBe(mainnet)
+	})
+
+	it.each([
+		['a non-constr', () => mkInt(1), /expected a Constr for Address/],
+		['a constr with one field', () => mkConstr(0, [mkInt(1)]), /Address must have 2 fields/],
+		[
+			'a pointer stake credential',
+			() =>
+				mkConstr(0, [mkConstr(0, [mkBytes('00'.repeat(28))]), mkConstr(0, [mkConstr(1, [mkInt(1), mkInt(2), mkInt(3)])])]),
+			/pointer stake credentials are not supported/
+		]
+	])('parseAddress rejects %s', (_name, build, error) => {
+		expect(() => parseAddress(build())).toThrow(error)
 	})
 })
