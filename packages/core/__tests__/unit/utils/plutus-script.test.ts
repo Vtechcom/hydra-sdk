@@ -1,7 +1,8 @@
-import { describe } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import * as PlutusUtils from '../../../src/utils/plutus-script.util'
 import * as DatumUtils from '../../../src/utils/datum'
-import { SpendingValidator } from '../../../src/types/cardano/plutus-script'
+import { Script, SpendingValidator } from '../../../src/types/cardano/plutus-script'
+import { BASE_SCRIPT_ADDRESS, NATIVE_SIG_SCRIPT, PLUTUS_SCRIPT, TEST_WALLET } from '../../helpers/fixtures'
 
 describe('plutus script utilities', () => {
 	const plutusScript =
@@ -54,6 +55,41 @@ describe('plutus script utilities', () => {
 			const networkId = 0 // Testnet
 			const address = PlutusUtils.validatorToAddress(validator, networkId)
 			expect(address).toBe(expectedAddress)
+		})
+	})
+
+	describe('validatorToScriptHash per script type', () => {
+		it.each([
+			['PlutusV1', PLUTUS_SCRIPT.cborHex, PLUTUS_SCRIPT.hashV1],
+			['PlutusV2', PLUTUS_SCRIPT.cborHex, PLUTUS_SCRIPT.hashV2],
+			['PlutusV3', PLUTUS_SCRIPT.cborHex, PLUTUS_SCRIPT.hashV3],
+			['Native', NATIVE_SIG_SCRIPT.cborHex, NATIVE_SIG_SCRIPT.policyId]
+		] as const)('hashes a %s script', (type, scriptCborHex, hash) => {
+			expect(PlutusUtils.validatorToScriptHash({ type, scriptCborHex })).toBe(hash)
+			expect(PlutusUtils.mintingPolicyToId({ type, scriptCborHex })).toBe(hash)
+		})
+
+		it('rejects an unknown script type', () => {
+			expect(() =>
+				PlutusUtils.validatorToScriptHash({ type: 'PlutusV4', scriptCborHex: PLUTUS_SCRIPT.cborHex } as unknown as Script)
+			).toThrow(/No variant matched/)
+		})
+	})
+
+	describe('validatorToAddress with a stake credential', () => {
+		it('builds a base address from the script hash and the stake credential (CBOR hex)', () => {
+			const validator: SpendingValidator = { type: 'PlutusV2', scriptCborHex: PLUTUS_SCRIPT.cborHex }
+
+			expect(PlutusUtils.validatorToAddress(validator, 0, `8200581c${TEST_WALLET.stakeKeyHash}`)).toBe(BASE_SCRIPT_ADDRESS)
+		})
+
+		it('builds a mainnet enterprise address when no stake credential is given', () => {
+			const validator: SpendingValidator = { type: 'PlutusV1', scriptCborHex: PLUTUS_SCRIPT.cborHex }
+
+			// golden: CSL EnterpriseAddress(1, ScriptHash(hashV1))
+			expect(PlutusUtils.validatorToAddress(validator, 1)).toBe(
+				'addr1w8cfng8r7xq8d7vfylsuasteaz7wl8ry8k7jyyw2kuy26qqrrpndg'
+			)
 		})
 	})
 })

@@ -1,224 +1,107 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import {
 	buildBaseAddress,
+	buildDRepID,
 	buildEnterpriseAddress,
-	buildRewardAddress,
 	buildKeys,
+	buildRewardAddress,
 	clampScalar,
-	stripExtendedKey,
-	Purpose,
-	CoinTypes,
-	ChainDerivation
+	stripExtendedKey
 } from '../../../src/utils/cardano-wasm/build-keys'
 import { NETWORK_ID } from '../../../src/constants/chain'
+import { TEST_WALLET } from '../../helpers/fixtures'
+import { wasmScope } from '../../helpers/wasm'
 
-const mockWallet = {
-	mnemonic:
-		'member genius submit circle suggest square ivory stem evidence snow rack festival faculty recipe amazing cliff warrior mistake screen humor chat night glad weather',
-	baseAddressBech32:
-		'addr_test1qzya97j3gg2lkp360m7238lfe46y0jzhl6wgsz6xysz3d5peqew2j40a7ryqyku9re6znz26uan26shczed77p9n6uwq68d0h9',
-	paymentKeyHex:
-		'885edd05a70aabe1799e01f5a2fac7f6a529a7b8d0b87a43b34ae7797cf3a957ffda50ec3ee078f498fe4919589dca8bc198eb2dd691e3cba9c50b93792487ff',
-	paymentCredentialHash: '89d2fa514215fb063a7efca89fe9cd7447c857fe9c880b46240516d0'
-}
+const harden = (n: number) => 0x80000000 + n
 
-const mockData = {
-	rootKey:
-		'c8c43af6f30ea454465017f832cdf8769cd1f1391e476cba06ae4e417066e044aae2a86c09f07719c207ae4fae5eb34f30606fdb06160d85d2aad69e1691b5bf0eab7a1f7de8b17df42d33fc3a27c3b43828405310164ad4fc8c5741dea298c8',
-	address: 'addr_test1qp6ew9rwqwkjz7qeamdnusswmwz2trcghejdg4vhuwafau4d4a2eagwntdps020vc570z5rsqfcy9z4sa23yl7m8hhps86y5sz'
-}
+describe('BuildKeys', () => {
+	const keep = wasmScope()
+	const keyHash = (hex: string) => keep(CardanoWASM.Ed25519KeyHash.from_hex(hex))
 
-describe('Build Keys Utils', () => {
-	describe('buildBaseAddress', () => {
-		it('should build a base address from payment and stake key hashes', () => {
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const paymentKeyHash = keys.paymentKey.to_public().to_raw_key().hash()
-			const stakeKeyHash = keys.stakeKey.to_public().to_raw_key().hash()
-
-			const result = buildBaseAddress(NETWORK_ID.PREPROD, paymentKeyHash, stakeKeyHash)
-
-			expect(result).toBeDefined()
-			expect(result.to_address().to_bech32()).toMatch(/^addr_test/)
-		})
-
-		it('should create different addresses for different network IDs', () => {
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const paymentKeyHash = keys.paymentKey.to_public().to_raw_key().hash()
-			const stakeKeyHash = keys.stakeKey.to_public().to_raw_key().hash()
-
-			const testnetAddr = buildBaseAddress(NETWORK_ID.PREPROD, paymentKeyHash, stakeKeyHash)
-			const mainnetAddr = buildBaseAddress(NETWORK_ID.MAINNET, paymentKeyHash, stakeKeyHash)
-
-			expect(testnetAddr.to_address().to_bech32()).toMatch(/^addr_test/)
-			expect(mainnetAddr.to_address().to_bech32()).toMatch(/^addr1/)
-		})
+	afterEach(() => {
+		vi.restoreAllMocks()
 	})
 
-	describe('buildEnterpriseAddress', () => {
-		it('should build an enterprise address from payment key hash', () => {
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const paymentKeyHash = keys.paymentKey.to_public().to_raw_key().hash()
+	it.each([
+		[
+			NETWORK_ID.PREPROD,
+			TEST_WALLET.baseAddressPreprod,
+			TEST_WALLET.enterpriseAddressPreprod,
+			TEST_WALLET.rewardAddressPreprod
+		],
+		[NETWORK_ID.MAINNET, TEST_WALLET.baseAddressMainnet, /^addr1v/, /^stake1u/]
+	])('builds base/enterprise/reward addresses for network %i', (networkId, base, enterprise, reward) => {
+		const payment = keyHash(TEST_WALLET.paymentKeyHash)
+		const stake = keyHash(TEST_WALLET.stakeKeyHash)
+		const bech32 = (addr: { to_address(): CardanoWASM.Address; free(): void }) =>
+			keep(keep(addr).to_address()).to_bech32()
 
-			const result = buildEnterpriseAddress(NETWORK_ID.PREPROD, paymentKeyHash)
-
-			expect(result).toBeDefined()
-			expect(result.to_address().to_bech32()).toMatch(/^addr_test/)
-		})
-
-		it('should create mainnet enterprise address', () => {
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const paymentKeyHash = keys.paymentKey.to_public().to_raw_key().hash()
-
-			const result = buildEnterpriseAddress(NETWORK_ID.MAINNET, paymentKeyHash)
-
-			expect(result.to_address().to_bech32()).toMatch(/^addr1/)
-		})
-	})
-
-	describe('buildRewardAddress', () => {
-		it('should build a reward address from stake key hash', () => {
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const stakeKeyHash = keys.stakeKey.to_public().to_raw_key().hash()
-
-			const result = buildRewardAddress(NETWORK_ID.PREPROD, stakeKeyHash)
-
-			expect(result).toBeDefined()
-			expect(result.to_address().to_bech32()).toMatch(/^stake_test/)
-		})
-
-		it('should create mainnet reward address', () => {
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const stakeKeyHash = keys.stakeKey.to_public().to_raw_key().hash()
-
-			const result = buildRewardAddress(NETWORK_ID.MAINNET, stakeKeyHash)
-
-			expect(result.to_address().to_bech32()).toMatch(/^stake1/)
-		})
+		expect(bech32(buildBaseAddress(networkId, payment, stake))).toBe(base)
+		expect(bech32(buildEnterpriseAddress(networkId, payment))).toMatch(enterprise)
+		expect(bech32(buildRewardAddress(networkId, stake))).toMatch(reward)
 	})
 
 	describe('buildKeys', () => {
-		it('should derive keys from root private key hex', () => {
-			const result = buildKeys(mockData.rootKey, 0, 0)
+		it("derives CIP-1852 keys m/1852'/1815'/account'/{0,2,3}/index from a root key", () => {
+			const { accountKey, paymentKey, stakeKey, dRepKey } = buildKeys(TEST_WALLET.rootKeyHex, 0)
+			const root = keep(CardanoWASM.Bip32PrivateKey.from_hex(TEST_WALLET.rootKeyHex))
+			const expectedAccount = keep(keep(keep(root.derive(harden(1852))).derive(harden(1815))).derive(harden(0)))
 
-			expect(result.accountKey).toBeDefined()
-			expect(result.paymentKey).toBeDefined()
-			expect(result.stakeKey).toBeDefined()
-			expect(result.dRepKey).toBeDefined()
+			expect(keep(accountKey).to_hex()).toBe(expectedAccount.to_hex())
+			expect(stripExtendedKey(keep(paymentKey).to_hex())).toBe(TEST_WALLET.paymentKeyHex)
+			expect(stripExtendedKey(keep(stakeKey).to_hex())).toBe(TEST_WALLET.stakeKeyHex)
+			expect(keep(dRepKey)!.to_hex()).toBe(keep(keep(expectedAccount.derive(3)).derive(0)).to_hex())
 		})
 
-		it('should derive different keys for different account indices', () => {
-			const keys0 = buildKeys(mockData.rootKey, 0, 0)
-			const keys1 = buildKeys(mockData.rootKey, 1, 0)
+		it('uses the account and key indices', () => {
+			const hashOf = (key: CardanoWASM.Bip32PrivateKey) =>
+				keep(keep(keep(keep(key).to_public()).to_raw_key()).hash()).to_hex()
 
-			expect(keys0.accountKey.to_hex()).not.toBe(keys1.accountKey.to_hex())
-			expect(keys0.paymentKey.to_hex()).not.toBe(keys1.paymentKey.to_hex())
-			expect(keys0.stakeKey.to_hex()).not.toBe(keys1.stakeKey.to_hex())
+			expect(hashOf(buildKeys(TEST_WALLET.rootKeyHex, 0, 0).paymentKey)).toBe(TEST_WALLET.paymentKeyHash)
+			expect(hashOf(buildKeys(TEST_WALLET.rootKeyHex, 0, 1).paymentKey)).not.toBe(TEST_WALLET.paymentKeyHash)
+			expect(hashOf(buildKeys(TEST_WALLET.rootKeyHex, 1, 0).paymentKey)).not.toBe(TEST_WALLET.paymentKeyHash)
 		})
 
-		it('should derive different keys for different key indices', () => {
-			const keys0 = buildKeys(mockData.rootKey, 0, 0)
-			const keys1 = buildKeys(mockData.rootKey, 0, 1)
+		it('takes a [payment, stake] pair of extended keys as-is', () => {
+			const payment = keep(buildKeys(TEST_WALLET.rootKeyHex, 0).paymentKey).to_hex()
+			const stake = keep(buildKeys(TEST_WALLET.rootKeyHex, 0).stakeKey).to_hex()
 
-			expect(keys0.paymentKey.to_hex()).not.toBe(keys1.paymentKey.to_hex())
-			expect(keys0.stakeKey.to_hex()).not.toBe(keys1.stakeKey.to_hex())
-		})
+			const keys = buildKeys([payment, stake], 5, 5)
 
-		it('should handle array of private keys (split keys)', () => {
-			// Use Bip32PrivateKey format (96 bytes = 192 hex chars)
-			const keys = buildKeys(mockData.rootKey, 0, 0)
-			const paymentKeyHex = keys.paymentKey.to_hex()
-			const stakeKeyHex = keys.stakeKey.to_hex()
-
-			const result = buildKeys([paymentKeyHex, stakeKeyHex], 0, 0)
-
-			expect(result.accountKey).toBeDefined()
-			expect(result.paymentKey).toBeDefined()
-			expect(result.stakeKey).toBeDefined()
-			expect(result.dRepKey).toBeUndefined()
-		})
-
-		it('should produce consistent results for same input', () => {
-			const keys1 = buildKeys(mockData.rootKey, 0, 0)
-			const keys2 = buildKeys(mockData.rootKey, 0, 0)
-
-			expect(keys1.paymentKey.to_hex()).toBe(keys2.paymentKey.to_hex())
-			expect(keys1.stakeKey.to_hex()).toBe(keys2.stakeKey.to_hex())
+			expect(keep(keys.paymentKey).to_hex()).toBe(payment)
+			expect(keep(keys.stakeKey).to_hex()).toBe(stake)
+			expect(keys.dRepKey).toBeUndefined()
+			keep(keys.accountKey)
 		})
 	})
 
-	describe('clampScalar', () => {
-		it('should clamp scalar according to Ed25519 rules', () => {
-			const scalar = Buffer.alloc(32, 0xff) // All bits set
-			const result = clampScalar(scalar)
+	it.each([
+		['all ones', 0xff, 0xff, 0xf8, 0x5f],
+		['all zeros', 0x00, 0x00, 0x00, 0x40],
+		['already clamped', 0x08, 0x40, 0x08, 0x40]
+	])('clampScalar clears the low 3 bits and sets bit 254 only (%s)', (_name, first, last, clampedFirst, clampedLast) => {
+		const scalar = Buffer.alloc(32, 0xaa)
+		scalar[0] = first
+		scalar[31] = last
 
-			// First byte: lowest 3 bits should be 0
-			expect(result[0]! & 0b0000_0111).toBe(0)
+		const clamped = clampScalar(scalar)
 
-			// Last byte: highest 2 bits should be 01
-			expect(result[31]! & 0b1110_0000).toBe(0b0100_0000)
-		})
-
-		it('should not modify middle bytes', () => {
-			const scalar = Buffer.alloc(32)
-			scalar.fill(0xab, 1, 31) // Fill middle bytes
-			const originalMiddle = Buffer.from(scalar.subarray(1, 31))
-
-			const result = clampScalar(scalar)
-
-			expect(result.subarray(1, 31)).toEqual(originalMiddle)
-		})
-
-		it('should handle zero buffer', () => {
-			const scalar = Buffer.alloc(32, 0)
-			const result = clampScalar(scalar)
-
-			expect(result[0]).toBe(0)
-			expect(result[31]).toBe(0b0100_0000) // Second highest bit set
-		})
+		expect(clamped[0]).toBe(clampedFirst)
+		expect(clamped[31]).toBe(clampedLast)
+		expect(clamped.subarray(1, 31).every(b => b === 0xaa)).toBe(true)
 	})
 
-	describe('stripExtendedKey', () => {
-		it('should strip extended key to 128 hex characters', () => {
-			const extendedKey = 'a'.repeat(192) // 96 bytes = 192 hex chars
-			const result = stripExtendedKey(extendedKey)
-
-			expect(result).toHaveLength(128)
-			expect(result).toBe('a'.repeat(128))
-		})
-
-		it('should throw error for invalid length', () => {
-			const shortKey = 'a'.repeat(100)
-			expect(() => stripExtendedKey(shortKey)).toThrow('Extended key must be 192 hex characters (96 bytes)')
-
-			const longKey = 'a'.repeat(200)
-			expect(() => stripExtendedKey(longKey)).toThrow('Extended key must be 192 hex characters (96 bytes)')
-		})
-
-		it('should preserve first 128 hex characters of extended key', () => {
-			const first64Bytes = 'ab'.repeat(64) // 128 hex chars
-			const last32Bytes = 'cd'.repeat(32) // 64 hex chars
-			const extendedKey = first64Bytes + last32Bytes
-
-			const result = stripExtendedKey(extendedKey)
-
-			expect(result).toBe(first64Bytes)
-		})
+	it('stripExtendedKey drops the trailing 32 bytes of a 96-byte key and rejects other lengths', () => {
+		expect(stripExtendedKey('ab'.repeat(64) + 'cd'.repeat(32))).toBe('ab'.repeat(64))
+		expect(() => stripExtendedKey('ab'.repeat(64))).toThrow(/Extended key must be 192 hex characters \(96 bytes\)/)
 	})
 
-	describe('Enums', () => {
-		it('should have correct Purpose values', () => {
-			expect(Purpose.CIP1852).toBe(1852)
-		})
+	// buildDRepID is still a stub: it logs its input and returns null (see the slice report).
+	it('buildDRepID currently logs the key hash and returns null', () => {
+		const log = vi.spyOn(console, 'log').mockImplementation(() => {})
 
-		it('should have correct CoinTypes values', () => {
-			expect(CoinTypes.CARDANO).toBe(1815)
-		})
-
-		it('should have correct ChainDerivation values', () => {
-			expect(ChainDerivation.EXTERNAL).toBe(0)
-			expect(ChainDerivation.INTERNAL).toBe(1)
-			expect(ChainDerivation.CHIMERIC).toBe(2)
-			expect(ChainDerivation.DREP).toBe(3)
-		})
+		expect(buildDRepID(keyHash(TEST_WALLET.paymentKeyHash))).toBeNull()
+		expect(log).toHaveBeenCalledWith('buildDRepID', TEST_WALLET.paymentKeyHash, NETWORK_ID.MAINNET)
 	})
 })
