@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { useWalletBridgeClient, resetSharedWalletBridgeClient } from '../src/vue'
+import { useWalletBridgeClient, resetSharedWalletBridgeClient } from '../../src/vue'
 
 describe('useWalletBridgeClient', () => {
 	let mockParent: { postMessage: ReturnType<typeof vi.fn> }
@@ -183,5 +183,28 @@ describe('useWalletBridgeClient', () => {
 		}
 		expect(bridge.theme.value).toBe('light')
 	})
-})
 
+	it('reflects capabilities from a PONG and retargets the shared client on a later call', async () => {
+		const bridge = useWalletBridgeClient()
+		expect(bridge.isMethodSupported('WALLET_SIGN_TX')).toBeNull() // before any PONG
+		const ping = mockParent.postMessage.mock.calls.find(([req]) => req.type === 'WALLET_PING')![0]
+		for (const listener of messageListeners) {
+			listener({
+				source: mockParent,
+				origin: '*',
+				data: {
+					type: 'WALLET_PONG',
+					requestId: ping.requestId,
+					result: { version: '1', isConnected: false, supportedMethods: ['WALLET_SIGN_TX'] }
+				}
+			})
+		}
+		expect(bridge.supportedCapabilities.value).toEqual(['WALLET_SIGN_TX'])
+		expect(bridge.isMethodSupported('WALLET_SIGN_TX')).toBe(true)
+
+		useWalletBridgeClient({ appCenterOrigin: 'https://hydraone.io' })
+		mockParent.postMessage.mockClear()
+		bridge.getBalance().catch(() => {})
+		expect(mockParent.postMessage.mock.calls.map(([, origin]) => origin)).toEqual(['https://hydraone.io'])
+	})
+})

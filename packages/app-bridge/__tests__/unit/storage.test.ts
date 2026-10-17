@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { DualStorage } from '../src/storage'
+import { DualStorage } from '../../src/storage'
 
 describe('DualStorage', () => {
 	let store: Map<string, string>
@@ -137,5 +137,47 @@ describe('DualStorage', () => {
 		await storage.removeItemAsync('new_key')
 		expect(mockHostRelay.hostStorageRemove).toHaveBeenCalledWith('hydra:new_key')
 	})
-})
 
+	it.each([
+		[
+			'setItemAsync',
+			(s: DualStorage) => s.setItemAsync('k', 'v'),
+			(s: DualStorage, o: any) => s.setItemAsync('k', 'v', o),
+			'Lỗi setItemAsync lên Host cho key "k"'
+		],
+		[
+			'removeItemAsync',
+			(s: DualStorage) => s.removeItemAsync('k'),
+			(s: DualStorage, o: any) => s.removeItemAsync('k', o),
+			'Lỗi removeItemAsync trên Host cho key "k"'
+		]
+	])(
+		'%s warns and resolves when the Host relay fails, and rethrows with throwOnError',
+		async (_name, call, callWith, message) => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			const hostError = new Error('host offline')
+			const relay = {
+				hostStorageGet: vi.fn(),
+				hostStorageSet: vi.fn().mockRejectedValue(hostError),
+				hostStorageRemove: vi.fn().mockRejectedValue(hostError)
+			}
+			const storage = new DualStorage({ hostRelay: relay })
+
+			await expect(call(storage)).resolves.toBeUndefined()
+			expect(warn).toHaveBeenCalledWith(`[DualStorage] ${message}:`, hostError)
+			await expect(callWith(storage, { throwOnError: true })).rejects.toThrow(/host offline/)
+			warn.mockRestore()
+		}
+	)
+
+	it('getItemAsync returns null when the Host relay fails', async () => {
+		const storage = new DualStorage({
+			hostRelay: {
+				hostStorageGet: vi.fn().mockRejectedValue(new Error('host offline')),
+				hostStorageSet: vi.fn(),
+				hostStorageRemove: vi.fn()
+			}
+		})
+		await expect(storage.getItemAsync('missing')).resolves.toBeNull()
+	})
+})
