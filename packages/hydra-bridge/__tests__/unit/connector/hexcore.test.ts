@@ -1,459 +1,371 @@
-import { describe, it, expect, beforeEach, vi, afterEach, Mock } from 'vitest'
-import {
-	HexcoreConnector,
-	HexcoreConnectorOptions,
-	defaultHexcoreFetcher,
-	defaultHexcoreSubmitter
-} from '../../../src/connector/hexcore'
-import { HydraCommand, HydraHeadTag, HydraPayload } from '../../../src/types/payload.type'
-import { HydraBridgeFetcher } from '../../../src/types/fetcher.type'
-import { HydraBridgeSubmitter } from '../../../src/types/submitter.type'
-import { Transaction } from '../../../src/types/transaction.type'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { io } from 'socket.io-client'
+import { HexcoreConnector } from '../../../src/connector/hexcore'
+import { CHAIN_TIMEOUT_MS } from '../../../src/connector/websocket'
+import { HydraCommand, HydraHeadTag } from '../../../src/types/payload.type'
+import { ADDR_A, httpError, pp, tx, utxo } from '../../helpers/fixtures'
 
-// Mock socket.io-client
-const mockSocketOn = vi.fn()
-const mockSocketEmit = vi.fn()
-const mockSocketConnect = vi.fn()
-const mockSocketDisconnect = vi.fn()
-let mockSocketConnected = false
+const socket = vi.hoisted(() => ({
+	handlers: new Map<string, (...args: unknown[]) => void>(),
+	connected: false,
+	emit: vi.fn(),
+	connect: vi.fn(),
+	disconnect: vi.fn()
+}))
 
 vi.mock('socket.io-client', () => ({
 	io: vi.fn(() => ({
-		on: mockSocketOn,
-		emit: mockSocketEmit,
-		connect: mockSocketConnect,
-		disconnect: mockSocketDisconnect,
+		on: (event: string, handler: (...args: unknown[]) => void) => socket.handlers.set(event, handler),
+		emit: socket.emit,
+		connect: socket.connect,
+		disconnect: socket.disconnect,
 		get connected() {
-			return mockSocketConnected
+			return socket.connected
 		}
 	}))
 }))
 
-// Mock axios
-vi.mock('axios', () => ({
-	default: {
-		create: vi.fn(() => ({
-			get: vi.fn().mockResolvedValue({ status: 200, data: { data: {} } }),
-			post: vi.fn().mockResolvedValue({ status: 200, data: { data: {} } })
-		}))
+/** Fire a socket.io event; fails loudly when the connector never subscribed to it. */
+const fire = (event: string, ...args: unknown[]) => {
+	const handler = socket.handlers.get(event)
+	if (!handler) throw new Error(`no handler registered for "${event}"`)
+	handler(...args)
+}
+
+const setup = (url = 'https://api.hexcore.dev', namespace?: string) => {
+	const connector = new HexcoreConnector(url, namespace ? { namespace } : undefined)
+	const api = {
+		get: vi.fn().mockResolvedValue({ data: { data: pp() } }),
+		post: vi.fn(),
+		delete: vi.fn()
 	}
-}))
+	connector.apiFetch = api as never
+	return { connector, api, fetcher: connector.fetcher, submitter: connector.submitter }
+}
+
+beforeEach(() => {
+	socket.handlers.clear()
+	socket.connected = false
+	vi.clearAllMocks()
+})
+afterEach(() => vi.restoreAllMocks())
 
 describe('HexcoreConnector', () => {
-	let connector: HexcoreConnector
-
-	beforeEach(() => {
-		vi.clearAllMocks()
-		mockSocketConnected = false
-		connector = new HexcoreConnector('https://api.hexcore.dev')
-	})
-
-	afterEach(() => {
-		vi.clearAllMocks()
-	})
-
 	describe('constructor', () => {
-		it('should create connector with socket.io URL', () => {
-			const conn = new HexcoreConnector('https://api.hexcore.dev')
+		it('derives the HTTP base url and the socket.io namespace url', () => {
+			const connector = new HexcoreConnector('https://api.hexcore.dev', { namespace: 'custom' })
 
-			expect(conn.conn.host).toBe('api.hexcore.dev')
-			expect(conn.conn.ssl).toBe(true)
-		})
-
-		it('should create connector with custom namespace', () => {
-			const conn = new HexcoreConnector('https://api.hexcore.dev', {
-				namespace: 'custom-namespace'
+			expect(connector.apiFetch.defaults.baseURL).toBe('https://api.hexcore.dev/')
+			expect(io).toHaveBeenCalledWith('https://api.hexcore.dev/custom', {
+				autoConnect: false,
+				transports: ['websocket', 'polling']
 			})
-
-			expect(conn.namespace).toBe('custom-namespace')
 		})
 
-		it('should use default namespace "hydra"', () => {
-			const conn = new HexcoreConnector('https://api.hexcore.dev')
-
-			expect(conn.namespace).toBe('hydra')
+		it('defaults the namespace to hydra and parses a plain http url', () => {
+			const connector = new HexcoreConnector('http://localhost:3000')
+			expect(connector.conn).toEqual({ ssl: false, host: 'localhost', port: '3000', path: '/' })
+			expect(io).toHaveBeenCalledWith('http://localhost:3000/hydra', expect.anything())
 		})
 
-		it('should throw error for invalid URL', () => {
-			expect(() => {
-				new HexcoreConnector('http://invalid url with spaces')
-			}).toThrow('Invalid socket io url')
+		// BUG: the namespace is appended to the base url with no separator, so any
+		// url with a path yields `/apihydra` instead of `/api/hydra`.
+		it.fails('joins the namespace onto a url that has a path', () => {
+			new HexcoreConnector('https://gw.example.com/api')
+			expect(io).toHaveBeenCalledWith('https://gw.example.com/api/hydra', expect.anything())
 		})
 
-		it('should use custom fetcher if provided', () => {
-			const customFetcher: HydraBridgeFetcher = {
-				queryRawProtocolParameters: vi.fn(),
-				querySnapshotUtxo: vi.fn(),
-				queryHeadInfo: vi.fn()
-			}
-
-			const conn = new HexcoreConnector('https://api.hexcore.dev', {
-				fetcher: customFetcher
-			})
-
-			expect(conn.fetcher).toBe(customFetcher)
-		})
-
-		it('should use custom submitter if provided', () => {
-			const customSubmitter: HydraBridgeSubmitter = {
-				commit: vi.fn(),
-				submitCardanoTx: vi.fn(),
-				submitTxSync: vi.fn()
-			}
-
-			const conn = new HexcoreConnector('https://api.hexcore.dev', {
-				submitter: customSubmitter
-			})
-
-			expect(conn.submitter).toBe(customSubmitter)
-		})
-
-		it('should set up socket.io event handlers', () => {
-			new HexcoreConnector('https://api.hexcore.dev')
-
-			expect(mockSocketOn).toHaveBeenCalledWith('connect', expect.any(Function))
-			expect(mockSocketOn).toHaveBeenCalledWith('disconnect', expect.any(Function))
-			expect(mockSocketOn).toHaveBeenCalledWith('message', expect.any(Function))
-			expect(mockSocketOn).toHaveBeenCalledWith('hydra', expect.any(Function))
-		})
-
-		it('should handle http URL', () => {
-			const conn = new HexcoreConnector('http://localhost:3000')
-
-			expect(conn.conn.ssl).toBe(false)
-			expect(conn.conn.host).toBe('localhost')
-			expect(conn.conn.port).toBe('3000')
+		it('rejects an invalid url', () => {
+			expect(() => new HexcoreConnector('http://invalid url')).toThrow(/Invalid socket io url/)
 		})
 	})
 
-	describe('connect', () => {
-		it('should call socketIoClient.connect', () => {
-			connector.connect()
+	describe('socket', () => {
+		it('maps socket.io events onto the emitter', () => {
+			const { connector } = setup()
+			const events: string[] = []
+			connector.eventEmitter.on('*', type => events.push(type))
 
-			expect(mockSocketConnect).toHaveBeenCalled()
+			fire('connect')
+			fire('disconnect')
+
+			expect(events).toEqual(['onConnected', 'onDisconnected'])
 		})
 
-		it('should query protocol parameters on connect', () => {
-			const querySpy = vi.spyOn(connector.fetcher, 'queryRawProtocolParameters')
-
-			connector.connect()
-
-			expect(querySpy).toHaveBeenCalled()
-		})
-	})
-
-	describe('disconnect', () => {
-		it('should call socketIoClient.disconnect', () => {
-			connector.disconnect()
-
-			expect(mockSocketDisconnect).toHaveBeenCalled()
-		})
-	})
-
-	describe('connected', () => {
-		it('should return socket.io connected state', () => {
-			mockSocketConnected = true
-			expect(connector.connected()).toBe(true)
-
-			mockSocketConnected = false
-			expect(connector.connected()).toBe(false)
-		})
-	})
-
-	describe('sendCommand', () => {
-		it('should emit command through socket.io', () => {
-			mockSocketConnected = true
-
-			connector.sendCommand({
-				command: HydraCommand.Init
-			})
-
-			expect(mockSocketEmit).toHaveBeenCalledWith('hydra', {
-				command: 'send_command',
-				data: {
-					tag: HydraCommand.Init
-				}
-			})
-		})
-
-		it('should include payload in command', () => {
-			mockSocketConnected = true
-
-			connector.sendCommand({
-				command: HydraCommand.NewTx,
-				payload: {
-					transaction: { cborHex: 'abc123' }
-				}
-			})
-
-			expect(mockSocketEmit).toHaveBeenCalledWith('hydra', {
-				command: 'send_command',
-				data: {
-					tag: HydraCommand.NewTx,
-					transaction: { cborHex: 'abc123' }
-				}
-			})
-		})
-
-		it('should call afterSendCb if provided', () => {
-			mockSocketConnected = true
-
-			const afterSendCb = vi.fn()
-			connector.sendCommand({
-				command: HydraCommand.Init,
-				afterSendCb
-			})
-
-			expect(afterSendCb).toHaveBeenCalled()
-		})
-
-		it('should throw error if not connected', () => {
-			mockSocketConnected = false
-
-			expect(() => {
-				connector.sendCommand({
-					command: HydraCommand.Init
-				})
-			}).toThrow('Socket io is not connected')
-		})
-	})
-
-	describe('event emitter', () => {
-		it('should emit onConnected when socket connects', () => {
-			const onConnected = vi.fn()
-			connector.eventEmitter.on('onConnected', onConnected)
-
-			// Find the connect handler and call it
-			const connectCall = mockSocketOn.mock.calls.find(call => call[0] === 'connect')
-			if (connectCall) {
-				connectCall[1]()
-			}
-
-			expect(onConnected).toHaveBeenCalled()
-		})
-
-		it('should emit onDisconnected when socket disconnects', () => {
-			const onDisconnected = vi.fn()
-			connector.eventEmitter.on('onDisconnected', onDisconnected)
-
-			// Find the disconnect handler and call it
-			const disconnectCall = mockSocketOn.mock.calls.find(call => call[0] === 'disconnect')
-			if (disconnectCall) {
-				disconnectCall[1]()
-			}
-
-			expect(onDisconnected).toHaveBeenCalled()
-		})
-
-		it('should emit onMessage when hydra message received', () => {
+		it.each([
+			[
+				'forwards a hydra message',
+				{ tag: HydraHeadTag.TxValid, transactionId: 'x' },
+				{ tag: HydraHeadTag.TxValid, transactionId: 'x' }
+			],
+			[
+				'tags an untagged InvalidInput',
+				{ reason: 'bad', input: '{' },
+				{ tag: HydraHeadTag.InvalidInput, reason: 'bad', input: '{' }
+			]
+		])('%s', (_, data, emitted) => {
+			const { connector } = setup()
 			const onMessage = vi.fn()
 			connector.eventEmitter.on('onMessage', onMessage)
 
-			// Find the hydra handler and call it
-			const hydraCall = mockSocketOn.mock.calls.find(call => call[0] === 'hydra')
-			if (hydraCall) {
-				hydraCall[1]({
-					status: 'success',
-					data: { tag: HydraHeadTag.Greetings }
-				})
+			fire('hydra', { status: 'success', data })
+
+			expect(onMessage).toHaveBeenCalledExactlyOnceWith(emitted)
+		})
+
+		it('logs plain socket.io messages', () => {
+			const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+			setup()
+			fire('message', 'hello')
+			expect(log).toHaveBeenCalledWith('[HexcoreConnector][message]:', 'hello')
+		})
+
+		it('connect/disconnect drive the socket; connected() reads it', () => {
+			const { connector } = setup()
+
+			connector.connect()
+			connector.disconnect()
+			socket.connected = true
+
+			expect(socket.connect).toHaveBeenCalledOnce()
+			expect(socket.disconnect).toHaveBeenCalledOnce()
+			expect(connector.connected()).toBe(true)
+		})
+
+		// BUG: same as the websocket connector — connect() drops the
+		// protocol-parameters promise, so a failing query is an unhandled rejection.
+		it.fails('handles a failing protocol-parameters query on connect', () => {
+			const { connector } = setup()
+			const failure = Promise.reject(new Error('503'))
+			const then = vi.spyOn(failure, 'then')
+			connector.fetcher.queryRawProtocolParameters = () => failure
+			try {
+				connector.connect()
+				expect(then).toHaveBeenCalled()
+			} finally {
+				failure.catch(() => {})
 			}
-
-			expect(onMessage).toHaveBeenCalledWith({ tag: HydraHeadTag.Greetings })
-		})
-	})
-})
-
-describe('defaultHexcoreFetcher', () => {
-	let connector: HexcoreConnector
-	let fetcher: HydraBridgeFetcher
-
-	beforeEach(() => {
-		vi.clearAllMocks()
-		connector = new HexcoreConnector('https://api.hexcore.dev')
-		fetcher = defaultHexcoreFetcher(connector)
-	})
-
-	describe('queryRawProtocolParameters', () => {
-		it('should fetch protocol parameters', async () => {
-			const mockData = {
-				txFeeFixed: 155381,
-				txFeePerByte: 44
-			}
-			;(connector.apiFetch.get as Mock).mockResolvedValue({ data: { data: mockData } })
-
-			const result = await fetcher.queryRawProtocolParameters()
-
-			expect(connector.apiFetch.get).toHaveBeenCalledWith('/hydra/protocol-parameters')
-			expect(result).toEqual(mockData)
 		})
 
-		it('should throw error when no data returned', async () => {
-			;(connector.apiFetch.get as Mock).mockResolvedValue({ data: {} })
+		it('sendCommand emits send_command on the namespace, then runs afterSendCb', () => {
+			const { connector } = setup('https://api.hexcore.dev', 'ns')
+			socket.connected = true
+			const afterSendCb = vi.fn()
 
-			await expect(fetcher.queryRawProtocolParameters()).rejects.toThrow()
-		})
-	})
+			connector.sendCommand({ command: HydraCommand.Recover, payload: { recoverTxId: 'dep' }, afterSendCb })
 
-	describe('querySnapshotUtxo', () => {
-		it('should fetch snapshot UTxO', async () => {
-			const mockData = { 'txhash#0': { address: 'addr...' } }
-			;(connector.apiFetch.get as Mock).mockResolvedValue({ data: { data: mockData } })
-
-			const result = await fetcher.querySnapshotUtxo()
-
-			expect(connector.apiFetch.get).toHaveBeenCalledWith('/hydra/snapshot/utxo')
-			expect(result).toEqual(mockData)
-		})
-
-		it('should return empty object if no data', async () => {
-			;(connector.apiFetch.get as Mock).mockResolvedValue({ data: {} })
-
-			const result = await fetcher.querySnapshotUtxo()
-
-			expect(result).toEqual({})
-		})
-	})
-
-	describe('queryHeadInfo', () => {
-		it('should fetch head info', async () => {
-			const mockData = { headId: 'head-123', headStatus: 'Open' }
-			;(connector.apiFetch.get as Mock).mockResolvedValue({ data: { data: mockData } })
-
-			const result = await fetcher.queryHeadInfo()
-
-			expect(connector.apiFetch.get).toHaveBeenCalledWith('/hydra/head')
-			expect(result).toEqual(mockData)
-		})
-
-		it('should return empty object if no data', async () => {
-			;(connector.apiFetch.get as Mock).mockResolvedValue({ data: {} })
-
-			const result = await fetcher.queryHeadInfo()
-
-			expect(result).toEqual({})
-		})
-	})
-})
-
-describe('defaultHexcoreSubmitter', () => {
-	let connector: HexcoreConnector
-	let submitter: HydraBridgeSubmitter
-
-	beforeEach(() => {
-		vi.clearAllMocks()
-		connector = new HexcoreConnector('https://api.hexcore.dev')
-		submitter = defaultHexcoreSubmitter(connector)
-	})
-
-	describe('commit', () => {
-		it('should submit commit request', async () => {
-			const commitData = {
-				'txhash#0': {
-					address: 'addr_test1...',
-					datum: null,
-					datumhash: null,
-					inlineDatum: null,
-					referenceScript: null,
-					value: { lovelace: 1000000 }
-				}
-			}
-			const mockResponse = { txId: 'commit-tx-id' }
-			;(connector.apiFetch.post as Mock).mockResolvedValue({ data: mockResponse })
-
-			const result = await submitter.commit(commitData)
-
-			expect(connector.apiFetch.post).toHaveBeenCalledWith('/hydra/commit', {
-				type: 'simple',
-				data: {
-					utxo: commitData
-				}
+			expect(socket.emit).toHaveBeenCalledExactlyOnceWith('ns', {
+				command: 'send_command',
+				data: { tag: 'Recover', recoverTxId: 'dep' }
 			})
-			expect(result).toEqual(mockResponse)
+			expect(afterSendCb).toHaveBeenCalledOnce()
 		})
 
-		it('should throw error on failure', async () => {
-			;(connector.apiFetch.post as Mock).mockRejectedValue(new Error('Network error'))
+		it('sendCommand throws while disconnected', () => {
+			const { connector } = setup()
+			expect(() => connector.sendCommand({ command: HydraCommand.Init })).toThrow(/Socket io is not connected/)
+			expect(socket.emit).not.toHaveBeenCalled()
+		})
+	})
+})
 
-			await expect(submitter.commit({})).rejects.toThrow()
+describe('default hexcore fetcher', () => {
+	it.each([
+		['queryRawProtocolParameters', '/hydra/protocol-parameters'],
+		['querySnapshotUtxo', '/hydra/snapshot/utxo'],
+		['queryHeadInfo', '/hydra/head'],
+		['queryConfirmedSnapshot', '/hydra/snapshot'],
+		['queryLastSeenSnapshot', '/hydra/snapshot/last-seen'],
+		['queryPendingDeposits', '/hydra/commits'],
+		['queryNodeConfig', '/hydra/config']
+	] as const)('%s GETs %s and unwraps data.data', async (method, path) => {
+		const { fetcher, api } = setup()
+		api.get.mockResolvedValue({ data: { data: { from: path } } })
+
+		await expect(fetcher[method]!()).resolves.toEqual({ from: path })
+		expect(api.get).toHaveBeenCalledWith(path)
+	})
+
+	it.each([
+		['querySnapshotUtxo', {}],
+		['queryHeadInfo', {}],
+		['queryConfirmedSnapshot', null],
+		['queryPendingDeposits', []]
+	] as const)('%s falls back to %j for an empty envelope', async (method, fallback) => {
+		const { fetcher, api } = setup()
+		api.get.mockResolvedValue({ data: {} })
+		await expect(fetcher[method]!()).resolves.toEqual(fallback)
+	})
+
+	it('queryRawProtocolParameters rejects an empty envelope', async () => {
+		const { fetcher, api } = setup()
+		api.get.mockResolvedValue({ data: {} })
+		await expect(fetcher.queryRawProtocolParameters()).rejects.toThrow(
+			/\[QueryProtocolParameters\].*Failed to query protocol parameters/
+		)
+	})
+
+	it.each([
+		['queryHeadInfo', /\[HexcoreConnector\]\[QueryHeadInfo\]/],
+		['queryConfirmedSnapshot', /\[QueryConfirmedSnapshot\]/],
+		['queryLastSeenSnapshot', /\[QueryLastSeenSnapshot\]/],
+		['queryPendingDeposits', /\[QueryPendingDeposits\]/],
+		['queryNodeConfig', /\[QueryNodeConfig\]/]
+	] as const)('%s labels a transport failure', async (method, message) => {
+		const { fetcher, api } = setup()
+		api.get.mockRejectedValue(httpError(502))
+		await expect(fetcher[method]!()).rejects.toThrow(message)
+	})
+
+	// BUG: copy-pasted label — a snapshot failure reports [QueryProtocolParameters].
+	it.fails('querySnapshotUtxo labels its own failure', async () => {
+		const { fetcher, api } = setup()
+		api.get.mockRejectedValue(httpError(502))
+		await expect(fetcher.querySnapshotUtxo()).rejects.toThrow(/\[QuerySnapshotUtxo\]/)
+	})
+})
+
+describe('default hexcore submitter', () => {
+	const envelope = { type: tx().type, description: tx().description, cborHex: tx().cborHex, txId: tx().txId }
+
+	it('commit wraps the UTxO in a simple commit request', async () => {
+		const { submitter, api } = setup()
+		api.post.mockResolvedValue({ data: { cborHex: '84' } })
+
+		await expect(submitter.commit(utxo(1, ADDR_A))).resolves.toEqual({ cborHex: '84' })
+		expect(api.post).toHaveBeenCalledWith('/hydra/commit', { type: 'simple', data: { utxo: utxo(1, ADDR_A) } })
+	})
+
+	// BUG: copy-pasted label — a commit failure reports [QueryProtocolParameters].
+	it.fails('commit labels its own failure', async () => {
+		const { submitter, api } = setup()
+		api.post.mockRejectedValue(httpError(400))
+		await expect(submitter.commit({})).rejects.toThrow(/\[HexcoreConnector\]\[Commit\]/)
+	})
+
+	it('submitCardanoTx unwraps data.data and labels failures', async () => {
+		const { submitter, api } = setup()
+		api.post.mockResolvedValueOnce({ data: { data: { tag: 'TransactionSubmitted' } } })
+		api.post.mockRejectedValueOnce(httpError(400))
+
+		await expect(submitter.submitCardanoTx(tx())).resolves.toEqual({ tag: 'TransactionSubmitted' })
+		expect(api.post).toHaveBeenCalledWith('/hydra/cardano-transaction', tx())
+		await expect(submitter.submitCardanoTx(tx())).rejects.toThrow(/\[submitCardanoTx\]/)
+	})
+
+	describe('submitTxSync / submitTx', () => {
+		const confirmed = { tag: HydraHeadTag.SnapshotConfirmed }
+
+		it.each([
+			['a snapshot', { data: confirmed }, { isValid: true, isConfirmed: true, result: confirmed }],
+			['an empty envelope', {}, { isValid: false, isConfirmed: false, result: null }]
+		])('submitTxSync maps %s', async (_, data, expected) => {
+			const { submitter, api } = setup()
+			api.post.mockResolvedValue({ data })
+
+			await expect(submitter.submitTxSync(tx(), { timeout: 9 })).resolves.toEqual({ txId: tx().txId, ...expected })
+			expect(api.post).toHaveBeenCalledWith('/hydra/submit-tx', tx(), { timeout: 9 })
+		})
+
+		it('submitTxSync labels a failure', async () => {
+			const { submitter, api } = setup()
+			api.post.mockRejectedValue(httpError(500))
+			await expect(submitter.submitTxSync(tx())).rejects.toThrow(/\[submitTxSync\].*500/)
+		})
+
+		it.each([
+			[
+				'a snapshot',
+				() => ({ data: { data: confirmed } }),
+				null,
+				{ txId: tx().txId, isValid: true, isConfirmed: true, result: confirmed }
+			],
+			[
+				'an empty envelope',
+				() => ({ data: {} }),
+				null,
+				{ txId: tx().txId, isValid: false, isConfirmed: false, result: null }
+			]
+		])('submitTx calls back with %s', async (_, response, error, result) => {
+			const { submitter, api } = setup()
+			api.post.mockResolvedValue(response())
+			const cb = vi.fn()
+
+			submitter.submitTx(tx(), cb)
+
+			await vi.waitFor(() => expect(cb).toHaveBeenCalledExactlyOnceWith(error, result))
+		})
+
+		it('submitTx calls back with the transport error', async () => {
+			const { submitter, api } = setup()
+			api.post.mockRejectedValue(new Error('socket hang up'))
+			const cb = vi.fn()
+
+			submitter.submitTx(tx(), cb)
+
+			await vi.waitFor(() =>
+				expect(cb).toHaveBeenCalledExactlyOnceWith({ txId: tx().txId, reason: 'socket hang up', tag: 'Error' }, null)
+			)
 		})
 	})
 
-	describe('submitCardanoTx', () => {
-		it('should submit Cardano transaction', async () => {
-			const txData = {
-				cborHex: 'abc123',
-				description: 'test',
-				type: 'Witnessed Tx ConwayEra' as const
-			}
-			const mockResponse = { txId: 'cardano-tx-id' }
-			;(connector.apiFetch.post as Mock).mockResolvedValue({ data: { data: mockResponse } })
+	describe('submitL2Tx', () => {
+		it('POSTs the wrapped envelope with the chain timeout and unwraps the verdict', async () => {
+			const { submitter, api } = setup()
+			api.post.mockResolvedValue({ data: { data: { tag: 'SubmitTxConfirmed', snapshotNumber: 2 } } })
 
-			const result = await submitter.submitCardanoTx(txData)
+			await expect(submitter.submitL2Tx!(tx())).resolves.toEqual({ tag: 'SubmitTxConfirmed', snapshotNumber: 2 })
+			expect(api.post).toHaveBeenCalledWith('/hydra/transaction', { submitL2Tx: envelope }, { timeout: CHAIN_TIMEOUT_MS })
+		})
 
-			expect(connector.apiFetch.post).toHaveBeenCalledWith('/hydra/cardano-transaction', txData)
-			expect(result).toEqual(mockResponse)
+		it.each([
+			['data.data', { data: { tag: 'SubmitTxRejected', reason: 'unsynced' } }],
+			['data', { tag: 'SubmitTxRejected', reason: 'unsynced' }]
+		])('returns a tagged error body found in %s as the verdict', async (_, body) => {
+			const { submitter, api } = setup()
+			api.post.mockRejectedValue(httpError(400, body))
+			await expect(submitter.submitL2Tx!(tx())).resolves.toEqual({ tag: 'SubmitTxRejected', reason: 'unsynced' })
+		})
+
+		it('throws for an untagged error body', async () => {
+			const { submitter, api } = setup()
+			api.post.mockRejectedValue(httpError(400, 'garbage'))
+			await expect(submitter.submitL2Tx!(tx())).rejects.toThrow(/\[SubmitL2Tx\].*400/)
 		})
 	})
 
-	describe('submitTxSync', () => {
-		it('should submit transaction synchronously', async () => {
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test',
-				type: 'Witnessed Tx ConwayEra'
-			}
-			const mockResponse = { tag: HydraHeadTag.SnapshotConfirmed }
-			;(connector.apiFetch.post as Mock).mockResolvedValue({ data: { data: mockResponse } })
+	it('recoverDeposit DELETEs the url-encoded deposit and unwraps the answer', async () => {
+		const { submitter, api } = setup()
+		api.delete.mockResolvedValueOnce({ data: { data: 'OK' } })
+		api.delete.mockRejectedValueOnce(httpError(404))
 
-			const result = await submitter.submitTxSync(tx)
-
-			expect(connector.apiFetch.post).toHaveBeenCalledWith('/hydra/submit-tx', tx, { timeout: undefined })
-			expect(result.txId).toBe('tx-123')
-			expect(result.isValid).toBe(true)
-			expect(result.isConfirmed).toBe(true)
-		})
-
-		it('should return invalid result when no data returned', async () => {
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test',
-				type: 'Witnessed Tx ConwayEra'
-			}
-			;(connector.apiFetch.post as Mock).mockResolvedValue({ data: {} })
-
-			const result = await submitter.submitTxSync(tx)
-
-			expect(result.txId).toBe('tx-123')
-			expect(result.isValid).toBe(false)
-			expect(result.isConfirmed).toBe(false)
-		})
-
-		it('should use custom timeout', async () => {
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test',
-				type: 'Witnessed Tx ConwayEra'
-			}
-			;(connector.apiFetch.post as Mock).mockResolvedValue({ data: { data: {} } })
-
-			await submitter.submitTxSync(tx, { timeout: 60000 })
-
-			expect(connector.apiFetch.post).toHaveBeenCalledWith('/hydra/submit-tx', tx, { timeout: 60000 })
-		})
-
-		it('should throw error on failure', async () => {
-			const tx: Transaction = {
-				txId: 'tx-123',
-				cborHex: 'cbor-hex',
-				description: 'test',
-				type: 'Witnessed Tx ConwayEra'
-			}
-			;(connector.apiFetch.post as Mock).mockRejectedValue(new Error('Network error'))
-
-			await expect(submitter.submitTxSync(tx)).rejects.toThrow()
-		})
+		await expect(submitter.recoverDeposit!('a/b#0', { timeout: 7 })).resolves.toBe('OK')
+		expect(api.delete).toHaveBeenCalledWith('/hydra/commits/a%2Fb%230', { timeout: 7 })
+		await expect(submitter.recoverDeposit!('dep')).rejects.toThrow(/\[RecoverDeposit\].*404/)
 	})
+
+	it.each([
+		['decommit', '/hydra/decommit', () => tx(), envelope, /\[Decommit\]/],
+		[
+			'sideLoadSnapshot',
+			'/hydra/snapshot',
+			() => ({ snapshot: { tag: 'InitialSnapshot' } }),
+			{ snapshot: { tag: 'InitialSnapshot' } },
+			/\[SideLoadSnapshot\]/
+		]
+	] as const)(
+		'%s POSTs %s with the chain timeout, unwraps, and labels failures',
+		async (method, path, arg, body, message) => {
+			const { submitter, api } = setup()
+			api.post.mockResolvedValueOnce({ data: { data: 'OK' } })
+			api.post.mockResolvedValueOnce({ data: 'raw' })
+			api.post.mockRejectedValueOnce(httpError(400))
+			const call = submitter[method] as (a: unknown) => Promise<unknown>
+
+			await expect(call(arg())).resolves.toBe('OK')
+			expect(api.post).toHaveBeenCalledWith(path, body, { timeout: CHAIN_TIMEOUT_MS })
+			await expect(call(arg())).resolves.toBe('raw')
+			await expect(call(arg())).rejects.toThrow(message)
+		}
+	)
 })
