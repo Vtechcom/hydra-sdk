@@ -26,7 +26,7 @@ export const TEST_WALLET = {
 	paymentPubKeyHex: '473447e8eae7633b31e83a55a3512f955c429379872b132e175ecaff4a73d70c',
 	/** blake2b-224(paymentPubKey) */
 	paymentKeyHash: '89d2fa514215fb063a7efca89fe9cd7447c857fe9c880b46240516d0',
-	stakeKeyHash: '39065caa55fdf0c8025b851e7429895ae766ad42f8165bef04b3d71c',
+	stakeKeyHash: '39065ca955fdf0c8025b851e7429895ae766ad42f8165bef04b3d71c',
 	baseAddressPreprod:
 		'addr_test1qzya97j3gg2lkp360m7238lfe46y0jzhl6wgsz6xysz3d5peqew2j40a7ryqyku9re6znz26uan26shczed77p9n6uwq68d0h9',
 	enterpriseAddressPreprod: 'addr_test1vzya97j3gg2lkp360m7238lfe46y0jzhl6wgsz6xysz3d5q95da34',
@@ -90,3 +90,11 @@ export const NATIVE_SIG_SCRIPT = {
 	cborHex: '8200581cc10e19cfae1283949ec4b98a8e8ed9dbedafc00e419c8dc82d61fe82',
 	policyId: '09af357417c96d8f26a46560221ee1f1a6d301ce5b675c9d459d3dfa'
 }
+
+/** Base address: PLUTUS_SCRIPT (as PlutusV2) payment credential + TEST_WALLET stake key, testnet. */
+export const BASE_SCRIPT_ADDRESS =
+	'addr_test1zqm8xzq4usjc2h9rqyn5ew0jymhrc35hxgwhd9fftnyqc7eeqew2j40a7ryqyku9re6znz26uan26shczed77p9n6uwq0gw6r7'
+
+/** CIP-19 test vector: testnet pointer address (type 4) and its payment key hash. */
+export const POINTER_ADDRESS = 'addr_test1gz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5pnz75xxcrdw5vky'
+export const POINTER_ADDRESS_KEY_HASH = '9493315cd92eb5d8c4304e67b7e16ae36d61d34502694657811a2c8e'
