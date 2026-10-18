@@ -45,3 +45,18 @@ Quy ước: phiên âm viết liền, cách nhau bằng dấu cách, không dùn
 | code | cốt | đề xuất | Phương án khác: "mã" |
 | AppWallet | áp oa lét | đề xuất | |
 | EmbeddedWallet | em bét đít oa lét | đề xuất | |
+| NFT | en ép ti | đề xuất | Tập 8; viết tắt đọc theo chữ cái tiếng Anh |
+| PolicyUtils | pô li xi iu tiu | đề xuất | Tập 8 |
+| hex | hếch | đề xuất | Tập 8, cụm "dạng hex" |
+| Conway | Con uây | đề xuất | Tập 7, tên bản nâng cấp của Cardano |
+| Ouroboros Praos | Ô rô bo rốt Pra ốt | đề xuất | Tập 9 |
+| Ouroboros | Ô rô bo rốt | đề xuất | Tập 9 |
+| Praos | Pra ốt | đề xuất | Tập 9 |
+| slot | xờ lót | đề xuất | Tập 9 |
+| epoch | ê pốc | đề xuất | Tập 9; tập 7 từng đề xuất "í pốc", thống nhất theo tập 9 |
+| stake pool | xờ tếch pun | đề xuất | Tập 9; phải đứng trước "stake" và "pool", lexicon tự xếp cụm dài trước |
+| stake | xờ tếch | đề xuất | Tập 9 |
+| pool | pun | đề xuất | Tập 9, khi đứng riêng |
+| TimeUtils | tham iu tiu | đề xuất | Tập 9 |
+| CIP-30 | xíp ba mươi | đề xuất | Tập 12; phương án khác: "xê i pê ba mươi" |
+| app-bridge | áp bờ rít | đề xuất | Tập 12, tên gói `@hydra-sdk/app-bridge` |

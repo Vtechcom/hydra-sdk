@@ -11,6 +11,7 @@ promo/
   Y-TUONG-CHUOI-VIDEO.md    # Ý tưởng tập mới và cải tiến cho cả chuỗi
   REVIEW-PROMPT.md          # Yêu cầu review kịch bản dùng cho agy
   REVIEW-AGY-TONGHOP.md     # Tổng hợp review của agy cho cả chuỗi
+  REVIEW-PROMPT-BRIEF.md    # Yêu cầu agy review nội dung brief, trước khi viết kịch bản (tập 07 trở đi)
   knowledge/                # Tài liệu nguồn (bài giảng, ghi chép) để đối chiếu sự thật
   shared/                   # Dùng chung cho mọi tập
     tu-dien-doc.md          # Từ điển đọc thuật ngữ cho giọng tiếng Việt
@@ -42,6 +43,14 @@ Các tập sau thêm thư mục `videos/<số>-<chủ-đề>/` cùng cấu trúc
 | 04 | Ví thật ra giữ gì? Khoá, địa chỉ và cụm từ khôi phục | 4:36 | Bản đầu, chờ góp ý |
 | 05 | Hợp đồng thông minh trên eUTxO | 5:19 | Bản đầu, chờ góp ý |
 | 06 | Thực hành: giao dịch đầu tiên trong Hydra Head | 6:13 | Bản đầu, chờ góp ý |
+| 07 | Phí giao dịch trên Cardano được tính thế nào? | ~5:07 (ước lượng) | Kịch bản, chờ duyệt; chưa dựng |
+| 08 | Token và NFT trên Cardano: tờ tiền lạ trong phong bì | ~5:59 (ước lượng) | Kịch bản, chờ duyệt; chưa dựng |
+| 09 | Khối, đồng thuận và staking: ai được ghi sổ Cardano? | ~5:44 (ước lượng) | Kịch bản, chờ duyệt; chưa dựng |
+| 10 | Hydra dùng vào việc gì? | ~5:13 (ước lượng) | Kịch bản, chờ duyệt; chưa dựng |
+| 11 | Gỡ lỗi giao dịch Hydra thường gặp | ~5:36 (ước lượng) | Kịch bản, chờ duyệt; chưa dựng |
+| 12 | Bảo mật cho người dùng mới, phần 2: trang giả, ký mù và token lạ | ~5:56 (ước lượng) | Kịch bản, chờ duyệt; chưa dựng |
+
+Tập 07–12 mới có `brief.md`, `review-agy-brief.md` (agy review nội dung brief trước khi viết lời), `script.py` và `kich-ban.md`; chưa có `scenes.py`, chưa tạo giọng, chưa dựng.
 
 Ý tưởng cho các tập tiếp theo: [Y-TUONG-CHUOI-VIDEO.md](Y-TUONG-CHUOI-VIDEO.md).
 

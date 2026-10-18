@@ -12,16 +12,16 @@ Danh sách ý tưởng để làm sau. Muốn bắt đầu ý nào thì mở Vò
 | 4 | Ví thật ra giữ gì? Khoá, địa chỉ và cụm từ khôi phục |
 | 5 | Hợp đồng thông minh trên eUTxO: ổ khoá biết suy nghĩ |
 | 6 | Thực hành: giao dịch đầu tiên trong Hydra Head với hydra-sdk |
+| 7 | Phí giao dịch trên Cardano được tính thế nào? (kịch bản) |
+| 8 | Token và NFT trên Cardano (kịch bản) |
+| 9 | Khối, đồng thuận và staking (kịch bản) |
+| 10 | Hydra dùng vào việc gì? (kịch bản) |
+| 11 | Gỡ lỗi giao dịch Hydra thường gặp (kịch bản) |
+| 12 | Bảo mật cho người dùng mới, phần 2 (kịch bản) |
 
 ## Ý tưởng tập mới
 
-1. **Phí giao dịch trên Cardano được tính thế nào?** Phí theo kích thước giao dịch cộng phần chạy script, vì sao biết trước phí trước khi gửi. Nối tiếp tập 1 và tập 5. Số liệu phí phải lấy từ tham số giao thức có nguồn.
-2. **Token trên Cardano (native token) và NFT.** Vì sao tạo token không cần hợp đồng thông minh, policy ID là gì, NFT khác token thường ở đâu. Mở rộng chi tiết "phong bì nhiều loại tiền" của tập 1.
-3. **Khối, đồng thuận và staking (Ouroboros) cho người mới.** Ai được ghi khối tiếp theo, vì sao cần chờ xác nhận, uỷ thác ADA có giữ quyền sở hữu không. Lấp khoảng trống "sổ chung" mà tập 2 nhắc tới.
-4. **Hydra dùng vào việc gì?** Tình huống phù hợp và không phù hợp: game theo lượt, thanh toán vi mô giữa nhóm cố định, đấu giá. Tập định vị sản phẩm, cần chủ sản phẩm chốt trường hợp nào được nhắc tới.
-5. **Gỡ lỗi giao dịch Hydra thường gặp.** Thiếu tiền thế chấp, UTxO đã bị tiêu, Head chưa mở, snapshot lệch. Dạng hướng dẫn cho lập trình viên, nối tiếp tập 6.
-6. **Bảo mật cho người dùng mới, phần 2.** Trang giả mạo, ký giao dịch mù, airdrop giả. Tiếp nối phần cảnh báo của tập 4.
-7. **Bản ngắn 60–90 giây khung dọc 9:16** cho mỗi tập dài, đăng Shorts/TikTok/Reels và dẫn về bản đầy đủ.
+1. **Bản ngắn 60–90 giây khung dọc 9:16** cho mỗi tập dài, đăng Shorts/TikTok/Reels và dẫn về bản đầy đủ.
 
 ## Cải tiến cho cả chuỗi
 
