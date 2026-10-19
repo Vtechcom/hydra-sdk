@@ -232,8 +232,15 @@ export class HexcoreConnector implements HydraConnector {
 			ssl: option.ssl,
 			host: option.host,
 			port: option.port,
-			path: option.path
+			path: option.path,
+			params: option.params
 		}
+
+		const headers = this.conn?.params?.['X-Api-Key']
+			? {
+					'X-Api-Key': this.conn.params['X-Api-Key']
+				}
+			: undefined
 
 		const httpUrl = buildUrl({
 			protocol: this.conn.ssl ? 'https' : 'http',
@@ -243,7 +250,8 @@ export class HexcoreConnector implements HydraConnector {
 		})
 		this.apiFetch = axios.create({
 			baseURL: httpUrl,
-			timeout: 10000
+			timeout: 10000,
+			headers
 		})
 		this.namespace = options?.namespace || 'hydra'
 
