@@ -137,4 +137,4 @@ Khám phá các ví dụ thực tế:
 
 ## Giấy Phép
 
-Hydra SDK là phần mềm mã nguồn mở được cấp phép theo [MIT License](https://github.com/Vtechcom/hydra-sdk/blob/dev/LICENSE).
+Hydra SDK là phần mềm mã nguồn mở được cấp phép theo [Apache License 2.0](https://github.com/Vtechcom/hydra-sdk/blob/master/LICENSE).
