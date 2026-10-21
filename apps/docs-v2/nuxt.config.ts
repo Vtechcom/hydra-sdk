@@ -66,7 +66,9 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: ['animejs']
     }
-  },  eslint: {
+  },
+
+  eslint: {
     config: {
       stylistic: {
         commaDangle: 'never',
