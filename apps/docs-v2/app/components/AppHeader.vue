@@ -33,12 +33,7 @@ onMounted(async () => {
   await nextTick() // the brand lives in UHeader's slot; wait for it to render
   const items = [...document.querySelectorAll<HTMLElement>('[data-brand-item]')]
   if (!items.length) return
-  const reveal = () => {
-    items.forEach((item) => {
-      item.style.opacity = '1'
-      item.style.transform = ''
-    })
-  }
+  const reveal = () => items.forEach((i) => { i.style.opacity = '1'; i.style.transform = '' })
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     reveal()
@@ -46,7 +41,9 @@ onMounted(async () => {
   }
 
   try {
-    const { animate, stagger } = await import('animejs')
+    const mod = await import('animejs') as Record<string, any>
+    const animate = mod.animate ?? mod.default?.animate
+    const stagger = mod.stagger ?? mod.default?.stagger
     if (typeof animate !== 'function') {
       reveal()
       return
@@ -56,13 +53,9 @@ onMounted(async () => {
       translateX: [-12, 0],
       scale: [0.85, 1],
       duration: 700,
-      delay: stagger(70),
+      delay: stagger ? stagger(70) : 0,
       ease: 'outExpo',
-      onComplete: () => {
-        items.forEach((item) => {
-          item.style.transform = ''
-        })
-      }
+      onComplete: () => items.forEach(i => { i.style.transform = '' })
     })
   } catch {
     reveal()

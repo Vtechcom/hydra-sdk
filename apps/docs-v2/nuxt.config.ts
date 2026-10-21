@@ -12,16 +12,35 @@ export default defineNuxtConfig({
     '@vercel/analytics/nuxt'
   ],
 
+  // Keep locale codes in sync with the collections in content.config.ts
+  i18n: {
+    strategy: 'prefix_except_default',
+    defaultLocale: 'en',
+    locales: [
+      { code: 'en', name: 'English', language: 'en-US' },
+      { code: 'vi', name: 'Tiếng Việt', language: 'vi-VN' },
+      { code: 'ja', name: '日本語', language: 'ja-JP' }
+    ],
+    // Explicit, deterministic routing for now: `/` always serves the default
+    // locale. Enable browser detection later once translations land.
+    detectBrowserLanguage: false
+  },
+
   devtools: {
     enabled: true
   },
 
-  css: ['~/assets/css/main.css'],
+  // Run in parallel with apps/docs (port 3002)
+  devServer: {
+    port: 3003
+  },
 
   // Dark-first, matching the strikefinance-inspired canvas (toggle still works)
   colorMode: {
     preference: 'dark'
   },
+
+  css: ['~/assets/css/main.css'],
 
   content: {
     build: {
@@ -40,11 +59,6 @@ export default defineNuxtConfig({
     }
   },
 
-  // Run in parallel with apps/docs (port 3002)
-  devServer: {
-    port: 3003
-  },
-
   experimental: {
     asyncContext: true
   },
@@ -60,14 +74,6 @@ export default defineNuxtConfig({
     }
   },
 
-  // Pre-bundle animejs (dynamically imported for the header brand animation)
-  // so dev doesn't trigger a page reload on first use.
-  vite: {
-    optimizeDeps: {
-      include: ['animejs']
-    }
-  },
-
   eslint: {
     config: {
       stylistic: {
@@ -75,20 +81,6 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  },
-
-  // Keep locale codes in sync with the collections in content.config.ts
-  i18n: {
-    strategy: 'prefix_except_default',
-    defaultLocale: 'en',
-    locales: [
-      { code: 'en', name: 'English', language: 'en-US' },
-      { code: 'vi', name: 'Tiếng Việt', language: 'vi-VN' },
-      { code: 'ja', name: '日本語', language: 'ja-JP' }
-    ],
-    // Explicit, deterministic routing for now: `/` always serves the default
-    // locale. Enable browser detection later once translations land.
-    detectBrowserLanguage: false
   },
 
   llms: {
@@ -156,5 +148,13 @@ export default defineNuxtConfig({
 
   ogImage: {
     zeroRuntime: true
+  },
+
+  // Pre-bundle animejs (dynamically imported for the header brand animation)
+  // so dev doesn't trigger a page reload on first use.
+  vite: {
+    optimizeDeps: {
+      include: ['animejs']
+    }
   }
 })
