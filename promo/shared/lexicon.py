@@ -29,6 +29,6 @@ def apply(text, entries=None):
 	return text
 
 
-def syllables(text):
-	"""Số âm tiết ước lượng: đếm từ sau khi đã phiên âm."""
-	return len(re.findall(r'[^\s,.:;?!]+', apply(text)))
+def syllables(text, phonetic=True):
+	"""Số âm tiết ước lượng: đếm từ sau khi đã phiên âm (phonetic=False: đếm nguyên văn)."""
+	return len(re.findall(r'[^\s,.:;?!]+', apply(text) if phonetic else text.replace('"', '')))

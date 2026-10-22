@@ -47,6 +47,7 @@ def plan(ep):
 	script = _load(ep / 'script.py', 'script')
 	sys.path.insert(0, str(ep))
 	scenes = _load(ep / 'scenes.py', 'scenes')
+	chalk.set_background(getattr(scenes, 'BACKGROUND', 'chalk'))
 	out, off = [], 0.0
 	for k, sid in enumerate(script.ORDER):
 		n = len(script.SCRIPT[sid]['lines'])
@@ -55,7 +56,7 @@ def plan(ep):
 			beats=getattr(scenes, 'BEATS', {}).get(sid))
 		b = chalk.Board()
 		scenes.SCENES[sid](b, tm)
-		out.append(dict(sid=sid, tm=tm, board=b, off=off, clips=clips))
+		out.append(dict(sid=sid, tm=tm, board=b, off=off, clips=clips, scenes=scenes))
 		off += tm.total
 	return out
 
@@ -106,12 +107,13 @@ def encode(ep, p, only, cpu):
 	out_dir.mkdir(exist_ok=True)
 	tag = '-'.join(sorted(only)) if only else 'full'
 	vid = out_dir / f'video-{tag}.mp4'
-	enc = ['-c:v', 'libx264', '-preset', 'medium', '-crf', '20'] if cpu else \
+	# Không có CUDA (máy Mac, hoặc --cpu): ghép khung bằng numpy và mã hoá bằng libx264.
+	gpu = None if cpu else chalk.gpu_composer()
+	enc = ['-c:v', 'libx264', '-preset', 'medium', '-crf', '20'] if gpu is None else \
 		['-c:v', 'h264_nvenc', '-preset', 'p6', '-rc', 'vbr', '-cq', '21', '-b:v', '0', '-profile:v', 'high']
 	cmd = [FFMPEG, '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{chalk.W}x{chalk.H}',
 		'-r', str(chalk.FPS), '-i', '-', *enc, '-pix_fmt', 'yuv420p', str(vid)]
 	ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-	gpu = None if cpu else chalk.gpu_composer()
 	jobs = [(si, fi, gpu is not None) for si, fi in frames_of(p, only)]
 	t0 = time.time()
 	with Pool(max(1, cpu_count() - 1), initializer=_init, initargs=(str(ep),)) as pool:
@@ -140,8 +142,8 @@ def sound(ep, p, only, tag):
 		events += [(acc + t, k, d) for t, k, d in s['board'].sfx_events()]
 		changes.append(acc)
 		acc += s['tm'].total
-	# Đổi hợp âm theo nhóm cảnh: mở đầu, mô hình, Cardano, lập trình, kết
-	groups = {'03', '06', '11', '13', '16'}
+	# Đổi hợp âm theo nhóm cảnh: mở đầu, mô hình, Cardano, lập trình, kết. Tập có thể tự khai CHORD_CHANGES trong scenes.py.
+	groups = set(getattr(p[0].get('scenes'), 'CHORD_CHANGES', None) or {'03', '06', '11', '13', '16'})
 	cps = [acc_s for acc_s, s in zip(changes, sel) if s['sid'] in groups]
 	mixed = audio.mix(voice, audio.sfx_track(events, total), audio.pad(total, cps))
 	wav = ep / 'out' / f'mix-{tag}.wav'

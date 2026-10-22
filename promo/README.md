@@ -33,6 +33,8 @@ promo/
 
 Các tập sau thêm thư mục `videos/<số>-<chủ-đề>/` cùng cấu trúc.
 
+Chuỗi Trust Center (Hydra delegated topology) nằm ở `trust-center/`, dùng chung `shared/` và bộ chuyển động mới (camera, pop, chấm dữ liệu, gợn sóng, focus, lau theo vệt); xem [trust-center/README.md](trust-center/README.md).
+
 ## Danh sách tập
 
 | Tập | Chủ đề | Thời lượng | Trạng thái |

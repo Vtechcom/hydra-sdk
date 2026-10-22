@@ -59,7 +59,8 @@ def main():
 				continue
 			if out.exists() and not args.force:
 				continue
-			spoken = lexicon.apply(line, entries)
+			# READ_MODE = 'quote': thuật ngữ tiếng Anh đã nằm trong nháy kép ở lời đọc, không phiên âm
+			spoken = line if getattr(script, 'READ_MODE', 'phonetic') == 'quote' else lexicon.apply(line, entries)
 			t0 = time.time()
 			tts.save(tts.infer(spoken, voice=args.voice), out)
 			print(f'{cid} ({time.time() - t0:.1f}s): {spoken}', flush=True)

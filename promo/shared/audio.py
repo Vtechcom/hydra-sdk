@@ -84,7 +84,20 @@ def scratch(rng, dur):
 	return x * env * 0.035
 
 
-ONE_SHOT = {'tick': tick, 'click': click, 'chime': chime, 'thud': thud, 'strike': strike, 'gear': gear, 'erase': erase}
+def whoosh(rng):
+	"""Tiếng gió lướt cho camera và chuyển cảnh: nhiễu lọc dải, tần số quét lên rồi xuống."""
+	t = _t(0.55)
+	x = rng.standard_normal(len(t))
+	lo = bandpass(x, 250, 900)
+	hi = bandpass(x, 900, 3200)
+	u = t / t[-1]
+	sweep = np.sin(np.pi * u)
+	env = np.sin(np.pi * u) ** 2
+	return (lo * (1 - sweep) + hi * sweep) * env * 0.07
+
+
+ONE_SHOT = {'tick': tick, 'click': click, 'chime': chime, 'thud': thud, 'strike': strike, 'gear': gear, 'erase': erase,
+	'whoosh': whoosh}
 
 
 def sfx_track(events, total):

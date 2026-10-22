@@ -11,3 +11,9 @@ models/
 **/*.mp4
 **/*.wav
 __pycache__/
+
+# Engine motion (Node)
+motion/node_modules/
+**/motion/timeline.json
+**/stills-*/
+**/lines.json

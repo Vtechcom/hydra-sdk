@@ -1,0 +1,9 @@
+{
+  "name": "promo-motion",
+  "private": true,
+  "type": "module",
+  "description": "Engine dựng video bằng Canvas 2D theo các kiểu chuyển động của motion-prompt",
+  "dependencies": {
+    "@napi-rs/canvas": "0.1.65"
+  }
+}
