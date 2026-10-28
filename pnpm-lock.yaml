@@ -487,24 +487,6 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(typescript@6.0.3)(vite@7.3.6(@types/node@22.17.1)(jiti@2.6.1)(lightningcss@1.32.0)(sass-embedded@1.89.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.9.0))
 
-  packages/app-bridge:
-    devDependencies:
-      '@types/node':
-        specifier: '22'
-        version: 22.17.1
-      tsup:
-        specifier: ^6.7.0
-        version: 6.7.0(@swc/core@1.15.1(@swc/helpers@0.5.17))(postcss@8.5.25)(typescript@5.7.3)
-      typescript:
-        specifier: 5.7.3
-        version: 5.7.3
-      vite:
-        specifier: ^7.0.5
-        version: 7.3.6(@types/node@22.17.1)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.89.2)(terser@5.44.1)(tsx@4.20.6)(yaml@2.9.0)
-      vue:
-        specifier: ^3.5.40
-        version: 3.5.40(typescript@5.7.3)
-
   packages/cardano-wasm:
     dependencies:
       '@emurgo/cardano-serialization-lib-asmjs':
