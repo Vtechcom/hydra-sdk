@@ -12,7 +12,7 @@ import {
 import type { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { toast } from 'vue-sonner'
-import { createBlockfrostEvaluator } from '~/lib/evaluator'
+import { createProviderEvaluator } from '~/lib/evaluator'
 import { createDefaultDraft, emptyOutput, uid, type MetadataDraft, type TxDraft } from '~/lib/tx-draft'
 import { SAMPLE_ADDRESS, TX_PRESETS } from '~/lib/tx-fixtures'
 
@@ -338,9 +338,9 @@ export const useTxBuilderStore = defineStore('txbuilder', () => {
 
 			let evaluator
 			if (d.useEvaluator) {
-				const { apiEndpoint, apiKey } = providerStore.blockfrostConfig
-				if (!apiKey) throw new Error('ExUnits evaluation needs a Blockfrost API key.')
-				evaluator = createBlockfrostEvaluator({ apiEndpoint, apiKey })
+				const providerConfig = providerStore.providerConfig
+				if (!providerConfig) throw new Error('ExUnits evaluation needs a configured provider (Blockfrost or Demeter).')
+				evaluator = createProviderEvaluator(providerConfig)
 			}
 
 			builder = new TxBuilder({
@@ -543,7 +543,7 @@ export const useTxBuilderStore = defineStore('txbuilder', () => {
 		submitError.value = ''
 		try {
 			if (!target) throw new Error('Nothing to submit — sign a transaction first.')
-			const provider = providerStore.getBlockfrostProvider()
+			const provider = providerStore.getProvider()
 			const result = await provider.submitter.submitTx(target)
 			if (!result) throw new Error('Submit failed: the provider returned no transaction id.')
 			submittedTxId.value = result
