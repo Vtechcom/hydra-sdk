@@ -33,7 +33,10 @@ RUN pnpm install --frozen-lockfile --filter "@hydra-sdk/playground..."
 
 # packages/* ship `exports` pointing at src for local development; set:prod
 # flips them to dist, which is what the built artifacts actually expose.
-RUN pnpm set:prod && pnpm --filter "./packages/*" run build
+# Build only the packages the playground depends on (`^...`): the install above
+# skipped every other package's devDependencies, so building all of packages/*
+# fails on the first one the playground does not use (`tsup: command not found`).
+RUN pnpm set:prod && pnpm --filter "@hydra-sdk/playground^..." run build
 
 # Analytics id is compiled into the bundle: this is a static site, so there is
 # no server left at runtime to read an env var. Pass it at build time or leave
