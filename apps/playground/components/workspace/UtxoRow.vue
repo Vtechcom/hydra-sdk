@@ -2,6 +2,7 @@
 	import { Deserializer, ParserUtils, type Asset, type UTxO } from '@hydra-sdk/core'
 	import BigNumber from 'bignumber.js'
 	import { cn } from '~/lib/utils'
+	import { serializeUtxo } from '~/lib/utxo'
 
 	const props = withDefaults(
 		defineProps<{
@@ -36,6 +37,8 @@
 			return formatId(unit, 6, 4)
 		}
 	}
+
+	const copyUtxo = () => useCopy(JSON.stringify(serializeUtxo(props.utxo), null, 2))
 
 	const onActivate = () => {
 		if (props.selectable) emit('toggle', props.utxo)
@@ -84,6 +87,24 @@
 							· {{ BigNumber(asset.quantity).toFormat() }}
 						</p>
 						<p v-if="assets.length > 6" class="text-[11px] text-muted-foreground">+{{ assets.length - 6 }} more…</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
+
+			<TooltipProvider>
+				<Tooltip :delay-duration="150">
+					<TooltipTrigger as-child>
+						<button
+							type="button"
+							class="shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:cursor-pointer hover:text-foreground"
+							aria-label="Copy UTxO as JSON"
+							@click.stop="copyUtxo()"
+						>
+							<Icon name="lucide:copy" size="14" />
+						</button>
+					</TooltipTrigger>
+					<TooltipContent side="left">
+						<p class="text-[11px]">Copy UTxO</p>
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>

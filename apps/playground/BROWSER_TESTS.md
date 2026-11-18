@@ -124,3 +124,17 @@ pnpm --filter @hydra-sdk/cardano-wasm build
 ```
 
 This demonstrates that the same import statement `import { CardanoWASM } from '@hydra-sdk/cardano-wasm'` automatically provides the correct version for each environment without any manual configuration!
+
+## F4 — Copy object UTxO (playground 0.1.2)
+
+Chuẩn bị: `pnpm dev:playground`, mở `/transaction-builder`, trong rail Context bấm **UTxO manager → Sample data** (3 UTxO mẫu offline, không cần Blockfrost key).
+
+| # | Bước | Kết quả mong đợi |
+|---|------|------------------|
+| F4-1 | Nhìn hàng gọn của một UTxO có asset | Thứ tự: số ADA → badge `+N` → icon copy → nút expand (→ nút remove nếu là InputsPanel). |
+| F4-2 | Hover icon copy | Tooltip "Copy UTxO"; screen reader đọc "Copy UTxO as JSON". |
+| F4-3 (AC4.1) | Bấm icon copy trên UTxO đầu tiên, dán clipboard vào DevTools: `JSON.parse(await navigator.clipboard.readText())` | Toast "Copied to clipboard". JSON parse được, shape `{ input: { txHash, outputIndex }, output: { address, amount } }`, khớp ref / ADA / asset đang hiển thị; không có key mang giá trị `undefined`. |
+| F4-4 (AC4.3) | Bấm icon copy trên hàng ở UTxO manager (chưa chọn và đã chọn), rồi tick một UTxO và bấm copy trên hàng tương ứng trong panel **Inputs** | Checkbox giữ nguyên trạng thái, hàng không expand, UTxO không bị bỏ khỏi Inputs. |
+| F4-5 (AC4.2) | UTxO có inline datum (cần ví/địa chỉ script có UTxO kèm inline datum trên preprod) → bấm copy | `output.inlineDatum` là chuỗi CBOR hex (vd `d8799f…`), không phải `{}` hay `{"__wbg_ptr":…}`. |
+
+Ghi chú: sample data hiện không có UTxO nào kèm inline datum, nên F4-5 chỉ chạy tay được khi có chain thật. Logic chuyển `PlutusData` → hex nằm trong hàm thuần `serializeUtxo` ở `lib/utxo.ts`.
