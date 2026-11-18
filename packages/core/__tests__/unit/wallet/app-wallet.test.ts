@@ -71,6 +71,22 @@ describe('AppWallet', () => {
 		expect(keyHash(await wallet.signTx(UNSIGNED_TX.cborHex, false, 0, 1))).not.toBe(TEST_WALLET.paymentKeyHash)
 	})
 
+	it('derives addresses and signs with the internal-chain key for role 1', async () => {
+		const wallet = mnemonicWallet()
+		const signerHash = (signedTxHex: string) => {
+			const tx = CardanoWASM.Transaction.from_hex(signedTxHex)
+			const hash = tx.witness_set().vkeys()!.get(0).vkey().public_key().hash().to_hex()
+			tx.free()
+			return hash
+		}
+		const internal = wallet.getAccount(6158, 0, 1)
+		const internalHash = internal.paymentKey.to_public().to_raw_key().hash().to_hex()
+
+		expect(internal.baseAddressBech32).not.toBe(wallet.getAccount(6158, 0).baseAddressBech32)
+		expect(wallet.getPaymentAddress(6158, 0, 1)).toBe(internal.baseAddressBech32)
+		expect(signerHash(await wallet.signTx(UNSIGNED_TX.cborHex, false, 6158, 0, 1))).toBe(internalHash)
+	})
+
 	it('signTxs signs every tx with the default key', async () => {
 		const signed = await mnemonicWallet().signTxs([UNSIGNED_TX.cborHex, UNSIGNED_TX.cborHex])
 		const expected = await mnemonicWallet().signTx(UNSIGNED_TX.cborHex)

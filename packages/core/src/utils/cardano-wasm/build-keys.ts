@@ -80,10 +80,17 @@ function harden(num: number): number {
 	return 0x80000000 + num
 }
 
+/**
+ * Role of the payment key in `m/1852'/1815'/account'/role/index`: `0` external (receive addresses),
+ * `1` internal (change addresses). Staking (`2`) and DRep (`3`) keys have their own fields.
+ */
+export type PaymentRole = 0 | 1
+
 export const buildKeys = (
 	privateKeyHex: string | [string, string],
 	accountIndex: number,
-	keyIndex = 0
+	keyIndex = 0,
+	role: PaymentRole = ChainDerivation.EXTERNAL
 ): {
 	accountKey: CardanoWASM.Bip32PrivateKey
 	paymentKey: CardanoWASM.Bip32PrivateKey
@@ -103,6 +110,10 @@ export const buildKeys = (
 	/**
 	 * @description rootKey
 	 */
+	if (role !== ChainDerivation.EXTERNAL && role !== ChainDerivation.INTERNAL) {
+		throw new Error(`Payment key role must be 0 (external) or 1 (internal), got ${role}`)
+	}
+
 	const privateKey = CardanoWASM.Bip32PrivateKey.from_hex(privateKeyHex)
 
 	// hardened derivation
@@ -112,8 +123,8 @@ export const buildKeys = (
 		.derive(harden(accountIndex)) // account #0
 
 	const paymentKey = accountKey
-		.derive(ChainDerivation.EXTERNAL) //  external chain (0)
-		.derive(keyIndex) //                  external chain, payment key index
+		.derive(role) //                      external (0) or internal/change (1) chain
+		.derive(keyIndex) //                  payment key index
 	const stakeKey = accountKey
 		.derive(ChainDerivation.CHIMERIC) //  chimeric derivation (2)
 		.derive(keyIndex) //                  staking key, index 0

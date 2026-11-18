@@ -159,6 +159,15 @@ Trang `/transaction-builder`, panel Context → Wallet. Seed test cố định (
 8. **Index thật sự đi vào `signTx`:** ký cùng một tx chưa ký với path `0'/0/0` rồi `0'/0/1`. vkey trong witness set phải khác nhau: `73fea80d…5a7d` cho `0/0`, `f626ab88…d4a1` cho `0/1`; hash của mỗi vkey bằng payment key hash của địa chỉ tương ứng.
 9. **Submit preprod (AC1.3):** cần ví preprod có tiền. Tiêu UTxO của địa chỉ key `1` và ký với path `0'/0/1` → submit thành công. Ký cùng tx đó với path `0'/0/0` → node từ chối (thiếu witness).
 
+## Derivation path — role (chain) 0/1
+
+Seed test giống mục F1 ở trên (`member genius submit …`).
+
+1. **Role 1:** "Set up wallet" → dán seed, `Account index` = `6158`, `Key index` = `0`, chọn **1 · Internal**. Dòng path xem trước hiện `m/1852'/1815'/6158'/1/0` → Apply. Panel Wallet hiện `Path 6158'/1/0`, địa chỉ `addr_test1qz0q45tul279mtalfvkkjfhkrmhhtk8vfqxnju0ld3udxccls5pxpzzquq48vet3p4klzp34r8wsx4p8k4d3m42hum8su3uh27` (tính độc lập bằng CSL: payment `6158'/1/0`, stake `6158'/2/0`).
+2. **Mở lại dialog:** bấm "Change" → ô **1 · Internal** đang được chọn, hai ô index giữ `6158` / `0`.
+3. **Phiên cũ chưa có role:** trong Console chạy `sessionStorage.setItem('walletDerivation', JSON.stringify({ accountIndex: 0, keyIndex: 1 }))` rồi reload → panel hiện `Path 0'/0/1`, store có `role: 0`.
+4. **Ký bằng key change:** với path `6158'/1/0`, build một tx rồi Sign → vkey trong witness set có hash bằng payment key hash của địa chỉ ở bước 1. Submit thật cần UTxO tại địa chỉ đó (CHƯA KIỂM CHỨNG trên chain).
+
 ## Playground 0.1.2 — F2/F3: modal provider (Blockfrost / Demeter) và Remember API key
 
 Trang `/transaction-builder`, panel Context › Provider › **Configure**. Mở DevTools (Application + Network) trước khi chạy. Request có thể quan sát trong tab Network kể cả khi server trả lỗi; với key giả thì xem URL và header, không xem kết quả.

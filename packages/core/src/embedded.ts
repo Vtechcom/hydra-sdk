@@ -7,7 +7,8 @@ import {
 	buildEnterpriseAddress,
 	buildKeys,
 	buildRewardAddress,
-	stripExtendedKey
+	stripExtendedKey,
+	type PaymentRole
 } from './utils/cardano-wasm/build-keys'
 import { resolveTxHash } from './utils/cardano-wasm/resolver'
 import { toBytes } from './utils/parser'
@@ -183,10 +184,15 @@ export class EmbeddedWallet extends WalletStaticMethods {
 		return this._walletSecret
 	}
 
-	getAccount(accountIndex = 0, keyIndex = 0): Account {
+	/**
+	 * @param accountIndex account index (default: 0)
+	 * @param keyIndex key index (default: 0)
+	 * @param role payment key chain: 0 external, 1 internal/change (default: 0)
+	 */
+	getAccount(accountIndex = 0, keyIndex = 0, role: PaymentRole = 0): Account {
 		if (this._walletSecret == undefined) throw new Error('[EmbeddedWallet] No keys initialized')
 
-		const { paymentKey, stakeKey } = buildKeys(this._walletSecret, accountIndex, keyIndex)
+		const { paymentKey, stakeKey } = buildKeys(this._walletSecret, accountIndex, keyIndex, role)
 
 		const { baseAddress, enterpriseAddress, rewardAddress } = WalletStaticMethods.getAddresses(
 			paymentKey,
@@ -238,12 +244,13 @@ export class EmbeddedWallet extends WalletStaticMethods {
 	 * @param unsignedTx - a transaction in CBOR
 	 * @param accountIndex account index (default: 0)
 	 * @param keyIndex key index (default: 0)
+	 * @param role payment key chain: 0 external, 1 internal/change (default: 0)
 	 * @returns VkeyWitness
 	 */
-	signTx(unsignedTx: string, accountIndex = 0, keyIndex = 0): CardanoWASM.Vkeywitness {
+	signTx(unsignedTx: string, accountIndex = 0, keyIndex = 0, role: PaymentRole = 0): CardanoWASM.Vkeywitness {
 		try {
 			const txHashHex = resolveTxHash(unsignedTx)
-			const { paymentKey } = this.getAccount(accountIndex, keyIndex)
+			const { paymentKey } = this.getAccount(accountIndex, keyIndex, role)
 			const privateSigningKey = paymentKey.to_raw_key()
 			const vkeyWitness = CardanoWASM.make_vkey_witness(CardanoWASM.TransactionHash.from_hex(txHashHex), privateSigningKey)
 			return vkeyWitness
@@ -260,9 +267,9 @@ export class EmbeddedWallet extends WalletStaticMethods {
 	 * @param accountIndex account index (default: 0)
 	 * @returns a signature
 	 */
-	signData(address: string, payload: string, accountIndex = 0, keyIndex = 0): DataSignature {
+	signData(address: string, payload: string, accountIndex = 0, keyIndex = 0, role: PaymentRole = 0): DataSignature {
 		try {
-			const { baseAddress, enterpriseAddress, rewardAddress, paymentKey } = this.getAccount(accountIndex, keyIndex)
+			const { baseAddress, enterpriseAddress, rewardAddress, paymentKey } = this.getAccount(accountIndex, keyIndex, role)
 
 			const foundAddress = [baseAddress, enterpriseAddress, rewardAddress].find(a => a.to_bech32() === address)
 

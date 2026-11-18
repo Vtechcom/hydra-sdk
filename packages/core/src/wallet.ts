@@ -4,6 +4,7 @@ import { CreateAppWalletOptions } from './types/wallet'
 import type { IFetcher } from './types/wallet/fetcher'
 import type { ISigner } from './types/wallet/signer'
 import type { ISubmitter } from './types/wallet/submitter'
+import type { PaymentRole } from './utils/cardano-wasm/build-keys'
 import { deserializeTx } from './utils/cardano-wasm/deserializer'
 
 export class AppWallet implements ISigner, ISubmitter {
@@ -46,17 +47,18 @@ export class AppWallet implements ISigner, ISubmitter {
 		}
 	}
 
-	getAccount(accountIndex = 0, keyIndex = 0) {
-		return this._wallet.getAccount(accountIndex, keyIndex)
+	/** `role`: payment key chain, 0 external (default) or 1 internal/change — `m/1852'/1815'/account'/role/key`. */
+	getAccount(accountIndex = 0, keyIndex = 0, role: PaymentRole = 0) {
+		return this._wallet.getAccount(accountIndex, keyIndex, role)
 	}
 
-	getEnterpriseAddress(accountIndex = 0, keyIndex = 0): string {
-		const account = this._wallet.getAccount(accountIndex, keyIndex)
+	getEnterpriseAddress(accountIndex = 0, keyIndex = 0, role: PaymentRole = 0): string {
+		const account = this._wallet.getAccount(accountIndex, keyIndex, role)
 		return account.enterpriseAddressBech32
 	}
 
-	getPaymentAddress(accountIndex = 0, keyIndex = 0): string {
-		const account = this._wallet.getAccount(accountIndex, keyIndex)
+	getPaymentAddress(accountIndex = 0, keyIndex = 0, role: PaymentRole = 0): string {
+		const account = this._wallet.getAccount(accountIndex, keyIndex, role)
 		return account.baseAddressBech32
 	}
 
@@ -69,14 +71,20 @@ export class AppWallet implements ISigner, ISubmitter {
 		return this._wallet.getNetworkId()
 	}
 
-	async signTx(unsignedTx: string, partialSign = false, accountIndex = 0, keyIndex = 0): Promise<string> {
+	async signTx(
+		unsignedTx: string,
+		partialSign = false,
+		accountIndex = 0,
+		keyIndex = 0,
+		role: PaymentRole = 0
+	): Promise<string> {
 		try {
 			const tx = deserializeTx(unsignedTx)
 
 			if (!partialSign && tx.witness_set().vkeys() !== undefined && tx.witness_set().vkeys()?.len() !== 0)
 				throw new Error('Signatures already exist in the transaction in a non partial sign call')
 
-			const prvSigningKey = this._wallet.getAccount(accountIndex, keyIndex).paymentKey.to_raw_key()
+			const prvSigningKey = this._wallet.getAccount(accountIndex, keyIndex, role).paymentKey.to_raw_key()
 			tx.sign_and_add_vkey_signature(prvSigningKey)
 			return tx.to_hex()
 		} catch (error) {
