@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">65% </span>
+                <span class="strong">95% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>13/20</span>
+                <span class='fraction'>19/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">28.57% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">65% </span>
+                <span class="strong">95% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>13/20</span>
+                <span class='fraction'>19/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -165,7 +165,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -173,40 +195,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Application, encodeUPLC, parseUPLC, UPLCConst, UPLCProgram } from '@harmoniclabs/uplc'
@@ -246,16 +246,16 @@ export function mintingPolicyToId(mintingPolicy: MintingPolicy): string {
  */
 export function validatorToScriptHash(validator: SpendingValidator): string {
 	switch (validator.type) {
-<span class="branch-0 cbranch-no" title="branch not covered" >		case 'PlutusV1':</span>
-<span class="cstat-no" title="statement not covered" >			return CardanoWASM.PlutusScript.from_bytes(hexToBytes(validator.scriptCborHex)).hash().to_hex()</span>
-<span class="branch-1 cbranch-no" title="branch not covered" >		case 'PlutusV2':</span>
-<span class="cstat-no" title="statement not covered" >			return CardanoWASM.PlutusScript.from_bytes_v2(hexToBytes(validator.scriptCborHex)).hash().to_hex()</span>
+		case 'PlutusV1':
+			return CardanoWASM.PlutusScript.from_bytes(hexToBytes(validator.scriptCborHex)).hash().to_hex()
+		case 'PlutusV2':
+			return CardanoWASM.PlutusScript.from_bytes_v2(hexToBytes(validator.scriptCborHex)).hash().to_hex()
 		case 'PlutusV3':
 			return CardanoWASM.PlutusScript.from_bytes_v3(hexToBytes(validator.scriptCborHex)).hash().to_hex()
-<span class="branch-3 cbranch-no" title="branch not covered" >		case 'Native':</span>
-<span class="cstat-no" title="statement not covered" >			return CardanoWASM.NativeScript.from_hex(validator.scriptCborHex).hash().to_hex()</span>
-<span class="branch-4 cbranch-no" title="branch not covered" >		default:</span>
-<span class="cstat-no" title="statement not covered" >			throw new Error('No variant matched')</span>
+		case 'Native':
+			return CardanoWASM.NativeScript.from_hex(validator.scriptCborHex).hash().to_hex()
+		default:
+			throw new Error('No variant matched')
 	}
 }
 &nbsp;
@@ -273,13 +273,13 @@ export function validatorToAddress(validator: SpendingValidator, networkId: numb
 			CardanoWASM.Credential.from_scripthash(CardanoWASM.ScriptHash.from_hex(validatorToScriptHash(validator)))
 		)
 		return address.to_address().to_bech32()
-	} else <span class="missing-if-branch" title="else path not taken" >E</span>{
-		const address = <span class="cstat-no" title="statement not covered" >CardanoWASM.BaseAddress.new(</span>
+	} else {
+		const address = CardanoWASM.BaseAddress.new(
 			networkId,
 			CardanoWASM.Credential.from_scripthash(CardanoWASM.ScriptHash.from_hex(validatorToScriptHash(validator))),
 			CardanoWASM.Credential.from_hex(stakeCredential)
 		)
-<span class="cstat-no" title="statement not covered" >		return address.to_address().to_bech32()</span>
+		return address.to_address().to_bech32()
 	}
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -289,7 +289,7 @@ export function validatorToAddress(validator: SpendingValidator, networkId: numb
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-28T10:27:57.447Z
+                at 2026-11-18T09:44:02.557Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
