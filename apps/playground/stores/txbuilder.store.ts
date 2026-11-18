@@ -53,7 +53,7 @@ const collectOutputAmounts = (outputs: DecodedOutput[]): Asset[] => {
 export const useTxBuilderStore = defineStore('txbuilder', () => {
 	const mainStore = useMainStore()
 	const providerStore = useProviderStore()
-	const { networkInfo, walletPrvKeyHex } = storeToRefs(mainStore)
+	const { networkInfo, walletPrvKeyHex, walletDerivation } = storeToRefs(mainStore)
 
 	/**
 	 * The whole builder state lives in one persisted object: it makes schema
@@ -206,7 +206,8 @@ export const useTxBuilderStore = defineStore('txbuilder', () => {
 				networkId: networkInfo.value.networkId,
 				key: { type: 'root', bech32: EmbeddedWallet.privateKeyHexToBech32(walletPrvKeyHex.value) }
 			})
-			return wallet.getAccount().baseAddressBech32
+			const { accountIndex, keyIndex } = walletDerivation.value
+			return wallet.getAccount(accountIndex, keyIndex).baseAddressBech32
 		} catch {
 			return ''
 		}
@@ -522,7 +523,8 @@ export const useTxBuilderStore = defineStore('txbuilder', () => {
 				networkId: networkInfo.value.networkId,
 				key: { type: 'root', bech32: EmbeddedWallet.privateKeyHexToBech32(walletPrvKeyHex.value) }
 			})
-			signedCborHex.value = await wallet.signTx(target, partialSign.value)
+			const { accountIndex, keyIndex } = walletDerivation.value
+			signedCborHex.value = await wallet.signTx(target, partialSign.value, accountIndex, keyIndex)
 			toast.success('Transaction signed')
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error)
