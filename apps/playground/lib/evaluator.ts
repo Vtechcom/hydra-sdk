@@ -1,4 +1,5 @@
 import type { EvalAction, EvalRedeemerTag, IEvaluator } from '@hydra-sdk/transaction'
+import { providerAuthHeaders, type ProviderConfig } from '~/lib/provider'
 
 /**
  * Minimal `IEvaluator` backed by Blockfrost's `POST /utils/txs/evaluate`.
@@ -9,22 +10,27 @@ import type { EvalAction, EvalRedeemerTag, IEvaluator } from '@hydra-sdk/transac
  *
  * Blockfrost has returned two response shapes over time (Ogmios v5 keyed strings
  * and Ogmios v6 objects), so both are accepted here.
+ *
+ * Demeter's Blockfrost port serves the same endpoint; its auth goes either in the host (subdomain mode, no
+ * header) or in `dmtr-api-key` (header mode) instead of `project_id`.
  */
-export const createBlockfrostEvaluator = (config: { apiEndpoint: string; apiKey: string }): IEvaluator => ({
+export const createProviderEvaluator = (config: ProviderConfig): IEvaluator => ({
 	async evaluateTx(txHex: string): Promise<EvalAction[]> {
 		const endpoint = `${config.apiEndpoint.replace(/\/$/, '')}/utils/txs/evaluate`
 		const response = await fetch(endpoint, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/cbor',
-				project_id: config.apiKey
+				...providerAuthHeaders(config)
 			},
 			body: txHex
 		})
 
 		const payload = await response.json().catch(() => null)
 		if (!response.ok) {
-			throw new Error(`Blockfrost evaluate failed (${response.status}): ${payload?.message ?? response.statusText}`)
+			throw new Error(
+				`${config.kind === 'demeter' ? 'Demeter' : 'Blockfrost'} evaluate failed (${response.status}): ${payload?.message ?? response.statusText}`
+			)
 		}
 
 		const result = payload?.result ?? payload
@@ -62,6 +68,10 @@ export const createBlockfrostEvaluator = (config: { apiEndpoint: string; apiKey:
 		return []
 	}
 })
+
+/** @deprecated use `createProviderEvaluator`. */
+export const createBlockfrostEvaluator = (config: { apiEndpoint: string; apiKey: string }) =>
+	createProviderEvaluator({ kind: 'blockfrost', ...config })
 
 const normalizeTag = (purpose?: string): EvalRedeemerTag => {
 	const tag = (purpose ?? 'spend').toUpperCase()

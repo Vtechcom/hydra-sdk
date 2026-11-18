@@ -23,7 +23,7 @@
 		</button>
 		<Separator />
 		<Icon name="lucide:wallet" size="16" :class="mainStore.walletPrvKeyHex ? 'text-primary' : 'text-muted-foreground/50'" />
-		<Icon name="lucide:cloud" size="16" :class="providerStore.blockfrostConfig.apiKey ? 'text-primary' : 'text-muted-foreground/50'" />
+		<Icon name="lucide:cloud" size="16" :class="providerStore.providerReady ? 'text-primary' : 'text-muted-foreground/50'" />
 		<Icon name="lucide:list-checks" size="16" class="text-muted-foreground/50" />
 	</div>
 

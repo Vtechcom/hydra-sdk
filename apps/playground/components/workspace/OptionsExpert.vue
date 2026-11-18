@@ -3,7 +3,7 @@
 	const { draft } = storeToRefs(txStore)
 	const providerStore = useProviderStore()
 
-	const evaluatorUnavailable = computed(() => !providerStore.blockfrostConfig.apiKey)
+	const evaluatorUnavailable = computed(() => !providerStore.providerReady)
 </script>
 
 <template>

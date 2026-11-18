@@ -16,7 +16,7 @@
 	const signedInput = ref(signedCborHex.value)
 	watch(signedCborHex, value => (signedInput.value = value))
 
-	const providerReady = computed(() => !!providerStore.blockfrostConfig.apiKey)
+	const providerReady = computed(() => providerStore.providerReady)
 </script>
 
 <template>
@@ -82,7 +82,7 @@
 					<Icon name="lucide:send" size="14" class="text-primary" />
 					<h3 class="text-sm font-semibold">Submitter</h3>
 					<Badge :variant="providerReady ? 'success' : 'muted'" class="ml-auto">
-						{{ providerReady ? 'Blockfrost ready' : 'no provider' }}
+						{{ providerReady ? `${providerStore.providerKind === 'demeter' ? 'Demeter' : 'Blockfrost'} ready` : 'no provider' }}
 					</Badge>
 				</div>
 				<Textarea v-model="signedInput" rows="3" placeholder="signed CBOR hex" class="font-mono !text-[11px]" />

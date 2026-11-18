@@ -4,9 +4,10 @@
 	import { AppWallet, EmbeddedWallet, type AppWalletKeyType } from '@hydra-sdk/core'
 	import { toast } from 'vue-sonner'
 	import { cn } from '~/lib/utils'
+	import { MAX_DERIVATION_INDEX } from '~/stores/main.store'
 
 	const mainStore = useMainStore()
-	const { networkInfo, walletPrvKeyHex } = storeToRefs(mainStore)
+	const { networkInfo, walletPrvKeyHex, walletDerivation } = storeToRefs(mainStore)
 	const txStore = useTxBuilderStore()
 
 	const createType = ref<'mnemonic' | 'root'>('mnemonic')
@@ -14,6 +15,37 @@
 	const baseAddressBech32 = ref('')
 	const error = ref('')
 	const open = ref(false)
+
+	// Derivation path inputs, kept as text so an empty field can mean 0.
+	const accountIndexInput = ref<string | number>('')
+	const keyIndexInput = ref<string | number>('')
+
+	const parseIndex = (raw: string | number): { value: number; error: string } => {
+		const text = String(raw ?? '').trim()
+		if (!text) return { value: 0, error: '' }
+		const value = Number(text)
+		if (!/^\d+$/.test(text) || value > MAX_DERIVATION_INDEX) return { value: NaN, error: `Enter a whole number from 0 to ${MAX_DERIVATION_INDEX}` }
+		return { value, error: '' }
+	}
+	const accountIndex = computed(() => parseIndex(accountIndexInput.value))
+	const keyIndex = computed(() => parseIndex(keyIndexInput.value))
+	const indexInvalid = computed(() => !!accountIndex.value.error || !!keyIndex.value.error)
+	const formPath = computed(() => {
+		const account = accountIndex.value.error ? '?' : accountIndex.value.value
+		const key = keyIndex.value.error ? '?' : keyIndex.value.value
+		return `m/1852'/1815'/${account}'/0/${key}`
+	})
+	const currentPath = computed(() => `${walletDerivation.value.accountIndex}'/0/${walletDerivation.value.keyIndex}`)
+
+	// Opening the dialog shows the indexes currently in use.
+	watch(open, isOpen => {
+		if (!isOpen) return
+		accountIndexInput.value = String(walletDerivation.value.accountIndex)
+		keyIndexInput.value = String(walletDerivation.value.keyIndex)
+	})
+
+	/** Apply needs a secret, unless a wallet exists and only the indexes change. */
+	const canApply = computed(() => !indexInvalid.value && (!!secretInput.value.trim() || !!walletPrvKeyHex.value))
 
 	const generateKey = () => {
 		const words = AppWallet.brew()
@@ -36,7 +68,8 @@
 				networkId: networkInfo.value.networkId,
 				key: { type: 'root', bech32: EmbeddedWallet.privateKeyHexToBech32(walletPrvKeyHex.value) }
 			})
-			baseAddressBech32.value = wallet.getAccount().baseAddressBech32
+			const { accountIndex, keyIndex } = walletDerivation.value
+			baseAddressBech32.value = wallet.getAccount(accountIndex, keyIndex).baseAddressBech32
 		} catch (err) {
 			console.error('Invalid wallet key in storage:', err)
 			baseAddressBech32.value = ''
@@ -44,6 +77,23 @@
 	}
 
 	const applyChanges = () => {
+		if (!canApply.value) return
+		const derivation = { accountIndex: accountIndex.value.value, keyIndex: keyIndex.value.value }
+
+		// Empty secret with an existing wallet: keep the root key, re-derive only.
+		if (!secretInput.value.trim()) {
+			walletDerivation.value = derivation
+			resolveAddress()
+			if (!baseAddressBech32.value) {
+				toast.error('Failed to derive an address for this path.')
+				return
+			}
+			error.value = ''
+			open.value = false
+			toast.success('Derivation path updated')
+			return
+		}
+
 		try {
 			const config: AppWalletKeyType =
 				createType.value === 'mnemonic'
@@ -55,13 +105,17 @@
 				createType.value === 'mnemonic'
 					? EmbeddedWallet.mnemonicToPrivateKeyHex(secretInput.value.trim().split(/\s+/))
 					: EmbeddedWallet.privateKeyBech32ToPrivateKeyHex(secretInput.value.trim())
-			baseAddressBech32.value = wallet.getAccount().baseAddressBech32
+			baseAddressBech32.value = wallet.getAccount(derivation.accountIndex, derivation.keyIndex).baseAddressBech32
+			walletDerivation.value = derivation
+			// Don't keep the secret around: reopening "Change" then only edits the path.
+			secretInput.value = ''
 			error.value = ''
 			open.value = false
 			toast.success('Wallet configured')
 		} catch (err) {
 			error.value = err instanceof Error ? err.message : 'Failed to configure wallet'
 			walletPrvKeyHex.value = ''
+			mainStore.resetWalletDerivation()
 			baseAddressBech32.value = ''
 			toast.error('Failed to configure wallet. Check your input.')
 		}
@@ -75,7 +129,7 @@
 	}
 
 	onMounted(resolveAddress)
-	watch(networkInfo, resolveAddress)
+	watch([networkInfo, walletDerivation], resolveAddress, { deep: true })
 </script>
 
 <template>
@@ -85,6 +139,10 @@
 				<span class="shrink-0 text-muted-foreground">Root key</span>
 				<span class="truncate font-mono">{{ formatId(walletPrvKeyHex, 6, 6) }}</span>
 				<Icon name="lucide:copy" size="12" class="shrink-0 hover:cursor-pointer hover:text-primary" @click="useCopy(walletPrvKeyHex)" />
+			</p>
+			<p class="flex items-center gap-1 text-xs">
+				<span class="shrink-0 text-muted-foreground">Path</span>
+				<span class="truncate font-mono" :title="`m/1852'/1815'/${currentPath}`">{{ currentPath }}</span>
 			</p>
 			<p class="flex items-center gap-1 text-xs">
 				<span class="shrink-0 text-muted-foreground">Address</span>
@@ -146,10 +204,48 @@
 									Generate
 								</Button>
 							</div>
+							<div class="mt-3 space-y-2 rounded-md border p-2.5">
+								<p class="eyebrow">Derivation path</p>
+								<div class="grid grid-cols-2 gap-2">
+									<div>
+										<label class="mb-1 block text-xs text-muted-foreground" for="wallet-account-index">Account index</label>
+										<Input
+											id="wallet-account-index"
+											v-model="accountIndexInput"
+											inputmode="numeric"
+											autocomplete="off"
+											placeholder="0"
+											class="h-8 font-mono text-xs"
+											:class="accountIndex.error ? 'border-destructive' : ''"
+										/>
+										<p v-if="accountIndex.error" class="mt-0.5 text-[11px] text-destructive">{{ accountIndex.error }}</p>
+									</div>
+									<div>
+										<label class="mb-1 block text-xs text-muted-foreground" for="wallet-key-index">Key index</label>
+										<Input
+											id="wallet-key-index"
+											v-model="keyIndexInput"
+											inputmode="numeric"
+											autocomplete="off"
+											placeholder="0"
+											class="h-8 font-mono text-xs"
+											:class="keyIndex.error ? 'border-destructive' : ''"
+										/>
+										<p v-if="keyIndex.error" class="mt-0.5 text-[11px] text-destructive">{{ keyIndex.error }}</p>
+									</div>
+								</div>
+								<p class="flex items-center gap-1 text-xs">
+									<span class="shrink-0 text-muted-foreground">Path</span>
+									<span class="truncate font-mono">{{ formPath }}</span>
+								</p>
+								<p v-if="walletPrvKeyHex && !secretInput.trim()" class="text-[11px] text-muted-foreground">
+									Leave the key field empty to keep the current wallet and only change the path.
+								</p>
+							</div>
 						</div>
 					</div>
 					<DialogFooter>
-						<Button :disabled="!secretInput.trim()" @click="applyChanges()">Apply</Button>
+						<Button :disabled="!canApply" @click="applyChanges()">Apply</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
