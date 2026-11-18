@@ -10,7 +10,7 @@ Wallet derivation paths, a Blockfrost/Demeter provider dialog with an opt-in sav
 
 **Provider**
 
-- The inline Blockfrost form is now a **Configure** dialog with two tabs: Blockfrost (custom API URL + project key) and Demeter (port key, subdomain or `dmtr-api-key` header auth, URL generated per network on `blockfrost-m1.dmtr.host`). Demeter goes through `BlockfrostProvider` with the resolved base URL, and the exUnits evaluator sends the matching auth header.
+- The inline Blockfrost form is now a **Configure** dialog with two tabs: Blockfrost (custom API URL + project key) and Demeter (port key in the host, URL generated per network on `blockfrost-m1.dmtr.host`). Demeter goes through `BlockfrostProvider` with the resolved base URL and without the `project_id` header, which Demeter's CORS preflight rejects; Demeter's `dmtr-api-key` header auth is not offered because a browser preflight cannot carry it.
 - "Remember on this device" saves the provider config to `localStorage` under `providerConfig:{provider}:{network}`, with a Forget button. Keys stay per network, so a preprod key is never used on preview; the session copy still wins over the saved one.
 - Sessions saved by 0.1.1 (`blockfrostConfig`) are migrated to the new `providerConfig` entry, so an open tab stays connected after the upgrade.
 - Fixed the custom Blockfrost API URL being ignored by UTxO queries and submit: `getBlockfrostProvider()` never passed `baseURL`, so only the evaluator honoured it.

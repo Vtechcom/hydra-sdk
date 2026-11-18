@@ -4,7 +4,6 @@
  */
 
 export type ProviderKind = 'blockfrost' | 'demeter'
-export type DemeterAuthMode = 'subdomain' | 'header'
 export type ProviderNetwork = 'mainnet' | 'preprod' | 'preview'
 
 export type ProviderConfig = {
@@ -12,7 +11,6 @@ export type ProviderConfig = {
 	apiKey: string
 	/** Resolved base URL — always set. */
 	apiEndpoint: string
-	demeterAuthMode?: DemeterAuthMode
 }
 
 export const PROVIDER_NETWORKS: readonly ProviderNetwork[] = ['mainnet', 'preprod', 'preview']
@@ -23,20 +21,21 @@ export const defaultBlockfrostEndpoint = (network: ProviderNetwork) => `https://
 
 /**
  * Demeter's Blockfrost port (https://demeter.run/docs/blockfrost). Paths start at the root — there is no
- * `/api/v0` prefix. In subdomain mode the key is the first host label; in header mode it goes in `dmtr-api-key`.
+ * `/api/v0` prefix. The key is the first host label.
+ *
+ * Demeter also accepts the key in a `dmtr-api-key` header, but a browser cannot use that: the CORS preflight
+ * never carries custom headers, so the gateway answers it with 401 and the request is blocked.
  */
-export const resolveDemeterEndpoint = (network: ProviderNetwork, mode: DemeterAuthMode, apiKey: string) => {
-	const host = `cardano-${network}.blockfrost-m1.dmtr.host`
-	if (mode === 'header') return `https://${host}`
-	return `https://${apiKey.trim() || '{key}'}.${host}`
-}
+export const resolveDemeterEndpoint = (network: ProviderNetwork, apiKey: string) =>
+	`https://${apiKey.trim() || '{key}'}.cardano-${network}.blockfrost-m1.dmtr.host`
 
-/** Auth headers a request to this provider needs (beyond the ones `BlockfrostProvider` already sends). */
-export const providerAuthHeaders = (config: ProviderConfig): Record<string, string> => {
-	if (config.kind === 'blockfrost') return { project_id: config.apiKey }
-	if (config.demeterAuthMode === 'header') return { 'dmtr-api-key': config.apiKey }
-	return {}
-}
+/**
+ * Auth headers a request to this provider needs. Demeter needs none (the key is in the host) and must get none:
+ * its CORS preflight allows only `Content-Type` and `Accept`, so any extra header — `project_id` included —
+ * gets the request blocked by the browser.
+ */
+export const providerAuthHeaders = (config: ProviderConfig): Record<string, string> =>
+	config.kind === 'blockfrost' ? { project_id: config.apiKey } : {}
 
 /** localStorage key used by "Remember on this device". */
 export const rememberedConfigKey = (kind: ProviderKind, network: ProviderNetwork) => `providerConfig:${kind}:${network}`
@@ -53,6 +52,8 @@ export const isProviderConfig = (value: unknown): value is ProviderConfig => {
 		typeof v.apiKey === 'string' &&
 		!!v.apiKey &&
 		typeof v.apiEndpoint === 'string' &&
-		!!v.apiEndpoint
+		!!v.apiEndpoint &&
+		// A Demeter config saved by the dropped header mode has no key in its host and would only get 401s.
+		(v.kind !== 'demeter' || v.apiEndpoint.includes(`//${v.apiKey}.`))
 	)
 }

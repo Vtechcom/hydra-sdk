@@ -11,8 +11,7 @@ import { providerAuthHeaders, type ProviderConfig } from '~/lib/provider'
  * Blockfrost has returned two response shapes over time (Ogmios v5 keyed strings
  * and Ogmios v6 objects), so both are accepted here.
  *
- * Demeter's Blockfrost port serves the same endpoint; its auth goes either in the host (subdomain mode, no
- * header) or in `dmtr-api-key` (header mode) instead of `project_id`.
+ * Demeter's Blockfrost port serves the same endpoint with the key in the host, so it gets no auth header.
  */
 export const createProviderEvaluator = (config: ProviderConfig): IEvaluator => ({
 	async evaluateTx(txHex: string): Promise<EvalAction[]> {
