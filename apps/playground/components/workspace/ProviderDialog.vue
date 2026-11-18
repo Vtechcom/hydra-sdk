@@ -2,8 +2,7 @@
 	import { toast } from 'vue-sonner'
 	import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-	import { DEMETER_CONSOLE_URL, defaultBlockfrostEndpoint, resolveDemeterEndpoint, type DemeterAuthMode, type ProviderConfig, type ProviderKind } from '~/lib/provider'
-	import { cn } from '~/lib/utils'
+	import { DEMETER_CONSOLE_URL, defaultBlockfrostEndpoint, resolveDemeterEndpoint, type ProviderConfig, type ProviderKind } from '~/lib/provider'
 
 	const open = defineModel<boolean>('open', { default: false })
 
@@ -36,20 +35,13 @@
 
 	// ── Demeter form ────────────────────────────────────────────────────────────
 	const dmKey = ref('')
-	const dmMode = ref<DemeterAuthMode>('subdomain')
-	const dmEndpoint = computed(() => resolveDemeterEndpoint(providerNetwork.value, dmMode.value, dmKey.value))
+	const dmEndpoint = computed(() => resolveDemeterEndpoint(providerNetwork.value, dmKey.value))
 	const dmKeyError = computed(() => {
 		if (!dmKey.value.trim()) return 'API key is required'
-		// In subdomain mode the key becomes a host label.
-		if (dmMode.value === 'subdomain' && !/^[A-Za-z0-9_-]+$/.test(dmKey.value.trim())) {
-			return 'Key can only contain letters, digits, "-" and "_" in subdomain mode'
-		}
+		// The key becomes a host label.
+		if (!/^[A-Za-z0-9_-]+$/.test(dmKey.value.trim())) return 'Key can only contain letters, digits, "-" and "_"'
 		return ''
 	})
-	const authModes: { value: DemeterAuthMode; label: string; hint: string }[] = [
-		{ value: 'subdomain', label: 'Subdomain', hint: 'Key is the first host label' },
-		{ value: 'header', label: 'Header', hint: 'Key is sent as dmtr-api-key' }
-	]
 
 	// ── Remember on this device ─────────────────────────────────────────────────
 	const remember = ref(false)
@@ -66,7 +58,6 @@
 
 		const dm = active?.kind === 'demeter' ? active : providerStore.getRememberedConfig('demeter')
 		dmKey.value = dm?.apiKey ?? ''
-		dmMode.value = dm?.demeterAuthMode ?? 'subdomain'
 
 		remember.value = rememberedExists.value
 	}
@@ -87,12 +78,7 @@
 			config = { kind: 'blockfrost', apiKey: bfKey.value.trim(), apiEndpoint: bfEndpoint.value.trim() }
 		} else {
 			if (dmKeyError.value) return toast.error(dmKeyError.value)
-			config = {
-				kind: 'demeter',
-				apiKey: dmKey.value.trim(),
-				apiEndpoint: dmEndpoint.value,
-				demeterAuthMode: dmMode.value
-			}
+			config = { kind: 'demeter', apiKey: dmKey.value.trim(), apiEndpoint: dmEndpoint.value }
 		}
 		providerStore.setProviderConfig(config, { remember: remember.value })
 		toast.success(`${config.kind === 'demeter' ? 'Demeter' : 'Blockfrost'} provider connected`)
@@ -158,24 +144,6 @@
 						/>
 						<p v-if="dmKeyError && dmKey" class="mt-0.5 text-[11px] text-destructive">{{ dmKeyError }}</p>
 						<p class="mt-0.5 text-[11px] text-muted-foreground">Each Demeter port serves one network, chosen when the port is created.</p>
-					</div>
-
-					<div role="radiogroup" aria-label="Auth mode">
-						<span class="eyebrow mb-1 block">Auth mode</span>
-						<div class="grid grid-cols-2 gap-1.5">
-							<button
-								v-for="mode in authModes"
-								:key="mode.value"
-								type="button"
-								role="radio"
-								:aria-checked="dmMode === mode.value"
-								:class="cn('rounded-md border p-2 text-left transition-colors hover:cursor-pointer hover:bg-accent', dmMode === mode.value ? 'border-primary bg-accent' : '')"
-								@click="dmMode = mode.value"
-							>
-								<span class="block text-xs font-medium">{{ mode.label }}</span>
-								<span class="block text-[11px] text-muted-foreground">{{ mode.hint }}</span>
-							</button>
-						</div>
 					</div>
 
 					<div>

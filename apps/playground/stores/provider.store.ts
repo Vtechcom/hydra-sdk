@@ -124,14 +124,14 @@ export const useProviderStore = defineStore('provider', () => {
 			baseURL: config.apiEndpoint.replace(/\/$/, '')
 		})
 
-		if (config.kind === 'demeter' && config.demeterAuthMode === 'header') {
-			// `BlockfrostProviderConfig` has no option for extra headers, and @hydra-sdk/core is out of scope for
-			// this change, so the header is added on the provider's (private) axios instance.
-			const axiosInstance = (
-				provider as unknown as { _axiosInstance?: { defaults: { headers: { common: Record<string, string> } } } }
-			)._axiosInstance
-			if (!axiosInstance) throw new Error('Cannot set the dmtr-api-key header on BlockfrostProvider')
-			axiosInstance.defaults.headers.common['dmtr-api-key'] = config.apiKey
+		if (config.kind === 'demeter') {
+			// `BlockfrostProvider` always sends `project_id`. Demeter does not need it (the key is in the host) and
+			// its CORS preflight does not allow it, so the browser blocks every request that carries it. Core has
+			// no option to leave it out, so it is removed from the provider's (private) axios instance.
+			const axiosInstance = (provider as unknown as { _axiosInstance?: { defaults: { headers: Record<string, unknown> } } })
+				._axiosInstance
+			if (!axiosInstance) throw new Error('Cannot remove the project_id header from BlockfrostProvider')
+			delete axiosInstance.defaults.headers.project_id
 		}
 
 		return provider
