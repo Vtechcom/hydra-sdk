@@ -158,3 +158,21 @@ Trang `/transaction-builder`, panel Context → Wallet. Seed test cố định (
 7. **Change address / preset mint:** với path `0'/0/1`, nút "Use as change address" và Presets → Mint dùng địa chỉ `0'/0/1`; policy script của preset mint là `8200581c` + payment key hash của địa chỉ đó (`bd063a02…`).
 8. **Index thật sự đi vào `signTx`:** ký cùng một tx chưa ký với path `0'/0/0` rồi `0'/0/1`. vkey trong witness set phải khác nhau: `73fea80d…5a7d` cho `0/0`, `f626ab88…d4a1` cho `0/1`; hash của mỗi vkey bằng payment key hash của địa chỉ tương ứng.
 9. **Submit preprod (AC1.3):** cần ví preprod có tiền. Tiêu UTxO của địa chỉ key `1` và ký với path `0'/0/1` → submit thành công. Ký cùng tx đó với path `0'/0/0` → node từ chối (thiếu witness).
+
+## Playground 0.1.2 — F2/F3: modal provider (Blockfrost / Demeter) và Remember API key
+
+Trang `/transaction-builder`, panel Context › Provider › **Configure**. Mở DevTools (Application + Network) trước khi chạy. Request có thể quan sát trong tab Network kể cả khi server trả lỗi; với key giả thì xem URL và header, không xem kết quả.
+
+| # | Bước | Kết quả mong đợi |
+|---|---|---|
+| P1 (AC3.5) | Ở tab mới, network Preprod: trong Console chạy `sessionStorage.setItem('blockfrostConfig', JSON.stringify({ apiKey: 'preprodXXX', apiEndpoint: 'https://cardano-preprod.blockfrost.io/api/v0' }))`, rồi reload. | Panel hiện `Blockfrost connected`. sessionStorage không còn `blockfrostConfig`; có `providerConfig` với `kind: "blockfrost"`, `network: "preprod"`. |
+| P2 (AC3.1) | Tab Blockfrost, URL mặc định, nhập key preprod thật → Connect. Query UTxO một địa chỉ có tiền, rồi build + sign + submit. | Query trả UTxO, submit trả tx id như 0.1.1. Cần key Blockfrost preprod thật và ví có tADA. |
+| P3 (AC3.2) | Tab Blockfrost, sửa API URL thành `https://my-proxy.example.test/preprod/api/v0`, key `preprod…` → Connect. Query UTxO, rồi dán một CBOR bất kỳ vào ô Submitter → Submit. | Tab Network: `GET https://my-proxy.example.test/preprod/api/v0/addresses/{addr}/utxos` và `POST …/api/v0/tx/submit`, header `project_id`. Không có request nào tới `blockfrost.io`. |
+| P4 (AC3.3, subdomain) | Tab Demeter, nhập key, Auth mode **Subdomain**. Ô API URL hiện `https://{key}.cardano-preprod.blockfrost-m1.dmtr.host`; nút copy chép đúng URL. Connect → query UTxO → submit. | Panel hiện `Demeter connected`, dock hiện `Demeter ready`. Request đi tới `https://{key}.cardano-preprod.blockfrost-m1.dmtr.host/addresses/…/utxos` và `/tx/submit`, không có `/api/v0`. Với key thật: query và submit thành công. |
+| P5 (AC3.3, header) | Như P4 nhưng Auth mode **Header**. | API URL `https://cardano-preprod.blockfrost-m1.dmtr.host`; request mang header `dmtr-api-key: {key}`. Với key thật: xem preflight `OPTIONS` có qua không (không key thì gateway trả 401 không kèm header CORS). |
+| P6 (AC3.4) | Đang `Demeter connected` trên Preprod, đổi network sang Preview ở header. | Panel về `Provider not configured`. Mở Configure › Demeter: URL thành `…cardano-preview…`, ô key trống. Đổi về Preprod thì connected lại nếu đã Remember. |
+| P7 (AC2.1) | Bật **Remember on this device** → Connect. Mở tab mới cùng URL. | Tab mới hiện connected ngay. localStorage có key `providerConfig:{provider}:{network}` chứa `apiKey`, `apiEndpoint` (và `demeterAuthMode` với Demeter). |
+| P8 (AC2.2) | Tắt Remember → Connect. Mở tab mới. | Tab mới hiện `Provider not configured`; localStorage không có `providerConfig:*` của provider + network đó. |
+| P9 (AC2.3) | Sau P7, mở Configure → **Forget** (icon thùng rác). Mở tab mới. | localStorage không còn key tương ứng; tab mới chưa connected. Tab hiện tại vẫn connected đến khi đóng. |
+| P10 (AC2.4) | Remember một key preprod, đổi sang Preview (hoặc mở tab mới ở Preview). | Không tự connected bằng key preprod. |
+| P11 | Tab Blockfrost: key không bắt đầu bằng tên network, hoặc URL không chứa tên network. Tab Demeter, mode Subdomain: key có dấu `.` hoặc khoảng trắng. | Hiện lỗi dưới ô, Connect báo toast lỗi và không đóng dialog. |
