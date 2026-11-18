@@ -13,6 +13,7 @@ export * from './types/protocol'
 
 export * from './utils/parser'
 export type { FeeBreakdown, CalculateTxFeeOptions, ExUnitsLike } from './utils/fee'
+export type { PaymentRole } from './utils/cardano-wasm/build-keys'
 
 // Export as Utilities
 import * as Serializer from './utils/cardano-wasm/serializer'

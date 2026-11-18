@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 	import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 	import { Textarea } from '@/components/ui/textarea'
-	import { AppWallet, EmbeddedWallet, type AppWalletKeyType } from '@hydra-sdk/core'
+	import { AppWallet, EmbeddedWallet, type AppWalletKeyType, type PaymentRole } from '@hydra-sdk/core'
 	import { toast } from 'vue-sonner'
 	import { cn } from '~/lib/utils'
 	import { MAX_DERIVATION_INDEX } from '~/stores/main.store'
@@ -19,6 +19,11 @@
 	// Derivation path inputs, kept as text so an empty field can mean 0.
 	const accountIndexInput = ref<string | number>('')
 	const keyIndexInput = ref<string | number>('')
+	const roleInput = ref<PaymentRole>(0)
+	const roleOptions: { value: PaymentRole; label: string; hint: string }[] = [
+		{ value: 0, label: 'External', hint: 'Receive addresses' },
+		{ value: 1, label: 'Internal', hint: 'Change addresses' }
+	]
 
 	const parseIndex = (raw: string | number): { value: number; error: string } => {
 		const text = String(raw ?? '').trim()
@@ -33,15 +38,19 @@
 	const formPath = computed(() => {
 		const account = accountIndex.value.error ? '?' : accountIndex.value.value
 		const key = keyIndex.value.error ? '?' : keyIndex.value.value
-		return `m/1852'/1815'/${account}'/0/${key}`
+		return `m/1852'/1815'/${account}'/${roleInput.value}/${key}`
 	})
-	const currentPath = computed(() => `${walletDerivation.value.accountIndex}'/0/${walletDerivation.value.keyIndex}`)
+	const currentPath = computed(() => {
+		const { accountIndex, keyIndex, role } = walletDerivation.value
+		return `${accountIndex}'/${role}/${keyIndex}`
+	})
 
 	// Opening the dialog shows the indexes currently in use.
 	watch(open, isOpen => {
 		if (!isOpen) return
 		accountIndexInput.value = String(walletDerivation.value.accountIndex)
 		keyIndexInput.value = String(walletDerivation.value.keyIndex)
+		roleInput.value = walletDerivation.value.role
 	})
 
 	/** Apply needs a secret, unless a wallet exists and only the indexes change. */
@@ -68,8 +77,8 @@
 				networkId: networkInfo.value.networkId,
 				key: { type: 'root', bech32: EmbeddedWallet.privateKeyHexToBech32(walletPrvKeyHex.value) }
 			})
-			const { accountIndex, keyIndex } = walletDerivation.value
-			baseAddressBech32.value = wallet.getAccount(accountIndex, keyIndex).baseAddressBech32
+			const { accountIndex, keyIndex, role } = walletDerivation.value
+			baseAddressBech32.value = wallet.getAccount(accountIndex, keyIndex, role).baseAddressBech32
 		} catch (err) {
 			console.error('Invalid wallet key in storage:', err)
 			baseAddressBech32.value = ''
@@ -78,7 +87,7 @@
 
 	const applyChanges = () => {
 		if (!canApply.value) return
-		const derivation = { accountIndex: accountIndex.value.value, keyIndex: keyIndex.value.value }
+		const derivation = { accountIndex: accountIndex.value.value, keyIndex: keyIndex.value.value, role: roleInput.value }
 
 		// Empty secret with an existing wallet: keep the root key, re-derive only.
 		if (!secretInput.value.trim()) {
@@ -105,7 +114,7 @@
 				createType.value === 'mnemonic'
 					? EmbeddedWallet.mnemonicToPrivateKeyHex(secretInput.value.trim().split(/\s+/))
 					: EmbeddedWallet.privateKeyBech32ToPrivateKeyHex(secretInput.value.trim())
-			baseAddressBech32.value = wallet.getAccount(derivation.accountIndex, derivation.keyIndex).baseAddressBech32
+			baseAddressBech32.value = wallet.getAccount(derivation.accountIndex, derivation.keyIndex, derivation.role).baseAddressBech32
 			walletDerivation.value = derivation
 			// Don't keep the secret around: reopening "Change" then only edits the path.
 			secretInput.value = ''
@@ -232,6 +241,28 @@
 											:class="keyIndex.error ? 'border-destructive' : ''"
 										/>
 										<p v-if="keyIndex.error" class="mt-0.5 text-[11px] text-destructive">{{ keyIndex.error }}</p>
+									</div>
+								</div>
+								<div role="radiogroup" aria-label="Chain (role)">
+									<span class="mb-1 block text-xs text-muted-foreground">Chain (role)</span>
+									<div class="grid grid-cols-2 gap-1.5">
+										<button
+											v-for="option in roleOptions"
+											:key="option.value"
+											type="button"
+											role="radio"
+											:aria-checked="roleInput === option.value"
+											:class="
+												cn(
+													'rounded-md border px-2 py-1.5 text-left transition-colors hover:cursor-pointer hover:bg-accent',
+													roleInput === option.value ? 'border-primary bg-accent' : ''
+												)
+											"
+											@click="roleInput = option.value"
+										>
+											<span class="block text-xs font-medium">{{ option.value }} · {{ option.label }}</span>
+											<span class="block text-[11px] text-muted-foreground">{{ option.hint }}</span>
+										</button>
 									</div>
 								</div>
 								<p class="flex items-center gap-1 text-xs">

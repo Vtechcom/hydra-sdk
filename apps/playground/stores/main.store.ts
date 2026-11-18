@@ -1,7 +1,10 @@
 import { NETWORK_ID, NETWORK_MAGIC } from '@hydra-sdk/core'
 
-export type WalletDerivation = { accountIndex: number; keyIndex: number }
-export const DEFAULT_WALLET_DERIVATION: WalletDerivation = { accountIndex: 0, keyIndex: 0 }
+import type { PaymentRole } from '@hydra-sdk/core'
+
+/** `m/1852'/1815'/{accountIndex}'/{role}/{keyIndex}` — role 0 external (receive), 1 internal (change). */
+export type WalletDerivation = { accountIndex: number; keyIndex: number; role: PaymentRole }
+export const DEFAULT_WALLET_DERIVATION: WalletDerivation = { accountIndex: 0, keyIndex: 0, role: 0 }
 /** Largest non-hardened BIP32 index (2^31 − 1). */
 export const MAX_DERIVATION_INDEX = 2147483647
 
@@ -16,8 +19,12 @@ export const useMainStore = defineStore('main', () => {
 
 	// Session-scoped on purpose: a playground key should not outlive the tab.
 	const walletPrvKeyHex = useSessionStorage<string>('rootKey', '')
-	// Derivation path m/1852'/1815'/{accountIndex}'/0/{keyIndex} — same lifetime as the root key.
-	const walletDerivation = useSessionStorage<WalletDerivation>('walletDerivation', { ...DEFAULT_WALLET_DERIVATION })
+	// Derivation path — same lifetime as the root key. mergeDefaults fills `role` into sessions saved before it existed.
+	const walletDerivation = useSessionStorage<WalletDerivation>(
+		'walletDerivation',
+		{ ...DEFAULT_WALLET_DERIVATION },
+		{ mergeDefaults: true }
+	)
 	const resetWalletDerivation = () => {
 		walletDerivation.value = { ...DEFAULT_WALLET_DERIVATION }
 	}

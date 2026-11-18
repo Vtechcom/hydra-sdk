@@ -63,6 +63,22 @@ describe('BuildKeys', () => {
 			expect(hashOf(buildKeys(TEST_WALLET.rootKeyHex, 1, 0).paymentKey)).not.toBe(TEST_WALLET.paymentKeyHash)
 		})
 
+		it("derives the payment key on the internal chain m/1852'/1815'/account'/1/index for role 1", () => {
+			const root = keep(CardanoWASM.Bip32PrivateKey.from_hex(TEST_WALLET.rootKeyHex))
+			const account = keep(keep(keep(root.derive(harden(1852))).derive(harden(1815))).derive(harden(6158)))
+			const expected = keep(keep(account.derive(1)).derive(0)).to_hex()
+
+			const internal = buildKeys(TEST_WALLET.rootKeyHex, 6158, 0, 1)
+			expect(keep(internal.paymentKey).to_hex()).toBe(expected)
+			// Only the payment key moves to the internal chain; the stake key stays on role 2.
+			expect(keep(internal.stakeKey).to_hex()).toBe(keep(buildKeys(TEST_WALLET.rootKeyHex, 6158, 0).stakeKey).to_hex())
+			expect(keep(buildKeys(TEST_WALLET.rootKeyHex, 6158, 0, 0).paymentKey).to_hex()).not.toBe(expected)
+		})
+
+		it('rejects a payment role other than 0 or 1', () => {
+			expect(() => buildKeys(TEST_WALLET.rootKeyHex, 0, 0, 2 as never)).toThrow(/role must be 0 \(external\) or 1 \(internal\)/)
+		})
+
 		it('takes a [payment, stake] pair of extended keys as-is', () => {
 			const payment = keep(buildKeys(TEST_WALLET.rootKeyHex, 0).paymentKey).to_hex()
 			const stake = keep(buildKeys(TEST_WALLET.rootKeyHex, 0).stakeKey).to_hex()
