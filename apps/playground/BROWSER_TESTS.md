@@ -138,3 +138,23 @@ Chuẩn bị: `pnpm dev:playground`, mở `/transaction-builder`, trong rail Con
 | F4-5 (AC4.2) | UTxO có inline datum (cần ví/địa chỉ script có UTxO kèm inline datum trên preprod) → bấm copy | `output.inlineDatum` là chuỗi CBOR hex (vd `d8799f…`), không phải `{}` hay `{"__wbg_ptr":…}`. |
 
 Ghi chú: sample data hiện không có UTxO nào kèm inline datum, nên F4-5 chỉ chạy tay được khi có chain thật. Logic chuyển `PlutusData` → hex nằm trong hàm thuần `serializeUtxo` ở `lib/utxo.ts`.
+
+## F1 — Derivation path (playground 0.1.2)
+
+Trang `/transaction-builder`, panel Context → Wallet. Seed test cố định (không có tiền): `test walk nut penalty hip pave soap entry language right filter choice`, network Preprod. Địa chỉ tham chiếu lấy từ `new AppWallet({ networkId: 0, key: { type: 'mnemonic', words } }).getAccount(a, k).baseAddressBech32` chạy độc lập trong Node:
+
+| Path | Địa chỉ mong đợi |
+|---|---|
+| `0'/0/0` | `addr_test1qz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj83ws8lhrn648jjxtwq2ytjqp` |
+| `0'/0/1` | `addr_test1qz7svwszky8gcmhrfza7a89z9u0dfzd3l7h23sqlc5yml7upc8zrvs42gnjnje39ypyc2ukyg34pr52z8gwwsc7n394sxgs4pg` |
+| `1'/0/3` | `addr_test1qzglrh8aj4nnlk8l8vvkakw87l63fmpkj34qn74muv8f97w5pnvux7c2e2mtpm72dzyh3yup9jn6zx7zu6k87dhgxzzquetyxd` |
+
+1. **Mặc định không đổi (AC1.1):** "Set up wallet" → dán seed, để `Account index` = `0`, `Key index` = `0` → Apply. Dòng `Path` hiện `0'/0/0`, địa chỉ khớp dòng `0'/0/0` ở bảng (giống bản 0.1.1).
+2. **Key index khác (AC1.2):** nhập seed, `Account index` để trống, `Key index` = `1`. Ô path chỉ đọc hiện `m/1852'/1815'/0'/0/1` → Apply. Địa chỉ (nút copy) khớp dòng `0'/0/1`.
+3. **Validate:** nhập `-1`, `abc` hoặc `2147483648` → ô viền đỏ, báo "Enter a whole number from 0 to 2147483647", path hiện `?`, nút Apply bị khoá. `2147483647` được chấp nhận. Ô rỗng được tính là `0`.
+4. **Chỉ đổi index, giữ root key:** khi đã có wallet, bấm "Change" → textarea trống, hai ô index hiện giá trị đang dùng, có dòng gợi ý "Leave the key field empty…". Đổi `Key index` → Apply. Toast "Derivation path updated", dòng `Root key` không đổi, `Path` và `Address` đổi theo.
+5. **Nhánh lỗi:** "Change" → nhập seed sai (`foo bar baz`) + `Key index` = `5` → Apply. Báo "Invalid mnemonic", wallet bị xoá, `sessionStorage.walletDerivation` về `{"accountIndex":0,"keyIndex":0}`.
+6. **Lưu trữ (AC1.4):** đặt path `0'/0/1` → reload tab → `Path` vẫn `0'/0/1`, địa chỉ giữ nguyên. Đóng tab, mở tab mới → "No wallet yet", `walletDerivation` về `0/0`.
+7. **Change address / preset mint:** với path `0'/0/1`, nút "Use as change address" và Presets → Mint dùng địa chỉ `0'/0/1`; policy script của preset mint là `8200581c` + payment key hash của địa chỉ đó (`bd063a02…`).
+8. **Index thật sự đi vào `signTx`:** ký cùng một tx chưa ký với path `0'/0/0` rồi `0'/0/1`. vkey trong witness set phải khác nhau: `73fea80d…5a7d` cho `0/0`, `f626ab88…d4a1` cho `0/1`; hash của mỗi vkey bằng payment key hash của địa chỉ tương ứng.
+9. **Submit preprod (AC1.3):** cần ví preprod có tiền. Tiêu UTxO của địa chỉ key `1` và ký với path `0'/0/1` → submit thành công. Ký cùng tx đó với path `0'/0/0` → node từ chối (thiếu witness).
