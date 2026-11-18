@@ -25,6 +25,11 @@ export const useMainStore = defineStore('main', () => {
 		{ ...DEFAULT_WALLET_DERIVATION },
 		{ mergeDefaults: true }
 	)
+	// A wallet imported from a single `ed25519e_sk1…` key (no chain code, no derivation). Only one of rootKey and
+	// ed25519eKey is set at a time.
+	const walletEd25519eKey = useSessionStorage<string>('ed25519eKey', '')
+	const walletReady = computed(() => !!walletPrvKeyHex.value || !!walletEd25519eKey.value)
+
 	const resetWalletDerivation = () => {
 		walletDerivation.value = { ...DEFAULT_WALLET_DERIVATION }
 	}
@@ -35,6 +40,8 @@ export const useMainStore = defineStore('main', () => {
 		networks,
 		walletPrvKeyHex,
 		walletDerivation,
+		walletEd25519eKey,
+		walletReady,
 		resetWalletDerivation
 	}
 })

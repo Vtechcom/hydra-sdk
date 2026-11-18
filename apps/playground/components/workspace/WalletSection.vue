@@ -4,13 +4,25 @@
 	import { AppWallet, EmbeddedWallet, type AppWalletKeyType, type PaymentRole } from '@hydra-sdk/core'
 	import { toast } from 'vue-sonner'
 	import { cn } from '~/lib/utils'
+	import { ed25519eAddress, ed25519eKeyError, ed25519eKeyFromRootHex } from '~/lib/ed25519e'
 	import { MAX_DERIVATION_INDEX } from '~/stores/main.store'
 
 	const mainStore = useMainStore()
-	const { networkInfo, walletPrvKeyHex, walletDerivation } = storeToRefs(mainStore)
+	const { networkInfo, walletPrvKeyHex, walletDerivation, walletEd25519eKey, walletReady } = storeToRefs(mainStore)
 	const txStore = useTxBuilderStore()
 
-	const createType = ref<'mnemonic' | 'root'>('mnemonic')
+	type CreateType = 'mnemonic' | 'root' | 'ed25519e'
+	const createType = ref<CreateType>('mnemonic')
+	const createOptions: { value: CreateType; label: string; icon: string }[] = [
+		{ value: 'mnemonic', label: 'Seed phrase', icon: 'lucide:list-ordered' },
+		{ value: 'root', label: 'xprv key', icon: 'lucide:key-round' },
+		{ value: 'ed25519e', label: 'ed25519e key', icon: 'lucide:key-square' }
+	]
+	const placeholders: Record<CreateType, string> = {
+		mnemonic: 'Enter your seed phrase…',
+		root: 'Enter your root key (bech32)…',
+		ed25519e: 'ed25519e_sk1…'
+	}
 	const secretInput = ref('')
 	const baseAddressBech32 = ref('')
 	const error = ref('')
@@ -48,18 +60,24 @@
 	// Opening the dialog shows the indexes currently in use.
 	watch(open, isOpen => {
 		if (!isOpen) return
+		if (walletEd25519eKey.value) createType.value = 'ed25519e'
 		accountIndexInput.value = String(walletDerivation.value.accountIndex)
 		keyIndexInput.value = String(walletDerivation.value.keyIndex)
 		roleInput.value = walletDerivation.value.role
 	})
 
 	/** Apply needs a secret, unless a wallet exists and only the indexes change. */
-	const canApply = computed(() => !indexInvalid.value && (!!secretInput.value.trim() || !!walletPrvKeyHex.value))
+	const canApply = computed(() => {
+		if (createType.value === 'ed25519e') return !!secretInput.value.trim()
+		return !indexInvalid.value && (!!secretInput.value.trim() || !!walletPrvKeyHex.value)
+	})
 
 	const generateKey = () => {
 		const words = AppWallet.brew()
 		if (createType.value === 'mnemonic') {
 			secretInput.value = words.join(' ')
+		} else if (createType.value === 'ed25519e') {
+			secretInput.value = ed25519eKeyFromRootHex(EmbeddedWallet.mnemonicToPrivateKeyHex(words))
 		} else {
 			secretInput.value = EmbeddedWallet.privateKeyHexToBech32(EmbeddedWallet.mnemonicToPrivateKeyHex(words))
 		}
@@ -68,6 +86,15 @@
 	watch(createType, () => (secretInput.value = ''))
 
 	const resolveAddress = () => {
+		if (walletEd25519eKey.value) {
+			try {
+				baseAddressBech32.value = ed25519eAddress(walletEd25519eKey.value, networkInfo.value.networkId)
+			} catch (err) {
+				console.error('Invalid ed25519e key in storage:', err)
+				baseAddressBech32.value = ''
+			}
+			return
+		}
 		if (!walletPrvKeyHex.value) {
 			baseAddressBech32.value = ''
 			return
@@ -88,6 +115,26 @@
 	const applyChanges = () => {
 		if (!canApply.value) return
 		const derivation = { accountIndex: accountIndex.value.value, keyIndex: keyIndex.value.value, role: roleInput.value }
+
+		// A single ed25519e key: no derivation, enterprise address, replaces any root-key wallet.
+		if (createType.value === 'ed25519e') {
+			const key = secretInput.value.trim()
+			const keyError = ed25519eKeyError(key)
+			if (keyError) {
+				error.value = keyError
+				toast.error(keyError)
+				return
+			}
+			walletPrvKeyHex.value = ''
+			mainStore.resetWalletDerivation()
+			walletEd25519eKey.value = key
+			resolveAddress()
+			secretInput.value = ''
+			error.value = ''
+			open.value = false
+			toast.success('Wallet imported from ed25519e key')
+			return
+		}
 
 		// Empty secret with an existing wallet: keep the root key, re-derive only.
 		if (!secretInput.value.trim()) {
@@ -110,6 +157,7 @@
 					: { type: 'root', bech32: secretInput.value.trim() }
 
 			const wallet = new AppWallet({ networkId: networkInfo.value.networkId, key: config })
+			walletEd25519eKey.value = ''
 			walletPrvKeyHex.value =
 				createType.value === 'mnemonic'
 					? EmbeddedWallet.mnemonicToPrivateKeyHex(secretInput.value.trim().split(/\s+/))
@@ -124,6 +172,7 @@
 		} catch (err) {
 			error.value = err instanceof Error ? err.message : 'Failed to configure wallet'
 			walletPrvKeyHex.value = ''
+			walletEd25519eKey.value = ''
 			mainStore.resetWalletDerivation()
 			baseAddressBech32.value = ''
 			toast.error('Failed to configure wallet. Check your input.')
@@ -138,12 +187,29 @@
 	}
 
 	onMounted(resolveAddress)
-	watch([networkInfo, walletDerivation], resolveAddress, { deep: true })
+	watch([networkInfo, walletDerivation, walletEd25519eKey], resolveAddress, { deep: true })
 </script>
 
 <template>
 	<div class="space-y-2">
-		<div v-if="walletPrvKeyHex" class="space-y-1">
+		<div v-if="walletEd25519eKey" class="space-y-1">
+			<p class="flex items-center gap-1 text-xs">
+				<span class="shrink-0 text-muted-foreground">Key</span>
+				<span class="truncate font-mono">{{ formatId(walletEd25519eKey, 14, 6) }}</span>
+				<Icon name="lucide:copy" size="12" class="shrink-0 hover:cursor-pointer hover:text-primary" @click="useCopy(walletEd25519eKey)" />
+			</p>
+			<p class="flex items-center gap-1 text-xs">
+				<span class="shrink-0 text-muted-foreground">Path</span>
+				<span class="truncate text-muted-foreground">single key, no derivation</span>
+			</p>
+			<p class="flex items-center gap-1 text-xs">
+				<span class="shrink-0 text-muted-foreground">Address</span>
+				<span class="truncate font-mono" title="Enterprise address (no stake)">{{ formatId(baseAddressBech32, 10, 6) }}</span>
+				<Icon name="lucide:copy" size="12" class="shrink-0 hover:cursor-pointer hover:text-primary" @click="useCopy(baseAddressBech32)" />
+			</p>
+		</div>
+
+		<div v-else-if="walletPrvKeyHex" class="space-y-1">
 			<p class="flex items-center gap-1 text-xs">
 				<span class="shrink-0 text-muted-foreground">Root key</span>
 				<span class="truncate font-mono">{{ formatId(walletPrvKeyHex, 6, 6) }}</span>
@@ -170,7 +236,7 @@
 				<DialogTrigger as-child>
 					<Button variant="outline" size="sm" class="h-7 flex-1 text-xs">
 						<Icon name="lucide:settings-2" size="14" />
-						{{ walletPrvKeyHex ? 'Change' : 'Set up wallet' }}
+						{{ walletReady ? 'Change' : 'Set up wallet' }}
 					</Button>
 				</DialogTrigger>
 				<DialogContent class="sm:max-w-2xl">
@@ -181,10 +247,7 @@
 					<div class="flex gap-3">
 						<div class="space-y-1">
 							<button
-								v-for="option in [
-									{ value: 'mnemonic', label: 'Seed phrase', icon: 'lucide:list-ordered' },
-									{ value: 'root', label: 'xprv key', icon: 'lucide:key-round' }
-								]"
+								v-for="option in createOptions"
 								:key="option.value"
 								type="button"
 								:class="
@@ -193,7 +256,7 @@
 										createType === option.value ? 'border-primary bg-accent' : ''
 									)
 								"
-								@click="createType = option.value as 'mnemonic' | 'root'"
+								@click="createType = option.value"
 							>
 								<Icon :name="option.icon" size="14" />
 								<span class="text-sm font-medium">{{ option.label }}</span>
@@ -203,7 +266,7 @@
 							<Textarea
 								v-model="secretInput"
 								:class="cn(error ? 'border-destructive' : '', createType === 'mnemonic' ? 'break-words' : 'break-all')"
-								:placeholder="createType === 'mnemonic' ? 'Enter your seed phrase…' : 'Enter your root key (bech32)…'"
+								:placeholder="placeholders[createType]"
 								rows="4"
 							/>
 							<p v-if="error" class="mt-1 text-xs text-destructive">{{ error }}</p>
@@ -213,7 +276,11 @@
 									Generate
 								</Button>
 							</div>
-							<div class="mt-3 space-y-2 rounded-md border p-2.5">
+							<p v-if="createType === 'ed25519e'" class="mt-3 rounded-md border p-2.5 text-[11px] text-muted-foreground">
+								An <span class="font-mono">ed25519e_sk</span> key is a single extended key with no chain code: it signs as-is, nothing
+								can be derived from it, and its address is an enterprise address (no stake credential).
+							</p>
+							<div v-else class="mt-3 space-y-2 rounded-md border p-2.5">
 								<p class="eyebrow">Derivation path</p>
 								<div class="grid grid-cols-2 gap-2">
 									<div>

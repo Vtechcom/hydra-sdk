@@ -12,6 +12,7 @@ import {
 import type { CardanoWASM } from '@hydra-sdk/cardano-wasm'
 import { TxBuilder } from '@hydra-sdk/transaction'
 import { toast } from 'vue-sonner'
+import { ed25519eAddress, signTxWithEd25519e } from '~/lib/ed25519e'
 import { createProviderEvaluator } from '~/lib/evaluator'
 import { createDefaultDraft, emptyOutput, uid, type MetadataDraft, type TxDraft } from '~/lib/tx-draft'
 import { SAMPLE_ADDRESS, TX_PRESETS } from '~/lib/tx-fixtures'
@@ -53,7 +54,7 @@ const collectOutputAmounts = (outputs: DecodedOutput[]): Asset[] => {
 export const useTxBuilderStore = defineStore('txbuilder', () => {
 	const mainStore = useMainStore()
 	const providerStore = useProviderStore()
-	const { networkInfo, walletPrvKeyHex, walletDerivation } = storeToRefs(mainStore)
+	const { networkInfo, walletPrvKeyHex, walletDerivation, walletEd25519eKey } = storeToRefs(mainStore)
 
 	/**
 	 * The whole builder state lives in one persisted object: it makes schema
@@ -200,6 +201,13 @@ export const useTxBuilderStore = defineStore('txbuilder', () => {
 
 	/** Base address of the configured wallet, or '' when there is none. */
 	const walletAddress = computed(() => {
+		if (walletEd25519eKey.value) {
+			try {
+				return ed25519eAddress(walletEd25519eKey.value, networkInfo.value.networkId)
+			} catch {
+				return ''
+			}
+		}
 		if (!walletPrvKeyHex.value) return ''
 		try {
 			const wallet = new AppWallet({
@@ -517,6 +525,11 @@ export const useTxBuilderStore = defineStore('txbuilder', () => {
 		signError.value = ''
 		try {
 			if (!target) throw new Error('Nothing to sign — build a transaction first.')
+			if (walletEd25519eKey.value) {
+				signedCborHex.value = signTxWithEd25519e(target, walletEd25519eKey.value, partialSign.value)
+				toast.success('Transaction signed')
+				return
+			}
 			if (!walletPrvKeyHex.value) throw new Error('No wallet configured. Set one up in the Context panel.')
 
 			const wallet = new AppWallet({

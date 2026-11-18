@@ -168,6 +168,16 @@ Seed test giống mục F1 ở trên (`member genius submit …`).
 3. **Phiên cũ chưa có role:** trong Console chạy `sessionStorage.setItem('walletDerivation', JSON.stringify({ accountIndex: 0, keyIndex: 1 }))` rồi reload → panel hiện `Path 0'/0/1`, store có `role: 0`.
 4. **Ký bằng key change:** với path `6158'/1/0`, build một tx rồi Sign → vkey trong witness set có hash bằng payment key hash của địa chỉ ở bước 1. Submit thật cần UTxO tại địa chỉ đó (CHƯA KIỂM CHỨNG trên chain).
 
+## Import ví từ key ed25519e
+
+Key test (chỉ dùng cho test, sinh từ seed test ở trên tại `m/1852'/1815'/0'/0/0`): `ed25519e_sk13p0d6pd8p247z7v7q86697k876jjnfac6zu85sanftnhjl8n49tllkjsaslwq785nrlyjx2cnh9ghsvcavkady0rew5u2zun0yjg0lc5xraqa`.
+
+1. "Set up wallet" → **ed25519e key**. Khối Derivation path biến mất, thay bằng ghi chú về key đơn không có chain code.
+2. Nhập `xprv1abc` → Apply → lỗi `Key must start with "ed25519e_sk1"`, dialog không đóng.
+3. Nhập key test → Apply → toast "Wallet imported from ed25519e key". Panel hiện `Key ed25519e_sk1…`, `Path single key, no derivation`, địa chỉ enterprise `addr_test1vzya97j3gg2lkp360m7238lfe46y0jzhl6wgsz6xysz3d5q95da34` (trùng `enterpriseAddressBech32` của SDK cho seed test ở 0/0). sessionStorage: `ed25519eKey` có giá trị, `rootKey` rỗng.
+4. Build một tx rồi Sign → ký thành công; vkey trong witness có hash `89d2fa51…16d0` (payment key hash của seed test ở 0/0).
+5. "Change" → tab ed25519e đang được chọn. Chuyển sang Seed phrase, nhập seed → Apply → `ed25519eKey` bị xoá, panel quay về Root key + Path.
+
 ## Playground 0.1.2 — F2/F3: modal provider (Blockfrost / Demeter) và Remember API key
 
 Trang `/transaction-builder`, panel Context › Provider › **Configure**. Mở DevTools (Application + Network) trước khi chạy. Request có thể quan sát trong tab Network kể cả khi server trả lỗi; với key giả thì xem URL và header, không xem kết quả.
