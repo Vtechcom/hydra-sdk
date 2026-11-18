@@ -12,13 +12,12 @@ export const alias = {
 	'@hydra-sdk/core': path.resolve(__dirname, 'packages/core/src/index.ts'),
 	'@hydra-sdk/transaction': path.resolve(__dirname, 'packages/hydra-transaction/src/index.ts'),
 	'@hydra-sdk/bridge': path.resolve(__dirname, 'packages/hydra-bridge/src/index.ts'),
-	'@hydra-sdk/evaluator': path.resolve(__dirname, 'packages/evaluator/src/index.ts'),
-	'@hydra-sdk/app-bridge': path.resolve(__dirname, 'packages/app-bridge/src/index.ts')
+	'@hydra-sdk/evaluator': path.resolve(__dirname, 'packages/evaluator/src/index.ts')
 }
 
 // One project per package, named after its directory: `pnpm vitest run --project core`.
 // Each project sets its own root, since `extends: true` would concatenate a root-level include.
-const PACKAGES = ['app-bridge', 'cardano-wasm', 'core', 'evaluator', 'hydra-bridge', 'hydra-transaction']
+const PACKAGES = ['cardano-wasm', 'core', 'evaluator', 'hydra-bridge', 'hydra-transaction']
 
 export default defineConfig({
 	plugins: [tsconfigPathsPlugin()],

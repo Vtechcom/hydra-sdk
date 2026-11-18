@@ -64,7 +64,7 @@ describe('HexcoreConnector', () => {
 
 		it('defaults the namespace to hydra and parses a plain http url', () => {
 			const connector = new HexcoreConnector('http://localhost:3000')
-			expect(connector.conn).toEqual({ ssl: false, host: 'localhost', port: '3000', path: '/' })
+			expect(connector.conn).toEqual({ ssl: false, host: 'localhost', port: '3000', path: '/', params: {} })
 			expect(io).toHaveBeenCalledWith('http://localhost:3000/hydra', expect.anything())
 		})
 
@@ -77,6 +77,18 @@ describe('HexcoreConnector', () => {
 
 		it('rejects an invalid url', () => {
 			expect(() => new HexcoreConnector('http://invalid url')).toThrow(/Invalid socket io url/)
+		})
+
+		it('forwards X-Api-Key from the url to HTTP requests', () => {
+			const connector = new HexcoreConnector('https://api.hexcore.dev?X-Api-Key=test-api-key-123')
+
+			expect(connector.conn.params?.['X-Api-Key']).toBe('test-api-key-123')
+			expect(connector.apiFetch.defaults.headers['X-Api-Key']).toBe('test-api-key-123')
+		})
+
+		it('sends no X-Api-Key when the url has none', () => {
+			const connector = new HexcoreConnector('https://api.hexcore.dev')
+			expect(connector.apiFetch.defaults.headers['X-Api-Key']).toBeUndefined()
 		})
 	})
 

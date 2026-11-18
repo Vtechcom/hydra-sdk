@@ -42,7 +42,7 @@ To run a single test file:
 pnpm vitest run packages/core/__tests__/unit/some.test.ts
 ```
 
-To run tests for a specific package (project name = directory under `packages/`: `app-bridge`, `cardano-wasm`, `core`, `evaluator`, `hydra-bridge`, `hydra-transaction`; projects are declared in the root `vitest.config.ts`, packages have no own vitest config):
+To run tests for a specific package (project name = directory under `packages/`: `cardano-wasm`, `core`, `evaluator`, `hydra-bridge`, `hydra-transaction`; projects are declared in the root `vitest.config.ts`, packages have no own vitest config):
 ```bash
 pnpm vitest run --project core
 ```
