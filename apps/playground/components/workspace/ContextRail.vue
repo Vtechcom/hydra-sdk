@@ -22,7 +22,7 @@
 			<Icon name="lucide:panel-left-open" size="18" />
 		</button>
 		<Separator />
-		<Icon name="lucide:wallet" size="16" :class="mainStore.walletPrvKeyHex ? 'text-primary' : 'text-muted-foreground/50'" />
+		<Icon name="lucide:wallet" size="16" :class="mainStore.walletReady ? 'text-primary' : 'text-muted-foreground/50'" />
 		<Icon name="lucide:cloud" size="16" :class="providerStore.providerReady ? 'text-primary' : 'text-muted-foreground/50'" />
 		<Icon name="lucide:list-checks" size="16" class="text-muted-foreground/50" />
 	</div>
@@ -46,7 +46,7 @@
 					<span class="flex items-center gap-2">
 						<Icon name="lucide:wallet" size="14" class="text-primary" />
 						Wallet
-						<Badge v-if="mainStore.walletPrvKeyHex" variant="muted">ready</Badge>
+						<Badge v-if="mainStore.walletReady" variant="muted">ready</Badge>
 					</span>
 				</AccordionTrigger>
 				<AccordionContent class="px-1">

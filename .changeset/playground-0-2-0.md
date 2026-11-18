@@ -1,5 +1,5 @@
 ---
-'@hydra-sdk/playground': patch
+'@hydra-sdk/playground': minor
 ---
 
 Wallet derivation paths, a Blockfrost/Demeter provider dialog with an opt-in saved key, and one-click UTxO copy in `/transaction-builder`.
@@ -7,6 +7,8 @@ Wallet derivation paths, a Blockfrost/Demeter provider dialog with an opt-in sav
 **Wallet**
 
 - The "Set up wallet" dialog takes an account index and a key index (`m/1852'/1815'/{account}'/0/{key}`), shows the full path, and the address, change address, mint preset and signing all follow it. Changing only the index keeps the root key. The defaults (`0'/0/0`) derive the same address as before.
+
+- A third import option, **ed25519e key**, takes a single `ed25519e_sk1…` key (64-byte extended key, no chain code). It signs as-is and uses the key's enterprise address; the derivation path is hidden because nothing can be derived from such a key. Generate makes one from a fresh mnemonic at `m/1852'/1815'/0'/0/0`.
 
 **Provider**
 
