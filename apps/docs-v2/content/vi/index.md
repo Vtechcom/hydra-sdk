@@ -166,7 +166,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Hexcore
     description: Bảng điều khiển web giúp triển khai và quản lý Hydra Head trên Docker chỉ với một lệnh.
-    to: https://github.com/Vtechcom/hexcore-v2
+    to: https://hexcore.hydrasdk.com/docs
     target: _blank
     variant: subtle
     spotlight: true
@@ -202,7 +202,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Perpetuals Exchange
     description: Sàn giao dịch hợp đồng tương lai vĩnh cửu tốc độ cao với đòn bẩy tới 50x trên Hydra L2.
-    to: https://alpha.hydraone.app/games/perpetuals
+    to: https://beta.hydraone.app/games/perpetuals
     target: _blank
     variant: subtle
     spotlight: true
@@ -220,7 +220,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Hydra Gacha
     description: Vòng quay xổ số on-chain minh bạch sử dụng vé NFT trên mạng lưới Hydra L2.
-    to: https://alpha.hydraone.app/games/hydra-gacha
+    to: https://beta.hydraone.app/games/hydra-gacha
     target: _blank
     variant: subtle
     spotlight: true
@@ -238,7 +238,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Hydra Fly
     description: Giải đấu game arcade trên Hydra L2 với phần thưởng dành cho người dẫn đầu bảng xếp hạng.
-    to: https://alpha.hydraone.app/games/hydra-fly/play
+    to: https://beta.hydraone.app/games/hydra-fly
     target: _blank
     variant: subtle
     spotlight: true
@@ -256,7 +256,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: River Cross
     description: Game sinh tồn thời gian thực trên Hydra L2 với cơ chế đặt cược và trả thưởng tức thì.
-    to: https://alpha.hydraone.app/games/river-cross/play
+    to: https://beta.hydraone.app/games/river-cross
     target: _blank
     variant: subtle
     spotlight: true
@@ -274,7 +274,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Mines
     description: Trò chơi chiến thuật mở ô nhận hệ số nhân thưởng tức thì trên Hydra L2.
-    to: https://alpha.hydraone.app/games/mines
+    to: https://beta.hydraone.app/games/mines
     target: _blank
     variant: subtle
     spotlight: true
@@ -292,7 +292,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Russian Roulette
     description: Trò chơi đối kháng kịch tính thắng-ăn-cả với tốc độ xử lý dưới 1 giây trên Hydra L2.
-    to: https://alpha.hydraone.app/games/russian-roulette/play
+    to: https://beta.hydraone.app/games/russian-roulette
     target: _blank
     variant: subtle
     spotlight: true
@@ -310,7 +310,7 @@ Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi tro
     ---
     title: Onchain Graveyard
     description: Khắc bia tưởng niệm vĩnh viễn trên chuỗi, xác nhận giao dịch tức thì qua Hydra L2.
-    to: https://alpha.hydraone.app/games/graveyard
+    to: https://beta.hydraone.app/games/graveyard
     target: _blank
     variant: subtle
     spotlight: true
