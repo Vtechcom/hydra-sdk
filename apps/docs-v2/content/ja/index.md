@@ -166,7 +166,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Hexcore
     description: Docker 上の Hydra Head をワンコマンドで起動・管理できる Web コントロールプレーン。
-    to: https://github.com/Vtechcom/hexcore-v2
+    to: https://hexcore.hydrasdk.com/docs
     target: _blank
     variant: subtle
     spotlight: true
@@ -202,7 +202,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Perpetuals Exchange
     description: Hydra L2 上で最大 50 倍のレバレッジを提供する高速分散型パーペチュアル取引所。
-    to: https://alpha.hydraone.app/games/perpetuals
+    to: https://beta.hydraone.app/games/perpetuals
     target: _blank
     variant: subtle
     spotlight: true
@@ -220,7 +220,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Hydra Gacha
     description: Hydra L2 上で NFT チケットを使用する透明性の高いオンチェーン抽選ゲーム。
-    to: https://alpha.hydraone.app/games/hydra-gacha
+    to: https://beta.hydraone.app/games/hydra-gacha
     target: _blank
     variant: subtle
     spotlight: true
@@ -238,7 +238,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Hydra Fly
     description: ランキング上位者が報酬を獲得できる Hydra L2 上の対戦型アーケードゲーム。
-    to: https://alpha.hydraone.app/games/hydra-fly/play
+    to: https://beta.hydraone.app/games/hydra-fly
     target: _blank
     variant: subtle
     spotlight: true
@@ -256,7 +256,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: River Cross
     description: 即時決済と報酬支払いを備えた Hydra L2 上のリアルタイム・サバイバルゲーム。
-    to: https://alpha.hydraone.app/games/river-cross/play
+    to: https://beta.hydraone.app/games/river-cross
     target: _blank
     variant: subtle
     spotlight: true
@@ -274,7 +274,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Mines
     description: マスを開いて報酬倍率を高める Hydra L2 上の即時決済ストラテジーゲーム。
-    to: https://alpha.hydraone.app/games/mines
+    to: https://beta.hydraone.app/games/mines
     target: _blank
     variant: subtle
     spotlight: true
@@ -292,7 +292,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Russian Roulette
     description: Hydra L2 のサブ秒ファイナリティを活かした勝者総取りのハイステークスゲーム。
-    to: https://alpha.hydraone.app/games/russian-roulette/play
+    to: https://beta.hydraone.app/games/russian-roulette
     target: _blank
     variant: subtle
     spotlight: true
@@ -310,7 +310,7 @@ Hydra SDK で構築されたアプリ
     ---
     title: Onchain Graveyard
     description: Hydra Layer 2 を通じて即座に刻まれる永続的なオンチェーン記念碑。
-    to: https://alpha.hydraone.app/games/graveyard
+    to: https://beta.hydraone.app/games/graveyard
     target: _blank
     variant: subtle
     spotlight: true
