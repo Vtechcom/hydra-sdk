@@ -60,7 +60,7 @@ seo:
   items:
     - value: "3"
       label: コアパッケージ
-    - value: "5+"
+    - value: "9+"
       label: アプリケーション
     - value: "100%"
       label: TypeScript
@@ -161,107 +161,167 @@ Hydra SDK で構築されたアプリ
 #description
 すでに本番環境で私たちの SDK を利用している強力なアプリケーションをご覧ください。
 
-  :::u-page-grid{class="reveal-stagger mt-4 text-left"}
+  :::u-page-grid{class="reveal-stagger mt-4 text-left gap-5"}
     ::::u-page-card
     ---
-    title: Hydra Hub
-    description: 分散型の Hydra Node 管理、Hydra Head 接続、Cardano DApp を構築するための Layer-2 API を提供します。
-    to: https://dev.hydrahub.io.vn
+    title: Hexcore
+    description: Docker 上の Hydra Head をワンコマンドで起動・管理できる Web コントロールプレーン。
+    to: https://github.com/Vtechcom/hexcore-v2
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Hub](/images/hydra-hub.png){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="インフラ"}
+      :::::div{class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hexcore](/images/hexcore.svg){.size-7 .object-contain}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="インフラ" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
     title: Hydra SDK Playground
-    description: Hydra SDK の機能を試したり DApp を構築したりするためのインタラクティブなプレイグラウンド。
+    description: Hydra SDK の機能検証や L2 トランザクションの試作ができる対話型サンドボックス。
     to: https://playground.hydrasdk.com
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra SDK Playground](/images/hydra-playground-logo-white.png){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="開発"}
+      :::::div{class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated p-1.5 ring-1 ring-default"}
+      ![Hydra SDK Playground](/images/hydra-playground-logo.png){.size-full .object-contain}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="開発ツール" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
-    title: Hydra Fly
-    description: Cardano Hydra L2 上に構築された GameFi トーナメントゲーム。リーダーボードの上位プレイヤーが報酬を獲得します。
-    to: https://alpha.hydraone.app/games/hydra-fly/play
+    title: Perpetuals Exchange
+    description: Hydra L2 上で最大 50 倍のレバレッジを提供する高速分散型パーペチュアル取引所。
+    to: https://alpha.hydraone.app/games/perpetuals
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Fly](/images/fly.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
-    ::::
-
-    ::::u-page-card
-    ---
-    title: River Cross
-    description: Cardano Hydra L2 上のサバイバル GameFi ゲーム。プレイヤーは tADA を賭けて川を渡ります。
-    to: https://alpha.hydraone.app/games/river-cross/play
-    target: _blank
-    variant: subtle
-    spotlight: true
-    class: "hcard hover:ring-primary/40"
-    ---
-    #leading
-    ![River Cross](/images/river-cross.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Perpetuals Exchange](/images/perpetuals.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="DeFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
     title: Hydra Gacha
-    description: NFT チケットを使い、Cardano Hydra L2 上に構築されたオンチェーンの宝くじゲーム。
+    description: Hydra L2 上で NFT チケットを使用する透明性の高いオンチェーン抽選ゲーム。
     to: https://alpha.hydraone.app/games/hydra-gacha
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Gacha](/images/gacha.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="宝くじ"}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hydra Gacha](/images/gacha.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="宝くじ" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
-    title: Knight
-    description: Cardano Hydra L2 上のダンジョンサバイバル GameFi ゲーム。プレイヤーは tADA を賭けて敵を倒します。
-    to: https://alpha.hydraone.app/games/knight/play
+    title: Hydra Fly
+    description: ランキング上位者が報酬を獲得できる Hydra L2 上の対戦型アーケードゲーム。
+    to: https://alpha.hydraone.app/games/hydra-fly/play
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Knight](/images/knight.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hydra Fly](/images/fly.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
 
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+    ::::u-page-card
+    ---
+    title: River Cross
+    description: 即時決済と報酬支払いを備えた Hydra L2 上のリアルタイム・サバイバルゲーム。
+    to: https://alpha.hydraone.app/games/river-cross/play
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![River Cross](/images/river-cross.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Mines
+    description: マスを開いて報酬倍率を高める Hydra L2 上の即時決済ストラテジーゲーム。
+    to: https://alpha.hydraone.app/games/mines
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Mines](/images/mines.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Russian Roulette
+    description: Hydra L2 のサブ秒ファイナリティを活かした勝者総取りのハイステークスゲーム。
+    to: https://alpha.hydraone.app/games/russian-roulette/play
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Russian Roulette](/images/russian-roulette.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Onchain Graveyard
+    description: Hydra Layer 2 を通じて即座に刻まれる永続的なオンチェーン記念碑。
+    to: https://alpha.hydraone.app/games/graveyard
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Onchain Graveyard](/images/graveyard.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="Social" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
   :::
 ::

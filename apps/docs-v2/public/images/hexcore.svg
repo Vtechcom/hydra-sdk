@@ -1,0 +1,56 @@
+<!--
+  Hexcore mark.
+
+  Replaces an AI-generated raster that carried a "Meta AI" watermark, a garbled
+  tagline ("SSYVNICF"), no vector source, and 3D bevels that turned to mush
+  below ~32px — the exact size the header and favicon use.
+
+  Geometry keeps the original's meaning, not its rendering: a central hex core
+  ringed by peer nodes. That reads as a Hydra head — one head, many nodes.
+
+  Coordinates are computed, not hand-typed: all four hexagons share one
+  orientation (pointy-top) and the three satellites sit on a true 120° polar
+  array at identical radius and size. An earlier hand-placed version was
+  visibly lopsided.
+
+  Connectors run from inside the core to inside each satellite, so both ends
+  are covered by the fills and no join can float.
+
+  The centre hole is a real cut-out (fill-rule evenodd, hole wound opposite),
+  so the mark works on any background instead of only white.
+
+  Colour: `fill="currentColor"` only inherits when the SVG is INLINE in the
+  document. Referenced via <img> or as a favicon the file is an isolated
+  document and currentColor resolves to black, so the brand green is hard-set
+  here as the default. Inline uses can still override with a fill on the <svg>.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 32 32"
+  width="32"
+  height="32"
+  fill="#16BD4F"
+  role="img"
+  aria-label="Hexcore"
+>
+  <!-- Peer links, under the nodes so their ends tuck beneath the fills. -->
+  <g stroke="#16BD4F" stroke-width="1.5" stroke-linecap="round" opacity="0.5">
+    <path d="M16.00 11.10L16.00 6.70" />
+    <path d="M20.24 18.45L24.05 20.65" />
+    <path d="M11.76 18.45L7.95 20.65" />
+  </g>
+
+  <!-- Three peer nodes on a 120° array. -->
+  <g opacity="0.6">
+    <path d="M16.00 0.90L19.03 2.65L19.03 6.15L16.00 7.90L12.97 6.15L12.97 2.65Z" />
+    <path d="M26.05 18.30L29.08 20.05L29.08 23.55L26.05 25.30L23.01 23.55L23.01 20.05Z" />
+    <path d="M5.95 18.30L8.99 20.05L8.99 23.55L5.95 25.30L2.92 23.55L2.92 20.05Z" />
+  </g>
+
+  <!-- Core at full weight, with the hole cut through it. -->
+  <path
+    fill-rule="evenodd"
+    d="M16.00 9.90L21.28 12.95L21.28 19.05L16.00 22.10L10.72 19.05L10.72 12.95Z
+       M13.83 14.75L13.83 17.25L16.00 18.50L18.17 17.25L18.17 14.75L16.00 13.50Z"
+  />
+</svg>
