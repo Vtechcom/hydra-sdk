@@ -147,7 +147,12 @@ export default defineNuxtConfig({
   },
 
   ogImage: {
-    zeroRuntime: true
+    zeroRuntime: true,
+    // Default is 15s; prerendering many OG images on a CPU-limited
+    // builder (Docker/Coolify) exceeds it and fails the build with 408.
+    security: {
+      renderTimeout: 120000
+    }
   },
 
   // Pre-bundle animejs (dynamically imported for the header brand animation)

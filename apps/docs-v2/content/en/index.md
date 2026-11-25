@@ -60,7 +60,7 @@ A comprehensive software development kit for building Cardano DApps and wallet a
   items:
     - value: "3"
       label: Core Packages
-    - value: "5+"
+    - value: "9+"
       label: Applications
     - value: "100%"
       label: TypeScript
@@ -161,107 +161,167 @@ Apps built with Hydra SDK
 #description
 Discover powerful applications already using our SDK in production.
 
-  :::u-page-grid{class="reveal-stagger mt-4 text-left"}
+  :::u-page-grid{class="reveal-stagger mt-4 text-left gap-5"}
     ::::u-page-card
     ---
-    title: Hydra Hub
-    description: Provides decentralized Hydra Node management, Hydra Head connectivity, and Layer-2 APIs for building Cardano DApps.
-    to: https://dev.hydrahub.io.vn
+    title: Hexcore
+    description: Web-based control plane to deploy and manage Hydra Heads in Docker with one command.
+    to: https://hexcore.hydrasdk.com/docs
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Hub](/images/hydra-hub.png){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="Infrastructure"}
+      :::::div{class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hexcore](/images/hexcore.svg){.size-7 .object-contain}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="Infrastructure" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
     title: Hydra SDK Playground
-    description: An interactive playground for experimenting with Hydra SDK features and building DApps.
+    description: Interactive sandbox for testing Hydra SDK features and prototyping L2 transactions.
     to: https://playground.hydrasdk.com
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra SDK Playground](/images/hydra-playground-logo-white.png){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="Development"}
+      :::::div{class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated p-1.5 ring-1 ring-default"}
+      ![Hydra SDK Playground](/images/hydra-playground-logo.png){.size-full .object-contain}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="Developer Tool" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
-    title: Hydra Fly
-    description: A GameFi tournament game built on Cardano Hydra L2 where the top leaderboard player wins rewards.
-    to: https://alpha.hydraone.app/games/hydra-fly/play
+    title: Perpetuals Exchange
+    description: High-speed decentralized perpetual futures trading with up to 50x leverage on Hydra L2.
+    to: https://beta.hydraone.app/games/perpetuals
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Fly](/images/fly.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
-    ::::
-
-    ::::u-page-card
-    ---
-    title: River Cross
-    description: A survival GameFi game on Cardano Hydra L2 where players bet tADA to cross a river.
-    to: https://alpha.hydraone.app/games/river-cross/play
-    target: _blank
-    variant: subtle
-    spotlight: true
-    class: "hcard hover:ring-primary/40"
-    ---
-    #leading
-    ![River Cross](/images/river-cross.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Perpetuals Exchange](/images/perpetuals.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="DeFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
     title: Hydra Gacha
-    description: An on-chain lottery game built on Cardano Hydra L2 using NFT tickets.
-    to: https://alpha.hydraone.app/games/hydra-gacha
+    description: Provably fair on-chain lottery and prize draw powered by NFT tickets on Hydra L2.
+    to: https://beta.hydraone.app/games/hydra-gacha
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Gacha](/images/gacha.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="Lottery"}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hydra Gacha](/images/gacha.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="Lottery" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
-    title: Knight
-    description: A dungeon survival GameFi game on Cardano Hydra L2 where players bet tADA to defeat enemies.
-    to: https://alpha.hydraone.app/games/knight/play
+    title: Hydra Fly
+    description: Competitive arcade tournament on Hydra L2 where top leaderboard players earn rewards.
+    to: https://beta.hydraone.app/games/hydra-fly
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Knight](/images/knight.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hydra Fly](/images/fly.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
 
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+    ::::u-page-card
+    ---
+    title: River Cross
+    description: Real-time survival game on Hydra L2 with instant on-chain wagering and payouts.
+    to: https://beta.hydraone.app/games/river-cross
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![River Cross](/images/river-cross.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Mines
+    description: Grid-based strategy game with instant reward multipliers settled on Hydra L2.
+    to: https://beta.hydraone.app/games/mines
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Mines](/images/mines.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Russian Roulette
+    description: High-stakes winner-takes-all game of chance with sub-second finality on Hydra L2.
+    to: https://beta.hydraone.app/games/russian-roulette
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Russian Roulette](/images/russian-roulette.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Onchain Graveyard
+    description: Permanent on-chain memorials engraved and settled instantly via Hydra Layer 2.
+    to: https://beta.hydraone.app/games/graveyard
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Onchain Graveyard](/images/graveyard.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="Social" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
   :::
 ::
