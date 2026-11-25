@@ -134,6 +134,8 @@ h4,
   .reveal-stagger.reveal-in > *:nth-child(6) { animation-delay: 350ms; }
   .reveal-stagger.reveal-in > *:nth-child(7) { animation-delay: 420ms; }
   .reveal-stagger.reveal-in > *:nth-child(8) { animation-delay: 490ms; }
+  .reveal-stagger.reveal-in > *:nth-child(9) { animation-delay: 560ms; }
+  .reveal-stagger.reveal-in > *:nth-child(10) { animation-delay: 630ms; }
 }
 
 @keyframes landing-rise {
@@ -221,6 +223,11 @@ h4,
 .landing-content .hcard [data-slot="leadingIcon"] {
   width: 1.75rem;
   height: 1.75rem;
+}
+/* Stretch custom leading slot so app cards can align logo + category badge
+   cleanly on the top header row. */
+.landing-content .hcard [data-slot="leading"] {
+  width: 100%;
 }
 .landing-content .hcard [data-slot="title"] {
   font-size: 1.0625rem;

@@ -60,7 +60,7 @@ Một bộ công cụ phát triển phần mềm toàn diện để xây dựng 
   items:
     - value: "3"
       label: Gói lõi
-    - value: "5+"
+    - value: "9+"
       label: Ứng dụng
     - value: "100%"
       label: TypeScript
@@ -161,107 +161,167 @@ Hệ sinh thái
 #description
 Khám phá những ứng dụng mạnh mẽ đã dùng SDK của chúng tôi trong môi trường production.
 
-  :::u-page-grid{class="reveal-stagger mt-4 text-left"}
+  :::u-page-grid{class="reveal-stagger mt-4 text-left gap-5"}
     ::::u-page-card
     ---
-    title: Hydra Hub
-    description: Cung cấp quản lý Hydra Node phi tập trung, kết nối Hydra Head và các API Layer-2 để xây dựng DApp Cardano.
-    to: https://dev.hydrahub.io.vn
+    title: Hexcore
+    description: Bảng điều khiển web giúp triển khai và quản lý Hydra Head trên Docker chỉ với một lệnh.
+    to: https://github.com/Vtechcom/hexcore-v2
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Hub](/images/hydra-hub.png){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="Infrastructure"}
+      :::::div{class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hexcore](/images/hexcore.svg){.size-7 .object-contain}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="Infrastructure" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
     title: Hydra SDK Playground
-    description: Một sân chơi tương tác để thử nghiệm các tính năng của Hydra SDK và xây dựng DApp.
+    description: Môi trường tương tác để thử nghiệm tính năng Hydra SDK và tạo mẫu giao dịch L2.
     to: https://playground.hydrasdk.com
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra SDK Playground](/images/hydra-playground-logo-white.png){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="Development"}
+      :::::div{class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated p-1.5 ring-1 ring-default"}
+      ![Hydra SDK Playground](/images/hydra-playground-logo.png){.size-full .object-contain}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="Developer Tool" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
-    title: Hydra Fly
-    description: Một game giải đấu GameFi xây dựng trên Cardano Hydra L2, nơi người chơi đứng đầu bảng xếp hạng giành phần thưởng.
-    to: https://alpha.hydraone.app/games/hydra-fly/play
+    title: Perpetuals Exchange
+    description: Sàn giao dịch hợp đồng tương lai vĩnh cửu tốc độ cao với đòn bẩy tới 50x trên Hydra L2.
+    to: https://alpha.hydraone.app/games/perpetuals
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Fly](/images/fly.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
-    ::::
-
-    ::::u-page-card
-    ---
-    title: River Cross
-    description: Một game sinh tồn GameFi trên Cardano Hydra L2, nơi người chơi đặt cược tADA để vượt sông.
-    to: https://alpha.hydraone.app/games/river-cross/play
-    target: _blank
-    variant: subtle
-    spotlight: true
-    class: "hcard hover:ring-primary/40"
-    ---
-    #leading
-    ![River Cross](/images/river-cross.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Perpetuals Exchange](/images/perpetuals.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="DeFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
     title: Hydra Gacha
-    description: Một game xổ số on-chain xây dựng trên Cardano Hydra L2 sử dụng vé NFT.
+    description: Vòng quay xổ số on-chain minh bạch sử dụng vé NFT trên mạng lưới Hydra L2.
     to: https://alpha.hydraone.app/games/hydra-gacha
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Hydra Gacha](/images/gacha.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
-
-    #footer
-    :u-badge{color="primary" variant="subtle" size="sm" label="Lottery"}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hydra Gacha](/images/gacha.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="primary" variant="subtle" size="sm" label="Lottery" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
 
     ::::u-page-card
     ---
-    title: Knight
-    description: Một game sinh tồn dungeon GameFi trên Cardano Hydra L2, nơi người chơi đặt cược tADA để đánh bại kẻ thù.
-    to: https://alpha.hydraone.app/games/knight/play
+    title: Hydra Fly
+    description: Giải đấu game arcade trên Hydra L2 với phần thưởng dành cho người dẫn đầu bảng xếp hạng.
+    to: https://alpha.hydraone.app/games/hydra-fly/play
     target: _blank
     variant: subtle
     spotlight: true
-    class: "hcard hover:ring-primary/40"
+    class: "hcard group hover:ring-primary/40"
     ---
     #leading
-    ![Knight](/images/knight.webp){.size-11 .rounded-xl .object-contain .ring-1 .ring-default}
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Hydra Fly](/images/fly.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
 
-    #footer
-    :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi"}
+    ::::u-page-card
+    ---
+    title: River Cross
+    description: Game sinh tồn thời gian thực trên Hydra L2 với cơ chế đặt cược và trả thưởng tức thì.
+    to: https://alpha.hydraone.app/games/river-cross/play
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![River Cross](/images/river-cross.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Mines
+    description: Trò chơi chiến thuật mở ô nhận hệ số nhân thưởng tức thì trên Hydra L2.
+    to: https://alpha.hydraone.app/games/mines
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Mines](/images/mines.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Russian Roulette
+    description: Trò chơi đối kháng kịch tính thắng-ăn-cả với tốc độ xử lý dưới 1 giây trên Hydra L2.
+    to: https://alpha.hydraone.app/games/russian-roulette/play
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Russian Roulette](/images/russian-roulette.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="GameFi" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
+    ::::
+
+    ::::u-page-card
+    ---
+    title: Onchain Graveyard
+    description: Khắc bia tưởng niệm vĩnh viễn trên chuỗi, xác nhận giao dịch tức thì qua Hydra L2.
+    to: https://alpha.hydraone.app/games/graveyard
+    target: _blank
+    variant: subtle
+    spotlight: true
+    class: "hcard group hover:ring-primary/40"
+    ---
+    #leading
+      :::::div{class="size-11 shrink-0 overflow-hidden rounded-xl bg-elevated ring-1 ring-default"}
+      ![Onchain Graveyard](/images/graveyard.webp){.size-full .object-cover}
+      :::::
+      :u-badge{color="neutral" variant="subtle" size="sm" label="Social" class="ml-auto"}
+      :u-icon{name="i-lucide-arrow-up-right" class="ml-1.5 size-4 text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"}
     ::::
   :::
 ::
